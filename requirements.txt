@@ -1,0 +1,3 @@
+semiauto_sg==0.0.1
+qtsass>=0.0.1
+qtpyvcp>=4.1.2

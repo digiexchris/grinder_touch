@@ -1,0 +1,18 @@
+Source: qtpyvcp-semiauto-sg
+Section: python
+Priority: optional
+Maintainer: Chris Chatelain <see.github>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-setuptools,
+               python3-all,
+               python3-numpy,
+               qtsass,
+               qtpyvcp (>= 4.1.2)
+Standards-Version: 4.5.0
+Homepage: https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui
+
+Package: qtpyvcp-semiauto-sg
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-numpy, qtsass, qtpyvcp (>= 4.1.2)
+Description: A semiauto surface grinder interface for linuxcnc

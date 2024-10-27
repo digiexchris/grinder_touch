@@ -7,6 +7,8 @@ with open("README.md", "r") as fh:
 with open("entry_points.ini", "r") as fh:
     entry_points = fh.read()
 
+with open("requirements.txt", "r") as fh:
+    entry_points = fh.read()
 
 # list of (destination, source_file) tuples
 DATA_FILES = [
@@ -50,6 +52,13 @@ setup(
     data_files=data_files,
     entry_points=entry_points,
     install_requires=[
-        'qtsass'
+        'numpy>=1.19.0',
+        'qtsass',
+        'qtpyvcp>=4.1.2'
     ],
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'Operating System :: OS Independent',
+    ],
+    python_requires='>=3.11',
 )
