@@ -2,7 +2,7 @@
 # SG CNC for linuxcnc
 
 #### Surface Grinder CNC
-
+A fork of https://github.com/turboss/sg_cnc.git
 
 
 ## Quick install
@@ -27,7 +27,9 @@ $ pip install -e .
 
 ## Customize
 
-now you can run editvcp to edit the interface
+install qtpyvcp
+https://www.qtpyvcp.com/install/apt_install.html
+https://repository.qtpyvcp.com/apt/pool/main/stable/
 
 ```
 $ editvcp sg_cnc-sg

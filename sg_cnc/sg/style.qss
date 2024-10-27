@@ -56,8 +56,8 @@ QPushButton:flat {
   background: transparent;
   border: none;
   border-radius: 3px;
-  min-height: 25px;
-  min-width: 25px; }
+  min-height: 30px;
+  min-width: 30px; }
 
 QPushButton:flat:hover {
   border: 1px solid lime;
@@ -75,8 +75,8 @@ QToolButton {
   background: transparent;
   border: none;
   border-radius: 3px;
-  min-height: 25px;
-  min-width: 25px; }
+  min-height: 30px;
+  min-width: 30px; }
 
 QToolButton:hover {
   border: 1px solid lime;
@@ -124,7 +124,7 @@ QComboBox {
   border: 1px solid lime;
   border-radius: 3px;
   min-width: 6em;
-  min-height: 25px; }
+  min-height: 30px; }
 
 QComboBox::drop-down {
   subcontrol-origin: padding;

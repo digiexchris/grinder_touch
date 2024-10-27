@@ -8,7 +8,7 @@ qtdesigner:
 vcp:
   name: sg_cnc-sg
   version: v0.0.1
-  author: TurBoss
+  author: TurBoss, Chris Chatelain
   description: SG CNC Surface Grinder
 
 data_plugins:
