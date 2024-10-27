@@ -2,6 +2,16 @@
 # SG CNC for linuxcnc
 
 #### Surface Grinder CNC
+Semi-automatic surface grinder interface similar to hydraulic grinders, but with extra functionality
+
+The left/right traverse allows for all 3 dimensions, so it's possible to traverse at a 3d angle instead of just horizontally!
+
+Infeed also takes a 3d vector, so you can do in/out stepover like usual, but can also plunge or do an angle instead.
+
+TODO:
+
+Make a calculator that sets the stepover vector according to angles
+
 A fork of https://github.com/turboss/sg_cnc.git
 
 
@@ -10,6 +20,14 @@ A fork of https://github.com/turboss/sg_cnc.git
 install linuxcnc 2.9pre using the debian 11
 
 http://www.linuxcnc.org/
+
+install qtpyvcp from packages (pypi's version is too old for python3)
+
+qtpyvcp packages can be found here 
+https://repository.qtpyvcp.com/apt/pool/main/stable/
+
+
+https://www.qtpyvcp.com/install/prerequisites.html
 
 ### Dependencies
 
@@ -20,8 +38,8 @@ $ sudo apt install python3-pyqt5 python3-pyqt5.qtquick python3-dbus.mainloop.pyq
 ### installation
 
 ```
-$ git clone https://github.com/turboss/sg_cnc.git
-$ cd sg_cnc
+$ git clone https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui
+$ cd semiauto_sg
 $ pip install -e .
 ```
 
@@ -32,14 +50,14 @@ https://www.qtpyvcp.com/install/apt_install.html
 https://repository.qtpyvcp.com/apt/pool/main/stable/
 
 ```
-$ editvcp sg_cnc-sg
+$ cd semiauto_sg/ui
+$ editvcp config.yml
 ```
 
 ## Resources
 
-* [Development](https://github.com/turboss/sg_cnc)
+* [Development](https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui)
 * [Documentation](https://qtpyvcp.com)
-* [Issue Tracker]()
 
 
 ## Dependancies
@@ -49,7 +67,7 @@ $ editvcp sg_cnc-sg
 * PyQt5 or PySide2
 * [QtPyVCP](https://qtpyvcp.com/)
 
-SG_CNC is developed and tested using the LinuxCNC Debian 11, It should run on any system that can have PyQt5 installed, but Debian 11 is the only OS
+semiauto_sg is developed and tested using the LinuxCNC Debian 12, It should run on any system that can have PyQt5 installed, but Debian 12 is the only OS
 that is officially supported.
 
 

@@ -1,4 +1,4 @@
-sg_cnc.egg-info
+semiauto_sg.egg-info
 .idea/
 *.vcp_persistent_data.pickle
 *.var.bak
@@ -8,9 +8,9 @@ sg_cnc.egg-info
 
 .pydevproject
 
-linuxcnc/sim.sg_cnc/halshow.preferences
+linuxcnc/sim.semiauto_sg/halshow.preferences
 
-linuxcnc/sim.sg_cnc/sim.log
+linuxcnc/sim.semiauto_sg/sim.log
 
 *.log
 .settings/

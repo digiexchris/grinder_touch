@@ -1,2 +1,2 @@
-graft sg_cnc/*
-recursive-include sg_cnc/*/*.yml
+graft semiauto_sg/*
+recursive-include semiauto_sg/*/*.yml

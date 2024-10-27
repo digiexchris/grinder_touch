@@ -36,21 +36,20 @@ data_files.extend(data_files_from_dirs(DATA_DIRS))
 
 
 setup(
-    name="sg_cnc",
+    name="semiauto_sg",
     version="0.0.1",
-    author="TurBoss",
-    author_email="j.l.toledano.l@gmail.com",
-    description="Surface grinder computer numeric control",
+    author="Chris Chatelain",
+    author_email="chris.chatelain@digiex.ca",
+    description="Surface grinder linuxcnc interface",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/kcjengr/sg-cnc.git",
+    url="https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui",
     download_url="",
     packages=find_packages(),
     include_package_data=True,
     data_files=data_files,
     entry_points=entry_points,
     install_requires=[
-        'qtsass',
-        'qtpyvcp',
+        'qtsass'
     ],
 )
