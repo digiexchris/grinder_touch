@@ -1,0 +1,31 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "semiauto_surfacegrinder"
+authors = [
+  "Chris Chatelain <digiex_chris@digiex.ca>",
+]
+description = "semiauto - Semi-automatic surface grinder interface similar to hydraulic grinders, but with extra functionality"
+readme = "README.md"
+version = "0.0"
+
+packages = [
+	{ include = "semiauto_surfacegrinder", from = "src" },
+	{ include = "widgets", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.scripts]
+semiauto_surfacegrinder = "semiauto_surfacegrinder:main"
+
+[tool.poetry.plugins]
+
+[tool.poetry.plugins."qtpyvcp.vcp"]
+semiauto_surfacegrinder = "semiauto_surfacegrinder"
+
+[tool.poetry.plugins."qtpyvcp.widgets"]
+semiauto_widgets = "widgets"

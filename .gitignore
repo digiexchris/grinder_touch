@@ -7,6 +7,13 @@ semiauto_sg.egg-info
 .project
 
 .pydevproject
+.pybuild
+bak
+debian/.debhelper
+debian/files
+debian/python3-semiauto-surfacegrinder.*.debhelper
+debian/*.debhelper
+dist/
 
 linuxcnc/sim.semiauto_sg/halshow.preferences
 

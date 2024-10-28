@@ -1,3 +1,14 @@
+Metadata-Version: 2.1
+Name: semiauto-surfacegrinder
+Version: 0.0
+Summary: semiauto - Semi-automatic surface grinder interface similar to hydraulic grinders, but with extra functionality
+Author: Chris Chatelain
+Author-email: digiex_chris@digiex.ca
+Requires-Python: >=3.11,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Description-Content-Type: text/markdown
+
 
 # SG CNC for linuxcnc
 

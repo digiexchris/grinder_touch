@@ -1,2 +1,0 @@
-graft semiauto_sg/*
-recursive-include semiauto_sg/*/*.yml

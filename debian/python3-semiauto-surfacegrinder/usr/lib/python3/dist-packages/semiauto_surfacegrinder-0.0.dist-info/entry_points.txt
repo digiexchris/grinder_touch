@@ -1,0 +1,9 @@
+[console_scripts]
+semiauto_surfacegrinder=semiauto_surfacegrinder:main
+
+[qtpyvcp.vcp]
+semiauto_surfacegrinder=semiauto_surfacegrinder
+
+[qtpyvcp.widgets]
+semiauto_widgets=widgets
+
