@@ -116,23 +116,25 @@ class MainWindow(VCPMainWindow):
 
         self.infeed_axis_combo_box = self.findChild(QComboBox, "infeed_axis")
         self.traverse_axis_combo_box = self.findChild(QComboBox, "traverse_axis")
-        self.traverse_limit_min = self.findChild(QLineEdit, "traverse_limit_min")
-        self.traverse_limit_max = self.findChild(QLineEdit, "traverse_limit_max")
-        
+        self.traverse_limit_min_edit = self.findChild(QLineEdit, "traverse_limit_min")
+        self.traverse_limit_max_edit = self.findChild(QLineEdit, "traverse_limit_max")
+        self.infeed_limit_min_edit = self.findChild(QLineEdit, "infeed_limit_min")
+        self.infeed_limit_max_edit = self.findChild(QLineEdit, "infeed_limit_max")
+        self.stepover_edit = self.findChild(QLineEdit, "infeed_stepover")
 
         self.save_traverse = self.findChild(QPushButton, "save_limits")
         if self.save_traverse:
-            self.save_traverse.clicked.connect(self.on_save_traverse_clicked)
+            self.save_traverse.clicked.connect(self.on_save_limits_clicked)
 
         self.cancel_edit_traverse = self.findChild(QPushButton, "cancel_edit_limits")
         if self.cancel_edit_traverse:
-            self.cancel_edit_traverse.clicked.connect(self.on_cancel_edit_traverse_clicked)
+            self.cancel_edit_traverse.clicked.connect(self.on_cancel_edit_limits_clicked)
 
         self.traverse_speed_spinbox = self.findChild(QSpinBox, "traverse_speed")
         if self.traverse_speed_spinbox:
             self.traverse_speed_spinbox.valueChanged.connect(self.on_traverse_speed_changed)
 
-        self.infeed_stepover = self.findChild(QLineEdit, "infeed_stepover")
+        self.infeed_stepover_edit = self.findChild(QLineEdit, "infeed_stepover")
        
         self.infeed_speed_spinbox = self.findChild(QSpinBox, "infeed_speed")
         if self.infeed_speed_spinbox:
@@ -169,11 +171,11 @@ class MainWindow(VCPMainWindow):
 
     def update_ui_from_settings(self):
         """Update UI fields from loaded settings."""
-        self.infeed_limit_min.setText(str(self.infeed_limit_min))
-        self.infeed_limit_max.setText(str(self.infeed_limit_max))
-        self.stepover.setText(str(self.stepover))
-        self.traverse_limit_min.setText(str(self.traverse_limit_min))
-        self.traverse_limit_max.setText(str(self.traverse_limit_max))
+        self.infeed_limit_min_edit.setText(str(self.infeed_limit_min))
+        self.infeed_limit_max_edit.setText(str(self.infeed_limit_max))
+        self.infeed_stepover_edit.setText(str(self.stepover))
+        self.traverse_limit_min_edit.setText(str(self.traverse_limit_min))
+        self.traverse_limit_max_edit.setText(str(self.traverse_limit_max))
 
         self.infeed_speed_spinbox.setValue(int(self.infeed_speed))
         self.traverse_speed_spinbox.setValue(int(self.traverse_speed))

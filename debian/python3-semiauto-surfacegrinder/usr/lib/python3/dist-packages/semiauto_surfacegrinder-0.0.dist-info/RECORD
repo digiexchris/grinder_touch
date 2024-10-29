@@ -1,8 +1,8 @@
 ../scripts/semiauto_surfacegrinder,sha256=1tUKPzc2UlBedCn-De6XZob7Zp4ghguLqt3fPB5iOq4,222
 semiauto_surfacegrinder/__init__.py,sha256=ezTBK0G-xd8oKnRWb51WZ2wPrUBOoH5Vwj76kQDT9B8,522
 semiauto_surfacegrinder/config.yml,sha256=T-md48TOkf3rRZcLKgt5pxeHtq-AerEt3faoHk4qNRU,1193
-semiauto_surfacegrinder/mainwindow.py,sha256=YPz7vOm-k6m4k5fSHxi3CssH-wteoCBlnR1jnMesw1I,38411
-semiauto_surfacegrinder/mainwindow.ui,sha256=tGTO8u9gZlf98_U4OdMPaluHfMOIqY0FHLtQRY5mz8U,49441
+semiauto_surfacegrinder/mainwindow.py,sha256=5rBf6ESH_jnJPEmRqUdfR6rj4eeAfRia_LoM63NxHmk,24605
+semiauto_surfacegrinder/mainwindow.ui,sha256=_Ug0RaLwPFWiyFdeak2_Zai5GrBiQKqQkhj4DqngjVk,30048
 semiauto_surfacegrinder/sass/style.scss,sha256=abc5NxGY2hMBiIkuvtE48qihXQ4IpWDScaN_nZvJcL8,24
 semiauto_surfacegrinder/style.qss,sha256=roUktC5-p9RG97sKiF4QtuLzxMOlN0zV8bW8kuJ-bTA,21138
 widgets/__init__.py,sha256=yaiEQQGjiWvpiVpwb-D7uLS0ZyAEqIEyz84fbKPIVbQ,361

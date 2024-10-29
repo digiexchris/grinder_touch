@@ -584,7 +584,7 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="traverse_limit_max_2">
+            <widget class="QLineEdit" name="infeed_limit_max">
              <property name="font">
               <font>
                <family>Sans</family>

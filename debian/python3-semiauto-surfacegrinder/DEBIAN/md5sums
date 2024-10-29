@@ -1,13 +1,13 @@
 8b75e7b953c809818392471d2159fc9a  usr/bin/semiauto_surfacegrinder
 8e90817d31dce0d192a03a3372c3a5ff  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/METADATA
-59f27054f86dfcedee630fbc439eab84  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/RECORD
+c3b863a76492cc9dc5356919432102a4  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/RECORD
 b65598d0aa0cfe0f390246499e741adb  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/WHEEL
 4aeb9c8732d2060fc07f32d395f791ec  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/entry_points.txt
 96776ab54c2a761ac7797a3bac789db1  usr/lib/python3/dist-packages/semiauto_surfacegrinder/__init__.py
 fe6bd0c2883aba44b19bd206ac21aa7c  usr/lib/python3/dist-packages/semiauto_surfacegrinder/config.yml
-f9afca536dccf44cc0e3f0209e6f94bf  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.py
-e37cb020aec34e81685694cc2987d75d  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.ui
-50c81c00d8a197df26226653d98cb824  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow_ui.py
+4a731271983771f0c18139a5d916e232  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.py
+f51bac8453538edc00aaf5ef2d4634b3  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.ui
+8a3a052d48a78ff5bce13a26e3830e52  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow_ui.py
 ca4599b1e5518c4e416db47b4c9331d0  usr/lib/python3/dist-packages/semiauto_surfacegrinder/sass/style.scss
 1ea0483c13980ccb6bbf718e99a3f316  usr/lib/python3/dist-packages/semiauto_surfacegrinder/style.qss
 e249bbb74f43f360ff560cd2db405661  usr/lib/python3/dist-packages/widgets/__init__.py
