@@ -5,6 +5,17 @@ import linuxcnc
 import hal
 import numpy as np
 from qtpy.QtCore import QTimer, QEventLoop
+from qtpyvcp.plugins import getPlugin
+from enum import Enum
+
+class MachineState(Enum):
+    INIT = 0,
+    TRAVERSING_START = 1,
+    TRAVERSING_MAX = 2,
+    TRAVERSING_MIN = 3,
+    INFEEDING_START = 4,
+    INFEEDING_MAX = 5,
+    INFEEDING_MIN = 6,
 
 # Setup logging
 from qtpyvcp.utilities import logger
@@ -16,15 +27,21 @@ class MainWindow(VCPMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
+        self.settings = getPlugin('persistent_data_manager')
+
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
         self.h = hal.component("dynamic_control")
 
         # Local variables for traverse limits and stepover
-        self.traverse_left_limit = np.zeros(4)
-        self.traverse_right_limit = np.zeros(4)
-        self.stepover = np.zeros(4)
+        self.traverse_limit_min = np.zeros(3, dtype=float)
+        self.traverse_limit_max = np.zeros(3, dtype=float)
+        self.infeed_limit_min = np.zeros(3, dtype=float)
+        self.infeed_limit_max = np.zeros(3, dtype=float)
+        self.downfeed_limit_min = np.zeros(3, dtype=float)
+        self.downfeed_limit_max = np.zeros(3, dtype=float)
+        self.stepover = np.zeros(3, dtype=float)
 
 
         self.infeed_limit_min = np.array([0,0,0])
@@ -59,11 +76,22 @@ class MainWindow(VCPMainWindow):
 
         # Add variables to keep track of state
         self.control_loop_running = False
-        self.current_target = 0  # 0 for Traverse Left, 1 for Traverse Right
+
+        self.state = MachineState.INIT
+        self.last_state = MachineState.INIT
+        self.last_traverse_direction = MachineState.TRAVERSING_MAX
+        self.last_infeed_direction = MachineState.INFEEDING_MAX
+
+        self.commanded_target = np.zeros(3, dtype=float)
+
+        self.current_target = "max"  # 0 for Traverse Left, 1 for Traverse Right
+        self.last_target = 0
+        self.current_pass_infeed_complete = 1
         self.stopped_mid_cycle = False
 
         # Add custom initialization logic here
         self.initialize_controls()
+        self.load_settings()
 
     def initialize_controls(self):
         """Initialize custom controls and connect UI elements."""
@@ -111,9 +139,9 @@ class MainWindow(VCPMainWindow):
         if self.cancel_edit_traverse:
             self.cancel_edit_traverse.clicked.connect(self.on_cancel_edit_traverse_clicked)
 
-        self.traverse_speed = self.findChild(QSpinBox, "traverse_speed")
-        if self.traverse_speed:
-            self.traverse_speed.valueChanged.connect(self.on_traverse_speed_changed)
+        self.traverse_speed_spinbox = self.findChild(QSpinBox, "traverse_speed")
+        if self.traverse_speed_spinbox:
+            self.traverse_speed_spinbox.valueChanged.connect(self.on_traverse_speed_changed)
 
         self.save_traverse_speed = self.findChild(QPushButton, "save_traverse_speed")
         if self.save_traverse_speed:
@@ -180,9 +208,9 @@ class MainWindow(VCPMainWindow):
         if self.cancel_edit_infeed:
             self.cancel_edit_infeed.clicked.connect(self.on_cancel_edit_infeed_clicked)
 
-        self.infeed_speed = self.findChild(QSpinBox, "infeed_speed")
-        if self.infeed_speed:
-            self.infeed_speed.valueChanged.connect(self.on_infeed_speed_changed)
+        self.infeed_speed_spinbox = self.findChild(QSpinBox, "infeed_speed")
+        if self.infeed_speed_spinbox:
+            self.infeed_speed_spinbox.valueChanged.connect(self.on_infeed_speed_changed)
 
         self.cancel_edit_infeed_speed = self.findChild(QPushButton, "cancel_edit_infeed_speed")
         if self.cancel_edit_infeed_speed:
@@ -211,6 +239,48 @@ class MainWindow(VCPMainWindow):
             self.infeed_reverse_combo_box.currentIndexChanged.connect(self.on_infeed_reverse_changed)
             self.on_infeed_reverse_changed()  # Set initial index
 
+    def load_settings(self):
+        """Load user settings using PersistentSettings."""
+        self.infeed_limit_min = np.array(self.settings.getData('infeed_limit_min', [0, 0, 0]), dtype=float)
+        self.infeed_limit_max = np.array(self.settings.getData('infeed_limit_max', [0, 0, 20]), dtype=float)
+        self.traverse_limit_min = np.array(self.settings.getData('traverse_limit_min', [0, 0, 0]), dtype=float)
+        self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', [100, 0, 0]), dtype=float)
+        self.stepover = np.array(self.settings.getData('stepover', [0, 0, 0.05]), dtype=float)
+        self.infeed_speed = int(self.settings.getData('infeed_speed', 200))
+        self.traverse_speed = int(self.settings.getData('traverse_speed', 500))
+        self.infeed_type = int(self.settings.getData('infeed_type', 0))
+        self.infeed_reverse = int(self.settings.getData('infeed_reverse', 0))
+
+        # Update the UI
+        self.update_ui_from_settings()
+
+    def update_ui_from_settings(self):
+        """Update UI fields from loaded settings."""
+        self.infeed_limit_min_x.setText(str(self.infeed_limit_min[0]))
+        self.infeed_limit_min_y.setText(str(self.infeed_limit_min[1]))
+        self.infeed_limit_min_z.setText(str(self.infeed_limit_min[2]))
+
+        self.infeed_limit_max_x.setText(str(self.infeed_limit_max[0]))
+        self.infeed_limit_max_y.setText(str(self.infeed_limit_max[1]))
+        self.infeed_limit_max_z.setText(str(self.infeed_limit_max[2]))
+
+        self.stepover_x.setText(str(self.stepover[0]))
+        self.stepover_y.setText(str(self.stepover[1]))
+        self.stepover_z.setText(str(self.stepover[2]))
+
+        self.traverse_limit_min_x.setText(str(self.traverse_limit_min[0]))
+        self.traverse_limit_min_y.setText(str(self.traverse_limit_min[1]))
+        self.traverse_limit_min_z.setText(str(self.traverse_limit_min[2]))
+
+        self.traverse_limit_max_x.setText(str(self.traverse_limit_max[0]))
+        self.traverse_limit_max_y.setText(str(self.traverse_limit_max[1]))
+        self.traverse_limit_max_z.setText(str(self.traverse_limit_max[2]))
+
+        self.infeed_speed_spinbox.setValue(int(self.infeed_speed))
+        self.traverse_speed_spinbox.setValue(int(self.traverse_speed))
+        self.infeed_type_combo_box.setCurrentIndex(self.infeed_type)
+        self.infeed_reverse_combo_box.setCurrentIndex(self.infeed_reverse)
+
 
     def on_save_infeed_clicked(self):
         """Handle Save Infeed button click."""
@@ -236,6 +306,17 @@ class MainWindow(VCPMainWindow):
                 float(self.infeed_limit_max_y.text()),
                 float(self.infeed_limit_max_z.text())
             ])
+            
+            self.stepover = np.array([
+                float(self.stepover_x.text()), 
+                float(self.stepover_y.text()), 
+                float(self.stepover_z.text())
+            ])
+
+            self.settings.setData("infeed_limit_max", self.infeed_limit_max.tolist())
+            self.settings.setData("infeed_limit_min", self.infeed_limit_min.tolist())
+            self.settings.setData("stepover", self.stepover.tolist())
+
             LOG.info("Infeed limits saved successfully.")
         except ValueError:
             LOG.error("Invalid input: Please enter numeric values for infeed limits.")
@@ -248,6 +329,9 @@ class MainWindow(VCPMainWindow):
         self.infeed_limit_max_x.setText(str(self.infeed_limit_max[0]))
         self.infeed_limit_max_y.setText(str(self.infeed_limit_max[1]))
         self.infeed_limit_max_z.setText(str(self.infeed_limit_max[2]))
+        self.stepover_x.setText(str(self.stepover[0]))
+        self.stepover_y.setText(str(self.stepover[1]))
+        self.stepover_z.setText(str(self.stepover[1]))
         LOG.info("Infeed limit fields reset to previous values.")
 
 
@@ -258,14 +342,18 @@ class MainWindow(VCPMainWindow):
 
     def on_save_infeed_speed_clicked(self):
         """Handle Save Infeed Speed button click."""
-        LOG.info("Save Traverse Speed button clicked.")
-        speed = self.infeed_speed.value()
-        self.set_infeed_speed(speed)
+        try:
+            LOG.info("Save Infeed Speed button clicked.")
+            speed = float(self.infeed_speed_spinbox.value())
+            self.set_infeed_speed(speed)
+        except ValueError:
+            LOG.error("Invalid input: Please enter numeric values for infeed speed.")
 
     def set_infeed_speed(self, speed):
         """Set infeed speed in the system."""
         LOG.info(f"Setting infeed speed to: {speed}")
         self.infeed_speed = speed
+        self.settings.setData("infeed_speed", self.infeed_speed)
 
     def on_cancel_edit_infeed_speed_clicked(self):
         """Handle Cancel Infeed Speed button click."""
@@ -277,8 +365,6 @@ class MainWindow(VCPMainWindow):
         """Reset Infeed speed to previous value."""
         self.infeed_speed.setValue(int(self.current_infeed_speed))
         LOG.info("Infeed speed reset to previous value.")
-
-
 
     def on_traverse_speed_changed(self, value):
         """Handle Traverse Speed change."""
@@ -293,9 +379,13 @@ class MainWindow(VCPMainWindow):
 
     def on_save_traverse_speed_clicked(self):
         """Handle Save Traverse Speed button click."""
-        LOG.info("Save Traverse Speed button clicked.")
-        speed = self.traverse_speed.value()
-        self.set_traverse_speed(speed)
+        try:
+            LOG.info("Save Traverse Speed button clicked.")
+            speed = float(self.traverse_speed_spinbox.value())
+            self.set_traverse_speed(speed)
+            self.settings.setData("traverse_speed", self.traverse_speed)
+        except ValueError:
+            LOG.error("Invalid input: Please enter numeric values for traverse speed.")
 
     def on_cancel_edit_traverse_speed_clicked(self):
         """Handle Cancel Traverse Speed button click."""
@@ -343,22 +433,35 @@ class MainWindow(VCPMainWindow):
         self.infeed_reverse = index
         LOG.info(f"Infeed reverse changed to index: {index}")
 
+    def is_machine_idle(self):
+        """Check if the machine is idle and ready for MDI."""
+        self.s.poll()  # Update the status
+
+        if self.s.interp_state == linuxcnc.INTERP_IDLE:
+            return True
+        else:
+            return False
+
     def on_run_stop_button_clicked(self):
         """Handle run/stop button toggle."""
         self.start_motion = not self.start_motion
 
         if self.start_motion:
+
+            if not self.is_machine_idle():
+                LOG.info("Machine is busy, cannot enter MDI mode. Not starting.")
+                return
+    
+            self.c.mode(linuxcnc.MODE_MDI)
+            self.c.wait_complete()
+
             self.run_stop_button.setText("Running")
             self.run_stop_button.setStyleSheet("background-color: green; color: white;")
             self.run_stop_button.setChecked(True)
             LOG.info("Run/Stop toggled to 'run'.")
-            self.timer.start(100)
+            self.timer.start(250)
         else:
-            self.run_stop_button.setText("Stopped")
-            self.run_stop_button.setStyleSheet("")
-            self.run_stop_button.setChecked(False)
-            self.stopped_mid_cycle = True
-            self.timer.stop()
+            self.stop()
             LOG.info("Run/Stop toggled to 'stop'.")
 
     def on_save_traverse_clicked(self):
@@ -370,21 +473,19 @@ class MainWindow(VCPMainWindow):
         self.stop()  # Stops the timer and sets run_stop to False
 
         try:
-            self.traverse_left_limit = np.array([
-                float(self.traverse_limit_max_x.text()), 
+            self.traverse_limit_min = np.array([
+                float(self.traverse_limit_min_x.text()), 
                 float(self.traverse_limit_min_y.text()), 
                 float(self.traverse_limit_min_z.text())
             ])
-            self.traverse_right_limit = np.array([
+            self.traverse_limit_max = np.array([
                 float(self.traverse_limit_max_x.text()), 
                 float(self.traverse_limit_max_y.text()), 
                 float(self.traverse_limit_max_z.text())
             ])
-            self.stepover = np.array([
-                float(self.stepover_x.text()), 
-                float(self.stepover_y.text()), 
-                float(self.stepover_z.text())
-            ])
+
+            self.settings.setData("traverse_limit_min", self.traverse_limit_min.tolist())
+            self.settings.setData("traverse_limit_max", self.traverse_limit_max.tolist())
 
             LOG.info("Traverse limits and 3D stepover values saved successfully.")
 
@@ -485,8 +586,13 @@ class MainWindow(VCPMainWindow):
     def stop(self):
         """Start or stop the control loop based on the run_stop signal."""
         self.timer.stop()
+        self.c.abort()
         self.stopped_mid_cycle = True
         self.start_motion = False
+        self.run_stop_button.setText("Start")
+        self.run_stop_button.setStyleSheet("")
+        self.run_stop_button.setChecked(False)
+        self.stopped_mid_cycle = True
         LOG.info("Waiting for machine to stop...")
         self.wait_for_idle()
 
@@ -518,52 +624,65 @@ class MainWindow(VCPMainWindow):
             self.stepover_z.setText(str(self.stepover[2]))
 
             LOG.info(f"Stepover reversed: {self.stepover}")
+
+            return True
         elif self.infeed_reverse == 1:
             # Move to minimum limits
             limit = np.array([self.infeed_min_x.text(), self.infeed_min_y.text(), self.infeed_min_z.text()], dtype=float)
             self.move_to_infeed_limit(limit, direction='min')
+            return False
+            
         elif self.infeed_reverse == 2:
             # Move to maximum limits
             limit = np.array([self.infeed_max_x.text(), self.infeed_max_y.text(), self.infeed_max_z.text()], dtype=float)
             self.move_to_infeed_limit(limit, direction='max')
+            return False
 
     def move_to_infeed_limit(self, limit, direction):
         """Move to specified limit position (min or max)."""
         self.s.poll()
-        current_pos = np.array(self.s.actual_position[:3])
+        current_pos = np.array(self.s.position[:3])
 
         if direction == 'min':
             target_pos = current_pos + limit
         else:
             target_pos = current_pos - limit
 
-        self.c.mdi(f"G1 X{target_pos[0]} Y{target_pos[1]} Z{target_pos[2]} F500")
-        self.c.wait_complete()
+        LOG.info(F"Moving to infeed limit {target_pos}")
+        self.commanded_target = target_pos
+        self.c.mdi(f"G1 X{target_pos[0]} Y{target_pos[1]} Z{target_pos[2]} F{self.infeed_speed}")
+        
 
-    def move_to(self, pos):
-        self.c.mdi(f"G1 X{pos[0]} Y{pos[1]} Z{pos[2]} F500")
-        self.c.wait_complete()
+    def move_to(self, pos, speed):
+        LOG.info(F"Move_To: G1 X{pos[0]} Y{pos[1]} Z{pos[2]} F{speed}")
+        self.c.mdi(F"G1 X{pos[0]} Y{pos[1]} Z{pos[2]} F{speed}")
 
     def execute_infeed(self):
         """Handle the infeed logic at each traverse limit."""
         self.s.poll()
-        current_pos = np.array(self.s.actual_position[:3])
+        current_pos = np.array(self.s.position[:3])
 
-        if self.current_target == 0 and self.should_infeed(0):
-            if np.all(current_pos <= self.traverse_left_limit):
+        if self.current_target == "min" and self.should_infeed("min"):
+            LOG.info(F"execute infeed at pos {self.s.position}")
+            at_min_height = np.all(current_pos <= self.infeed_limit_min)
+            if(at_min_height):
                 self.reverse_infeed()
             else:
-                self.traverse_left_limit += self.stepover
-                self.traverse_right_limit += self.stepover
-                self.move_to(self.traverse_left_limit)
+                self.traverse_limit_min += self.stepover
+                self.traverse_limit_max += self.stepover
+                LOG.info(F"Moving to traverse min for infeed {self.traverse_limit_min}")
+                self.move_to(self.traverse_limit_min, self.infeed_speed)
 
-        elif self.current_target == 1 and self.should_infeed(1):
-            if np.all(current_pos >= self.traverse_right_limit):
+        elif self.current_target == "max" and self.should_infeed("max"):
+            at_max_height = np.all(current_pos >= self.infeed_limit_max)
+            if(at_max_height):
                 self.reverse_infeed()
             else:
-                self.traverse_left_limit += self.stepover
-                self.traverse_right_limit += self.stepover
-                self.move_to(self.traverse_right_limit)
+                self.traverse_limit_min += self.stepover
+                self.traverse_limit_max += self.stepover
+                
+                LOG.info(F"Moving to traverse max for infeed {self.traverse_limit_max}")
+                self.move_to(self.traverse_limit_max, self.infeed_speed)
 
     def control_loop(self):
         """Main control loop with state tracking and reentrancy protection."""
@@ -577,27 +696,168 @@ class MainWindow(VCPMainWindow):
         if not self.s.enabled or self.s.estop or not self.start_motion:
             self.timer.stop()
             LOG.info("Control loop stopped: Machine not ready.")
-            self.control_loop_running = False
             self.stopped_mid_cycle = True
+            self.exit_control_loop()
+            return
+        
+        #not ready for a new command yet
+        if self.s.interp_state != linuxcnc.INTERP_IDLE:
+            self.exit_control_loop()
             return
 
         try:
+            if self.s.interpreter_errcode != 0:
+                error_message = self.s.error
+                LOG.error(f"USRMOT error detected, stopping: {error_message}")
+
+                # Stop the machine and display an error message
+                self.stop()
+                self.show_error_message(f"Error: {error_message}")
+                self.exit_control_loop()  # Exit control loop to prevent further actions
+                return
+        
             if self.s.interp_state == linuxcnc.INTERP_IDLE:
-                if self.current_target == 0:
-                    self.move_to(self.traverse_left_limit)
-                    self.execute_infeed()
-                    self.current_target = 1
+                current_pos = np.array(self.s.position[:3])
 
-                elif self.current_target == 1:
-                    self.move_to(self.traverse_right_limit)
-                    self.execute_infeed()
-                    self.current_target = 0
+                if self.state == MachineState.INIT:
+                    LOG.info(F"State is {self.state}")
+                    self.state = MachineState.TRAVERSING_MAX
+                    self.commanded_target = self.traverse_limit_max
+                    self.exit_control_loop()
+                    return
+                
+                if self.state == MachineState.TRAVERSING_START:
+                    LOG.info(F"State is {self.state}")
+                    if self.last_traverse_direction == MachineState.TRAVERSING_MAX:
+                        self.state = MachineState.TRAVERSING_MAX
+                    elif self.last_traverse_direction == MachineState.TRAVERSING_MIN:
+                        self.state = MachineState.TRAVERSING_MIN
+                    else:
+                        self.state = MachineState.TRAVERSING_MAX
 
+                    self.exit_control_loop()
+                    return
+                    
+                
+                elif self.state == MachineState.TRAVERSING_MAX:
+                    LOG.info(F"State is {self.state}")
+                    if np.any(current_pos != self.commanded_target) and self.last_state == self.state:
+                        self.move_to(self.commanded_target, self.traverse_speed)
+                        self.last_traverse_direction = MachineState.TRAVERSING_MAX
+                        self.exit_control_loop()
+                        return
+                    else:
+                        if np.all(current_pos != self.traverse_limit_max):
+                            self.move_to(self.traverse_limit_max, self.traverse_speed)
+                            self.commanded_target = self.traverse_limit_max
+                            self.last_traverse_direction = MachineState.TRAVERSING_MAX
+                            self.last_state = MachineState.TRAVERSING_MAX
+                            self.exit_control_loop()
+                            return
+                        else:
+                            self.state = MachineState.INFEEDING_START
+                            self.commanded_target = self.traverse_limit_min
+                            self.last_traverse_direction = MachineState.TRAVERSING_MAX
+                            self.exit_control_loop()
+                            return
+
+                elif self.state == MachineState.TRAVERSING_MIN and self.last_state == self.state:
+                    LOG.info(F"State is {self.state}")
+                    if np.any(current_pos != self.commanded_target):
+                        self.move_to(self.commanded_target, self.traverse_speed)
+                        self.last_traverse_direction = MachineState.TRAVERSING_MIN
+                        self.exit_control_loop()
+                        return
+                    else:
+                        if np.all(current_pos != self.traverse_limit_min):
+                            self.move_to(self.traverse_limit_min, self.traverse_speed)
+                            self.last_traverse_direction = MachineState.TRAVERSING_MIN
+                            self.last_state = MachineState.TRAVERSING_MIN
+                            self.exit_control_loop()
+                            return
+                        else:
+                            self.state = MachineState.INFEEDING_START
+                            self.last_traverse_direction = MachineState.TRAVERSING_MIN
+                            self.exit_control_loop()
+                            return
+                        
+                elif self.state == MachineState.INFEEDING_START:
+                    LOG.info(F"State is {self.state}")
+                    if self.last_infeed_direction == MachineState.INFEEDING_MAX:
+                        self.state = MachineState.INFEEDING_MAX
+                    elif self.last_infeed_direction == MachineState.INFEEDING_MIN:
+                        self.state = MachineState.INFEEDING_MIN
+                    else:
+                        self.state = MachineState.INFEEDING_MAX
+
+                    self.exit_control_loop()
+                    return
+                
+                elif self.state == MachineState.INFEEDING_MAX:
+                    LOG.info(F"State is {self.state}")
+                    if np.any(current_pos != self.commanded_target) and self.last_state == self.state:
+                        self.move_to(self.commanded_target, self.infeed_speed)
+                        self.last_infeed_direction = MachineState.INFEEDING_MAX
+                        self.exit_control_loop()
+                        return
+                    else:
+                        if np.all(current_pos <= self.infeed_limit_max):
+                            if self.reverse_infeed():
+                                self.state = MachineState.TRAVERSING_START
+                                self.last_state = MachineState.INFEEDING_MAX
+                            else:
+                                #reverse_infeed is executing a move
+                                self.exit_control_loop()
+                                return
+                        else:    
+                            self.execute_stepover(MachineState.INFEEDING_MAX)
+                            return
+                        
+                elif self.state == MachineState.INFEEDING_MIN:
+                    LOG.info(F"State is {self.state}")
+                    if np.any(current_pos != self.commanded_target) and self.last_state == self.state:
+                        self.move_to(self.commanded_target, self.infeed_speed)
+                        self.last_infeed_direction = MachineState.INFEEDING_MIN
+                        self.exit_control_loop()
+                        return
+                    else:
+                        if np.all(current_pos <= self.infeed_limit_min):
+                            if self.reverse_infeed():
+                                self.state = MachineState.TRAVERSING_START
+                                self.last_state = MachineState.INFEEDING_MIN
+                            else:
+                                #reverse_infeed is executing a move
+                                self.exit_control_loop()
+                                return
+                        else:    
+                            self.execute_stepover(MachineState.INFEEDING_MIN)
+                            self.exit_control_loop()
+            
         except linuxcnc.error as e:
             LOG.error(f"Error in control loop: {e}")
+            self.stop()
 
+        self.exit_control_loop()
+        return
+    
+    def execute_stepover(self, infeed_dir):
+        self.traverse_limit_min += self.stepover
+        self.traverse_limit_max += self.stepover
+        if self.last_traverse_direction == MachineState.TRAVERSING_MAX:
+            LOG.info(F"Moving to traverse max for infeed {self.traverse_limit_max}")
+            self.move_to(self.traverse_limit_max, self.infeed_speed)
+        else:
+            LOG.info(F"Moving to traverse min for infeed {self.traverse_limit_min}")
+            self.move_to(self.traverse_limit_max, self.infeed_speed)
+        #self.move_to(self.infeed_limit_max, self.infeed_speed)
+        self.last_infeed_direction = infeed_dir
+        self.last_state = infeed_dir
+        self.state = MachineState.TRAVERSING_START
+
+    def exit_control_loop(self):
         self.control_loop_running = False
-
+        return
+    
     def wait_for_idle(self):
         """Wait until the machine becomes idle."""
         while True:

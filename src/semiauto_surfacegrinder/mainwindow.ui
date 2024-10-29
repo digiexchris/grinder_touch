@@ -258,7 +258,7 @@
        <enum>QTabWidget::South</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_0">
        <attribute name="title">
@@ -469,7 +469,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -504,7 +504,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -533,7 +533,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -574,7 +574,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -609,7 +609,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -638,7 +638,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -678,7 +678,7 @@
               <string>Save</string>
              </property>
              <property name="checkable">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -723,7 +723,11 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QSpinBox" name="traverse_speed"/>
+            <widget class="QSpinBox" name="traverse_speed">
+             <property name="maximum">
+              <number>2000</number>
+             </property>
+            </widget>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -754,7 +758,7 @@
                 <string>SET</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -838,7 +842,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -873,7 +877,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -902,7 +906,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -946,7 +950,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -981,7 +985,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -1010,7 +1014,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -1051,7 +1055,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -1086,7 +1090,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -1115,7 +1119,7 @@
               <string/>
              </property>
              <property name="echoMode">
-              <enum>QLineEdit::Password</enum>
+              <enum>QLineEdit::Normal</enum>
              </property>
             </widget>
            </item>
@@ -1134,7 +1138,11 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <widget class="QSpinBox" name="infeed_speed"/>
+              <widget class="QSpinBox" name="infeed_speed">
+               <property name="maximum">
+                <number>2000</number>
+               </property>
+              </widget>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -1165,7 +1173,7 @@
                   <string>SET</string>
                  </property>
                  <property name="checkable">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -1238,7 +1246,7 @@
                 <string>SAVE</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1441,11 +1449,6 @@
    <class>HalButton</class>
    <extends>QPushButton</extends>
    <header>qtpyvcp.widgets.hal_widgets.hal_button</header>
-  </customwidget>
-  <customwidget>
-   <class>HalPlot</class>
-   <extends>QWidget</extends>
-   <header>qtpyvcp.widgets.hal_widgets.hal_plot</header>
   </customwidget>
  </customwidgets>
  <resources/>

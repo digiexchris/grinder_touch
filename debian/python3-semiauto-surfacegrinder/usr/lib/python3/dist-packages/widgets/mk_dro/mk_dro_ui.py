@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/cnc/6x11-sg-grinder-linuxcnc-config/python3-semiauto-surfacegrinder/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/widgets/mk_dro/mk_dro.ui'
+# Form implementation generated from reading ui file '/home/chris/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/widgets/mk_dro/mk_dro.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -65,7 +65,7 @@ class Ui_Form(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.homed_indicator = QtWidgets.QLabel(self.frame)
         self.homed_indicator.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.homed_indicator.setPixmap(QtGui.QPixmap("/home/cnc/6x11-sg-grinder-linuxcnc-config/python3-semiauto-surfacegrinder/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/widgets/mk_dro/icons/homed.png"))
+        self.homed_indicator.setPixmap(QtGui.QPixmap("/home/chris/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/widgets/mk_dro/icons/homed.png"))
         self.homed_indicator.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.homed_indicator.setObjectName("homed_indicator")
         self.verticalLayout.addWidget(self.homed_indicator)
