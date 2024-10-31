@@ -1,13 +1,13 @@
 8b75e7b953c809818392471d2159fc9a  usr/bin/semiauto_surfacegrinder
 8e90817d31dce0d192a03a3372c3a5ff  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/METADATA
-c3b863a76492cc9dc5356919432102a4  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/RECORD
+7d0aad568ae403262d15f156c21ad9b1  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/RECORD
 b65598d0aa0cfe0f390246499e741adb  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/WHEEL
 4aeb9c8732d2060fc07f32d395f791ec  usr/lib/python3/dist-packages/semiauto_surfacegrinder-0.0.dist-info/entry_points.txt
 96776ab54c2a761ac7797a3bac789db1  usr/lib/python3/dist-packages/semiauto_surfacegrinder/__init__.py
 fe6bd0c2883aba44b19bd206ac21aa7c  usr/lib/python3/dist-packages/semiauto_surfacegrinder/config.yml
-4a731271983771f0c18139a5d916e232  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.py
-f51bac8453538edc00aaf5ef2d4634b3  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.ui
-8a3a052d48a78ff5bce13a26e3830e52  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow_ui.py
+9881593b52a43274f78b58c486f761bd  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.py
+b646bb1b56f2688b9836016fb114f522  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow.ui
+608d4d9027a77f0739d9dd61cf820113  usr/lib/python3/dist-packages/semiauto_surfacegrinder/mainwindow_ui.py
 ca4599b1e5518c4e416db47b4c9331d0  usr/lib/python3/dist-packages/semiauto_surfacegrinder/sass/style.scss
 1ea0483c13980ccb6bbf718e99a3f316  usr/lib/python3/dist-packages/semiauto_surfacegrinder/style.qss
 e249bbb74f43f360ff560cd2db405661  usr/lib/python3/dist-packages/widgets/__init__.py
@@ -16,7 +16,7 @@ b67638d1e9eb8d611d9311849197b73e  usr/lib/python3/dist-packages/widgets/mk_dro/i
 33257bba60f9ae1a5441a3367c739394  usr/lib/python3/dist-packages/widgets/mk_dro/icons/unhomed.png
 dee28875b7b6f72dc6a54a9765b211f2  usr/lib/python3/dist-packages/widgets/mk_dro/mk_dro.py
 1c3a3b329d765e77c7e14f920e2e28ba  usr/lib/python3/dist-packages/widgets/mk_dro/mk_dro.ui
-c042a940775e56698061fd1070122b9d  usr/lib/python3/dist-packages/widgets/mk_dro/mk_dro_ui.py
+7374bb66fb2d79d88b89a227e8c6ab38  usr/lib/python3/dist-packages/widgets/mk_dro/mk_dro_ui.py
 d5b5dc13f6b444dcc5b3dca78eea2bf5  usr/lib/python3/dist-packages/widgets/mk_line_edit.py
 6a7f41f4dd53efc44ed9e78c40e6ec21  usr/lib/python3/dist-packages/widgets/mk_push_button.py
 36299b96a884e2d31c52e49649cd34bc  usr/lib/python3/dist-packages/widgets/plasma_line_edit.py

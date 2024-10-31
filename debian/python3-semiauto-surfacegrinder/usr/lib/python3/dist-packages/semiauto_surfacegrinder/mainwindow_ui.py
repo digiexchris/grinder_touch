@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/chris/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/semiauto_surfacegrinder/mainwindow.ui'
+# Form implementation generated from reading ui file '/home/cnc/6x11-sg-grinder-linuxcnc-config/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/semiauto_surfacegrinder/mainwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -307,23 +307,23 @@ class Ui_Form(object):
         self.groupBox.setObjectName("groupBox")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.groupBox)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.save_limits = QtWidgets.QPushButton(self.groupBox)
+        self.save_limits_button = QtWidgets.QPushButton(self.groupBox)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.save_limits.sizePolicy().hasHeightForWidth())
-        self.save_limits.setSizePolicy(sizePolicy)
-        self.save_limits.setMaximumSize(QtCore.QSize(120, 120))
+        sizePolicy.setHeightForWidth(self.save_limits_button.sizePolicy().hasHeightForWidth())
+        self.save_limits_button.setSizePolicy(sizePolicy)
+        self.save_limits_button.setMaximumSize(QtCore.QSize(120, 120))
         font = QtGui.QFont()
         font.setFamily("Sans")
         font.setPointSize(15)
         font.setBold(False)
         font.setItalic(False)
         font.setWeight(50)
-        self.save_limits.setFont(font)
-        self.save_limits.setCheckable(False)
-        self.save_limits.setObjectName("save_limits")
-        self.horizontalLayout.addWidget(self.save_limits)
+        self.save_limits_button.setFont(font)
+        self.save_limits_button.setCheckable(False)
+        self.save_limits_button.setObjectName("save_limits_button")
+        self.horizontalLayout.addWidget(self.save_limits_button)
         self.cancel_edit_limits = QtWidgets.QPushButton(self.groupBox)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -449,7 +449,7 @@ class Ui_Form(object):
         self.stepoverLabel.setText(_translate("Form", "STP"))
         self.infeedLabel.setText(_translate("Form", "SPD"))
         self.groupBox.setTitle(_translate("Form", "Update"))
-        self.save_limits.setText(_translate("Form", "Save"))
+        self.save_limits_button.setText(_translate("Form", "Save"))
         self.cancel_edit_limits.setText(_translate("Form", "CANCEL"))
         self.Tabs.setTabText(self.Tabs.indexOf(self.tab), _translate("Form", "TRAVERSE"))
         self.infeedTypeLabel.setText(_translate("Form", "Infeed Type"))
