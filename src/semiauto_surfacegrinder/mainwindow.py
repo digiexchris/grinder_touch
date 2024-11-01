@@ -59,6 +59,8 @@ class MainWindow(VCPMainWindow):
 
         self.settings = getPlugin('persistent_data_manager')
 
+        self.position_rounding_tolerance = 5
+
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
@@ -71,7 +73,7 @@ class MainWindow(VCPMainWindow):
         self.infeed_limit_max = float(0.0)
         self.downfeed_limit_min = float(0.0)
         self.downfeed_limit_max = float(0.0)
-        self.stepover = float(0.0)
+        self.infeed_stepover = float(0.05)
 
         self.traverse_axis = Axis.X
         self.infeed_axis = Axis.Z
@@ -165,7 +167,7 @@ class MainWindow(VCPMainWindow):
         self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 20))
         self.traverse_limit_min = np.array(self.settings.getData('traverse_limit_min', 0))
         self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', 100))
-        self.stepover = float(self.settings.getData('stepover', 0.05))
+        self.infeed_stepover = float(self.settings.getData('infeed_stepover', 0.05))
         self.infeed_speed = int(self.settings.getData('infeed_speed', 200))
         self.traverse_speed = int(self.settings.getData('traverse_speed', 500))
         self.infeed_type = int(self.settings.getData('infeed_type', 0))
@@ -189,7 +191,8 @@ class MainWindow(VCPMainWindow):
         self.infeed_type_combo_box.setCurrentIndex(self.infeed_type)
         self.infeed_reverse_combo_box.setCurrentIndex(self.infeed_reverse)
 
-        #todo: update axis dropdowns
+        self.traverse_axis_combo_box.setCurrentIndex(self.traverse_axis.to_int())
+        self.infeed_axis_combo_box.setCurrentIndex(self.infeed_axis.to_int())
 
 
     def on_save_infeed_clicked(self):
@@ -282,9 +285,10 @@ class MainWindow(VCPMainWindow):
             if not self.is_machine_idle():
                 LOG.info("Machine is busy, cannot enter MDI mode. Not starting.")
                 return
-    
-            self.c.mdi(F"G90")
+            
             self.c.mode(linuxcnc.MODE_MDI)
+            self.c.mdi(F"G90")
+           
             self.c.wait_complete()
 
             self.run_stop_button.setText("Running")
@@ -311,22 +315,22 @@ class MainWindow(VCPMainWindow):
             self.traverse_axis = Axis.from_int(self.traverse_axis_combo_box.currentIndex())
             self.settings.setData("traverse_axis", int(self.traverse_axis.to_int()))
 
-            self.traverse_limit_min = float(self.traverse_limit_min_edit.text())
-            self.traverse_limit_max = float(self.traverse_limit_max_edit.text())
+            self.traverse_limit_min = round(float(self.traverse_limit_min_edit.text()), self.position_rounding_tolerance)
+            self.traverse_limit_max = round(float(self.traverse_limit_max_edit.text()), self.position_rounding_tolerance)
 
             self.settings.setData("traverse_limit_min", self.traverse_limit_min)
             self.settings.setData("traverse_limit_max", self.traverse_limit_max)
 
             LOG.info("Traverse limits saved successfully.")
 
-            self.infeed_limit_min = float(self.infeed_limit_min_edit.text())
-            self.infeed_limit_max = float(self.infeed_limit_max_edit.text())
+            self.infeed_limit_min = round(float(self.infeed_limit_min_edit.text()), self.position_rounding_tolerance)
+            self.infeed_limit_max = round(float(self.infeed_limit_max_edit.text()), self.position_rounding_tolerance)
             
-            self.infeed_stepover = float(self.infeed_stepover_edit.text())
+            self.infeed_stepover = round(float(self.infeed_stepover_edit.text()), self.position_rounding_tolerance)
 
             self.settings.setData("infeed_limit_max", self.infeed_limit_max)
             self.settings.setData("infeed_limit_min", self.infeed_limit_min)
-            self.settings.setData("stepover", self.stepover)
+            self.settings.setData("stepover", self.infeed_stepover)
 
             self.settings.setData("infeed_speed", int(self.infeed_speed))
             self.settings.setData("traverse_speed", int(self.traverse_speed))
@@ -369,12 +373,19 @@ class MainWindow(VCPMainWindow):
         """Invert the sign of the 3D stepover and handle infeed reverse logic."""
         if self.infeed_reverse == 0:
             # Reverse stepover
-            self.infeed_stepover = -self.infeed_stepover
+            #self.infeed_stepover = -self.infeed_stepover
 
             # Update UI elements
-            self.infeed_stepover_edit.setText(str(self.infeed_stepover))
+            #self.infeed_stepover_edit.setText(str(self.infeed_stepover))
 
-            LOG.info(f"Stepover reversed: {self.infeed_stepover}")
+            if self.last_infeed_direction == MachineState.INFEEDING_MAX:
+                self.last_infeed_direction = MachineState.INFEEDING_MIN
+                self.last_state = MachineState.INFEEDING_MIN
+            elif self.last_infeed_direction == MachineState.INFEEDING_MIN:
+                self.last_infeed_direction = MachineState.INFEEDING_MAX
+                self.last_state = MachineState.INFEEDING_MAX
+
+            LOG.info(f"Infeed reversed: {MachineState.INFEEDING_MAX.name}")
 
             return True
         elif self.infeed_reverse == 1:
@@ -388,26 +399,59 @@ class MainWindow(VCPMainWindow):
         LOG.info(F"Move_To: G1 {axis}{pos} F{speed}")
         self.c.mdi(F"G1 {axis}{pos} F{speed}")
 
+    def check_and_reverse(self, current_pos):
+        LOG.info(F"execute infeed at pos {self.s.position}")
+        at_min_height = current_pos <= self.infeed_limit_min
+        at_max_height = current_pos >= self.infeed_limit_max
+        if(at_min_height and self.state == MachineState.INFEEDING_MIN):
+            self.reverse_infeed()
+            return True
+        elif(at_max_height and self.state == MachineState.INFEEDING_MAX):
+            self.reverse_infeed()
+            return True
+        else:
+            return False
+
     def execute_infeed(self, infeed_dir):
         """Handle the infeed logic at each traverse limit."""
         self.s.poll()
-        current_pos = self.s.position[self.infeed_axis.to_int()]
-
+        current_pos = round(self.s.position[self.infeed_axis.to_int()], self.position_rounding_tolerance)
+        LOG.info(F"Execute Infeed on {self.infeed_axis.to_str()} from {current_pos} ")
         if self.last_traverse_direction == MachineState.TRAVERSING_MAX and self.should_infeed(MachineState.TRAVERSING_MAX):
-            LOG.info(F"execute infeed at pos {self.s.position}")
-            at_min_height = current_pos <= self.infeed_limit_min
-            if(at_min_height):
-                self.reverse_infeed()
+
+            if self.check_and_reverse(current_pos):
                 return
+
         elif self.last_traverse_direction == MachineState.TRAVERSING_MIN and self.should_infeed(MachineState.TRAVERSING_MIN):
-            at_max_height = current_pos >= self.infeed_limit_max
-            if(at_max_height):
-                self.reverse_infeed()
+
+            if self.check_and_reverse(current_pos):
                 return
         
+        LOG.info(F"Infeeding...")
+        
+
+        infeed_stepover = self.infeed_stepover
+
+        sign = ""
+
+        if infeed_dir == MachineState.INFEEDING_MIN:
+            infeed_stepover = -infeed_stepover
+            if(current_pos + infeed_stepover < self.infeed_limit_min):
+                infeed_stepover = self.infeed_limit_min - current_pos
+        elif infeed_dir == MachineState.INFEEDING_MAX:
+            if(current_pos + infeed_stepover > self.infeed_limit_max):
+                infeed_stepover = self.infeed_limit_max - current_pos        
+        
+        if round(infeed_stepover, 7) == 0:
+            #this probably should never happen
+            LOG.warn("Infeed tried to infeed with 0 stepover.")
+            return
+        
         self.c.mdi(F"G91")
-        self.c.mdi(F"G1 {self.infeed_axis.to_str()}{self.stepover} F{self.infeed_speed}")
+        self.c.mdi(F"G1 {self.infeed_axis.to_str()}{infeed_stepover} F{self.infeed_speed}")
         self.c.mdi(F"G90")
+
+        LOG.info("Infeed done.")
 
         self.last_infeed_direction = infeed_dir
         self.last_state = infeed_dir
@@ -448,6 +492,9 @@ class MainWindow(VCPMainWindow):
             if self.s.interp_state == linuxcnc.INTERP_IDLE:
                 current_pos = np.array(self.s.position[:3])
 
+                LOG.info(F"Position: {current_pos}")
+                LOG.info(F"State: {self.state.name}")
+
                 if self.state == MachineState.INIT:
                     LOG.info(F"State is {self.state}")
                     self.state = MachineState.TRAVERSING_MAX
@@ -456,10 +503,13 @@ class MainWindow(VCPMainWindow):
                 
                 if self.state == MachineState.TRAVERSING_START:
                     LOG.info(F"State is {self.state}")
-                    if self.last_traverse_direction == MachineState.TRAVERSING_MAX:
-                        self.state = MachineState.TRAVERSING_MAX
-                    elif self.last_traverse_direction == MachineState.TRAVERSING_MIN:
-                        self.state = MachineState.TRAVERSING_MIN
+                    if self.last_state == MachineState.INFEEDING_MAX or self.last_state == MachineState.INFEEDING_MIN:
+                        if self.last_traverse_direction == MachineState.TRAVERSING_MAX:
+                            self.state = MachineState.TRAVERSING_MIN
+                        elif self.last_traverse_direction == MachineState.TRAVERSING_MIN:
+                            self.state = MachineState.TRAVERSING_MAX
+                        else:
+                            self.state = MachineState.TRAVERSING_MAX
                     else:
                         self.state = MachineState.TRAVERSING_MAX
 
@@ -469,8 +519,9 @@ class MainWindow(VCPMainWindow):
                 
                 elif self.state == MachineState.TRAVERSING_MAX:
                     LOG.info(F"State is {self.state}")
+                    LOG.info(F"Traverse Axis {self.traverse_axis.to_str()} position {round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance)} Traverse Limit {self.traverse_limit_max}")
 
-                    if current_pos[self.traverse_axis.to_int()] != self.traverse_limit_max:
+                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) < self.traverse_limit_max:
                         self.move_to(self.traverse_axis.to_str(),self.traverse_limit_max, self.traverse_speed)
                         self.last_traverse_direction = MachineState.TRAVERSING_MAX
                         self.last_state = MachineState.TRAVERSING_MAX
@@ -484,7 +535,8 @@ class MainWindow(VCPMainWindow):
 
                 elif self.state == MachineState.TRAVERSING_MIN:
                     LOG.info(F"State is {self.state}")
-                    if np.all(current_pos[self.traverse_axis.to_int()] != self.traverse_limit_min):
+                    LOG.info(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos[self.traverse_axis.to_int()]} Traverse Limit {self.traverse_limit_max}")
+                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) > self.traverse_limit_min:
                         self.move_to(self.traverse_axis.to_str(), self.traverse_limit_min, self.traverse_speed)
                         self.last_traverse_direction = MachineState.TRAVERSING_MIN
                         self.last_state = MachineState.TRAVERSING_MIN
@@ -510,23 +562,28 @@ class MainWindow(VCPMainWindow):
                 
                 elif self.state == MachineState.INFEEDING_MAX:
                     LOG.info(F"State is {self.state}")
-                    if np.all(current_pos[self.infeed_axis.to_int()] >= self.infeed_limit_max):
+                    if round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance) >= self.infeed_limit_max:
                         if self.reverse_infeed():
                             self.state = MachineState.TRAVERSING_START
                             self.last_state = MachineState.INFEEDING_MAX
+                            self.exit_control_loop()
+                            return
                         else:
                             #reverse_infeed is executing a move
                             self.exit_control_loop()
                             return
                     else:    
                         self.execute_infeed(MachineState.INFEEDING_MAX)
+                        self.exit_control_loop()
                         return
                         
                 elif self.state == MachineState.INFEEDING_MIN:
-                    if np.all(current_pos[self.infeed_axis.to_int()] <= self.infeed_limit_min):
+                    if round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance) <= self.infeed_limit_min:
                         if self.reverse_infeed():
                             self.state = MachineState.TRAVERSING_START
                             self.last_state = MachineState.INFEEDING_MIN
+                            self.exit_control_loop()
+                            return
                         else:
                             #reverse_infeed is executing a move
                             self.exit_control_loop()
@@ -534,6 +591,7 @@ class MainWindow(VCPMainWindow):
                     else:    
                         self.execute_infeed(MachineState.INFEEDING_MIN)
                         self.exit_control_loop()
+                        return
             
         except linuxcnc.error as e:
             LOG.error(f"Error in control loop: {e}")

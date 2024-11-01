@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/cnc/6x11-sg-grinder-linuxcnc-config/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/semiauto_surfacegrinder/mainwindow.ui'
+# Form implementation generated from reading ui file '/home/chris/SurfaceGrinder-linuxcnc-ui/debian/python3-semiauto-surfacegrinder/usr/lib/python3.11/dist-packages/semiauto_surfacegrinder/mainwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -394,7 +394,7 @@ class Ui_Form(object):
 
         self.retranslateUi(Form)
         self.Tabs.setCurrentIndex(0)
-        self.infeed_axis.setCurrentIndex(1)
+        self.infeed_axis.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -434,8 +434,8 @@ class Ui_Form(object):
         self.label_11.setText(_translate("Form", "Max"))
         self.axisLabel.setText(_translate("Form", "Axis"))
         self.traverse_axis.setItemText(0, _translate("Form", "X"))
-        self.traverse_axis.setItemText(1, _translate("Form", "Z"))
-        self.traverse_axis.setItemText(2, _translate("Form", "Y"))
+        self.traverse_axis.setItemText(1, _translate("Form", "Y"))
+        self.traverse_axis.setItemText(2, _translate("Form", "Z"))
         self.traverseLabel.setText(_translate("Form", "Spd"))
         self.groupBox_4.setTitle(_translate("Form", "Infeed Limit"))
         self.label_10.setToolTip(_translate("Form", "AKA Table Left and Right"))
@@ -444,8 +444,8 @@ class Ui_Form(object):
         self.label_12.setText(_translate("Form", "Max"))
         self.axisLabel_2.setText(_translate("Form", "Axis"))
         self.infeed_axis.setItemText(0, _translate("Form", "X"))
-        self.infeed_axis.setItemText(1, _translate("Form", "Z"))
-        self.infeed_axis.setItemText(2, _translate("Form", "Y"))
+        self.infeed_axis.setItemText(1, _translate("Form", "Y"))
+        self.infeed_axis.setItemText(2, _translate("Form", "Z"))
         self.stepoverLabel.setText(_translate("Form", "STP"))
         self.infeedLabel.setText(_translate("Form", "SPD"))
         self.groupBox.setTitle(_translate("Form", "Update"))

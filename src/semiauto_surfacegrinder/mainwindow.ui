@@ -262,7 +262,7 @@
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>TRAVERSE</string>
+        <string>Limits</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -272,10 +272,35 @@
           </property>
           <item row="0" column="1">
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="4" column="1">
-             <widget class="StatusLED" name="statusled_6">
+            <item row="2" column="0">
+             <widget class="DROLabel" name="drolabel">
+              <property name="referenceType" stdset="0">
+               <number>1</number>
+              </property>
+              <property name="axisNumber" stdset="0">
+               <number>0</number>
+              </property>
+              <property name="inchFormat" stdset="0">
+               <string>%9.4f</string>
+              </property>
+              <property name="millimeterFormat" stdset="0">
+               <string>%10.3f</string>
+              </property>
+              <property name="degreeFormat" stdset="0">
+               <string>%10.2f</string>
+              </property>
+              <property name="latheMode" stdset="0">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="StatusLED" name="statusled">
+              <property name="state">
+               <bool>false</bool>
+              </property>
               <property name="rules" stdset="0">
-               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:joint.2.velocity&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;bool(ch[0])&quot;, &quot;name&quot;: &quot;Motion&quot;}]</string>
+               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:joint.0.velocity&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;bool(ch[0])&quot;, &quot;name&quot;: &quot;Motion&quot;}]</string>
               </property>
              </widget>
             </item>
@@ -283,6 +308,53 @@
              <widget class="StatusLED" name="statusled_7">
               <property name="rules" stdset="0">
                <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:joint.1.velocity&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;bool(ch[0])&quot;, &quot;name&quot;: &quot;Motion&quot;}]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="font">
+               <font>
+                <family>Sans</family>
+                <weight>75</weight>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>DIRECTION</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="StatusLED" name="statusled_2">
+              <property name="rules" stdset="0">
+               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:all_axes_homed&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;name&quot;: &quot;Homed&quot;}]</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="DROLabel" name="drolabel_2">
+              <property name="referenceType" stdset="0">
+               <number>1</number>
+              </property>
+              <property name="axisNumber" stdset="0">
+               <number>1</number>
+              </property>
+              <property name="inchFormat" stdset="0">
+               <string>%9.4f</string>
+              </property>
+              <property name="millimeterFormat" stdset="0">
+               <string>%10.3f</string>
+              </property>
+              <property name="degreeFormat" stdset="0">
+               <string>%10.2f</string>
+              </property>
+              <property name="latheMode" stdset="0">
+               <number>0</number>
               </property>
              </widget>
             </item>
@@ -314,64 +386,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="DROLabel" name="drolabel">
-              <property name="referenceType" stdset="0">
-               <number>1</number>
-              </property>
-              <property name="axisNumber" stdset="0">
-               <number>0</number>
-              </property>
-              <property name="inchFormat" stdset="0">
-               <string>%9.4f</string>
-              </property>
-              <property name="millimeterFormat" stdset="0">
-               <string>%10.3f</string>
-              </property>
-              <property name="degreeFormat" stdset="0">
-               <string>%10.2f</string>
-              </property>
-              <property name="latheMode" stdset="0">
-               <number>0</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="StatusLED" name="statusled_2">
-              <property name="rules" stdset="0">
-               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:all_axes_homed&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;name&quot;: &quot;Homed&quot;}]</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="StatusLED" name="statusled">
-              <property name="state">
-               <bool>false</bool>
-              </property>
-              <property name="rules" stdset="0">
-               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:joint.0.velocity&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;bool(ch[0])&quot;, &quot;name&quot;: &quot;Motion&quot;}]</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="font">
-               <font>
-                <family>Sans</family>
-                <weight>75</weight>
-                <italic>false</italic>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>DIRECTION</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="DROLabel" name="drolabel_3">
               <property name="referenceType" stdset="0">
                <number>1</number>
@@ -393,25 +408,10 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="DROLabel" name="drolabel_2">
-              <property name="referenceType" stdset="0">
-               <number>1</number>
-              </property>
-              <property name="axisNumber" stdset="0">
-               <number>1</number>
-              </property>
-              <property name="inchFormat" stdset="0">
-               <string>%9.4f</string>
-              </property>
-              <property name="millimeterFormat" stdset="0">
-               <string>%10.3f</string>
-              </property>
-              <property name="degreeFormat" stdset="0">
-               <string>%10.2f</string>
-              </property>
-              <property name="latheMode" stdset="0">
-               <number>0</number>
+            <item row="4" column="1">
+             <widget class="StatusLED" name="statusled_6">
+              <property name="rules" stdset="0">
+               <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:joint.2.velocity&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;On&quot;, &quot;expression&quot;: &quot;bool(ch[0])&quot;, &quot;name&quot;: &quot;Motion&quot;}]</string>
               </property>
              </widget>
             </item>
@@ -505,27 +505,27 @@
              </item>
              <item>
               <property name="text">
-               <string>Z</string>
+               <string>Y</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Y</string>
+               <string>Z</string>
               </property>
              </item>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QSpinBox" name="traverse_speed">
-             <property name="maximum">
-              <number>2000</number>
-             </property>
             </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="traverseLabel">
              <property name="text">
               <string>Spd</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="traverse_speed">
+             <property name="maximum">
+              <number>2000</number>
              </property>
             </widget>
            </item>
@@ -612,7 +612,7 @@
            <item row="2" column="1">
             <widget class="QComboBox" name="infeed_axis">
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <item>
               <property name="text">
@@ -621,12 +621,12 @@
              </item>
              <item>
               <property name="text">
-               <string>Z</string>
+               <string>Y</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Y</string>
+               <string>Z</string>
               </property>
              </item>
             </widget>
@@ -658,7 +658,7 @@
           </layout>
          </widget>
         </item>
-        <item row="1" column="1" colspan="2">
+        <item row="1" column="2">
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
            <string>Update</string>
@@ -730,6 +730,107 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Manual</string>
+       </attribute>
+       <widget class="JogIncrementWidget" name="jogincrementwidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>340</y>
+          <width>424</width>
+          <height>42</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_5">
+        <property name="geometry">
+         <rect>
+          <x>500</x>
+          <y>20</y>
+          <width>276</width>
+          <height>361</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>MDI</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="MDIEntry" name="mdientry"/>
+         </item>
+         <item>
+          <widget class="MDIHistory" name="mdihistory"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>40</y>
+          <width>271</width>
+          <height>231</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Jog</string>
+        </property>
+        <widget class="ActionButton" name="actionbutton">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>100</y>
+           <width>41</width>
+           <height>27</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="formLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>90</y>
+          <width>160</width>
+          <height>122</height>
+         </rect>
+        </property>
+        <layout class="QFormLayout" name="formLayout_4">
+         <item row="0" column="1">
+          <widget class="DROLineEdit" name="dro_entry"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="DROLineEdit" name="yDROLineEdit"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="yLabel">
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="DROLineEdit" name="zDROLineEdit"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="zLabel">
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
@@ -882,6 +983,26 @@
    <class>NotificationWidget</class>
    <extends>QWidget</extends>
    <header>qtpyvcp.widgets.display_widgets.notification_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>MDIEntry</class>
+   <extends>QLineEdit</extends>
+   <header>qtpyvcp.widgets.input_widgets.mdientry_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>MDIHistory</class>
+   <extends>QListWidget</extends>
+   <header>qtpyvcp.widgets.input_widgets.mdihistory_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>JogIncrementWidget</class>
+   <extends>QWidget</extends>
+   <header>qtpyvcp.widgets.input_widgets.jog_increment</header>
+  </customwidget>
+  <customwidget>
+   <class>DROLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qtpyvcp.widgets.input_widgets.dro_line_edit</header>
   </customwidget>
   <customwidget>
    <class>HalLedIndicator</class>

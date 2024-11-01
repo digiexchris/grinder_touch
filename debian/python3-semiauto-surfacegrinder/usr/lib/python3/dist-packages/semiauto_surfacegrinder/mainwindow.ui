@@ -505,12 +505,12 @@
              </item>
              <item>
               <property name="text">
-               <string>Z</string>
+               <string>Y</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Y</string>
+               <string>Z</string>
               </property>
              </item>
             </widget>
@@ -612,7 +612,7 @@
            <item row="2" column="1">
             <widget class="QComboBox" name="infeed_axis">
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <item>
               <property name="text">
@@ -621,12 +621,12 @@
              </item>
              <item>
               <property name="text">
-               <string>Z</string>
+               <string>Y</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Y</string>
+               <string>Z</string>
               </property>
              </item>
             </widget>
