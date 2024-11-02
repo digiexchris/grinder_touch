@@ -6,7 +6,7 @@ qtdesigner:
   qss_file: ( application.kwargs.stylesheet )
 
 vcp:
-  name: semiauto_surfacegrinder
+  name: grinder_touch
   version: v0.0.1
   author: Chris Chatelain
   description: Semi-auto surface grinder interface
@@ -26,7 +26,7 @@ windows:
   mainwindow:
     # Specify the class to use for the VCP's mainwindow
     #   Format: package.module:class
-    provider: semiauto_surfacegrinder.mainwindow:MainWindow
+    provider: grinder_touch.mainwindow:MainWindow
 
     # Keyword arguments to pass when initializing the class.
     kwargs:

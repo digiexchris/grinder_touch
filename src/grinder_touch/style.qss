@@ -1,0 +1,4 @@
+QsciScintilla {
+    qproperty-backgroundcolor: #D9DADB;
+    qproperty-marginbackgroundcolor: #D9DADB;
+}

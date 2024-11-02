@@ -1,0 +1,44 @@
+/*
+black to white shades of gray
+rgb(0, 0, 0) = black
+rgb(32, 32, 32)
+rgb(64, 64, 64)
+rgb(96, 96, 96)
+rgb(128, 128, 128)
+rgb(160, 160, 160)
+rgb(192, 192, 192)
+rgb(224, 224, 224)
+rgb(255, 255, 255) = white
+
+background:  qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(85, 85, 238, 255), stop:0.544974 rgba(90, 91, 239, 255), stop:1 rgba(126, 135, 243, 255));
+*/
+
+/*
+QPushButton{
+    color: rgb(255, 255, 255);
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    padding: 4px;
+    background-color: qlineargradient(x1: 0.5, y1: 0.5 x2: 0.5, y2: 1, stop: 0 #3b4045, stop: 0.5 #31363b);
+    border-color: #76797c;
+}
+
+QPushButton:disabled{
+    color: rgb(96, 96, 96);
+}
+*/
+
+/* Base for all widgets */
+QWidget{
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    padding: 4px;
+    border-color: #76797c;
+}
+QWidget:disabled{
+    color: rgb(96, 96, 96);
+}

@@ -11,7 +11,7 @@ semiauto_sg.egg-info
 bak
 debian/.debhelper
 debian/files
-debian/python3-semiauto-surfacegrinder.*.debhelper
+debian/python3-grinder-touch.*.debhelper
 debian/*.debhelper
 dist/
 

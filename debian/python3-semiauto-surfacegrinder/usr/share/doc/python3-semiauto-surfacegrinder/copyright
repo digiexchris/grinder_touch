@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: semiauto_surfacegrinder
+Upstream-Name: grinder_touch
 Source: https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui
 
 Files: *

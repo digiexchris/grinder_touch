@@ -12,7 +12,7 @@ def main(opts=None):
 
     if opts is None:
         from qtpyvcp.utilities.opt_parser import parse_opts
-        opts = parse_opts(vcp_cmd='semiauto_surfacegrinder',
+        opts = parse_opts(vcp_cmd='grinder_touch',
                           vcp_name='Semi Auto Surface Grinder',
                           vcp_version=__version__)
 

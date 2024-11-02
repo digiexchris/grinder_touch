@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "semiauto_surfacegrinder"
+name = "grinder_touch"
 authors = [
   "Chris Chatelain <digiex_chris@digiex.ca>",
 ]
@@ -12,7 +12,7 @@ readme = "README.md"
 version = "0.0"
 
 packages = [
-	{ include = "semiauto_surfacegrinder", from = "src" },
+	{ include = "grinder_touch", from = "src" },
 	{ include = "widgets", from = "src" },
 ]
 
@@ -20,12 +20,12 @@ packages = [
 python = "^3.11"
 
 [tool.poetry.scripts]
-semiauto_surfacegrinder = "semiauto_surfacegrinder:main"
+grinder_touch = "grinder_touch:main"
 
 [tool.poetry.plugins]
 
 [tool.poetry.plugins."qtpyvcp.vcp"]
-semiauto_surfacegrinder = "semiauto_surfacegrinder"
+grinder_touch = "grinder_touch"
 
 [tool.poetry.plugins."qtpyvcp.widgets"]
 semiauto_widgets = "widgets"

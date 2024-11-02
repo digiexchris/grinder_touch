@@ -8,6 +8,9 @@ from qtpy.QtCore import QTimer, QEventLoop
 from qtpyvcp.plugins import getPlugin
 from enum import Enum
 
+# Setup Help Text
+import grinder_touch.helptext as helptext
+
 class MachineState(Enum):
     INIT = 0,
     TRAVERSING_START = 1,
@@ -56,6 +59,26 @@ class MainWindow(VCPMainWindow):
     """Main window class for the VCP."""
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+
+        ############# milltouch ##############
+
+        self.setWindowFlags(
+            QtCore.Qt.Window |
+            QtCore.Qt.CustomizeWindowHint |
+            QtCore.Qt.WindowStaysOnTopHint
+            )
+
+
+        self.coordOffsetGroup.buttonClicked.connect(self.offsetHandleKeys)
+        self.toolButtonGroup.buttonClicked.connect(self.toolHandleKeys)
+        self.toolBackSpace.clicked.connect(self.toolHandleBackSpace)
+        self.mdiSmartButtonGroup.buttonClicked.connect(self.mdiSmartHandleKeys)
+        self.mdiLoadParameters.clicked.connect(self.mdiSmartSetLabels)
+        self.mdiSmartBackspace.clicked.connect(self.mdiSmartHandleBackSpace)
+        self.gcodeHelpBtn.clicked.connect(self.tabForward)
+        self.mdiBackBtn.clicked.connect(self.tabBack)
+
+        ############### end milltouch ###########
 
         self.settings = getPlugin('persistent_data_manager')
 
@@ -115,6 +138,84 @@ class MainWindow(VCPMainWindow):
         self.initialize_controls()
         self.load_settings()
 
+    ############ milltouch ##################
+
+    def tabForward(parent):
+        parent.mdiStackedWidget.setCurrentIndex(parent.mdiStackedWidget.currentIndex() + 1)
+    def tabBack(parent):
+        parent.mdiStackedWidget.setCurrentIndex(parent.mdiStackedWidget.currentIndex() - 1)
+
+    def mdiSmartHandleKeys(self, button):
+        char = str(button.text())
+        text = self.mdiSmartEntry.text() or '0'
+        if text != '0':
+            text += char
+        else:
+            text = char
+        self.mdiSmartEntry.setText(text)
+
+    def mdiSmartSetLabels(self):
+        # get smart and figure out what axes are used
+
+        text = self.mdiSmartEntry.text() or '0'
+        if text != '0':
+            words = helptext.gcode_words()
+            if text in words:
+                self.mdiSmartClear()
+                print(type(words[text]))
+                for index, value in enumerate(words[text], start=1):
+                    getattr(self, 'gcodeParameter_' + str(index)).setText(value)
+            else:
+                self.mdiSmartClear()
+            titles = helptext.gcode_titles()
+            if text in titles:
+                self.gcodeDescription.setText(titles[text])
+            else:
+                self.mdiSmartClear()
+            self.gcodeHelpLabel.setText(helptext.gcode_descriptions(text))
+        else:
+            self.mdiSmartClear()
+
+    def mdiSmartClear(self):
+        for index in range(1,13):
+            getattr(self, 'gcodeParameter_' + str(index)).setText('')
+        self.gcodeDescription.setText('')
+        self.gcodeHelpLabel.setText('')
+
+    def mdiSmartHandleBackSpace(self):
+        if len(self.mdiSmartEntry.text()) > 0:
+            text = self.mdiSmartEntry.text()[:-1]
+            self.mdiSmartEntry.setText(text)
+
+    def offsetHandleKeys(self, button):
+        char = str(button.text())
+        text = self.cordOffsetLbl.text() or '0'
+        if text != '0':
+            text += char
+        else:
+            text = char
+        self.cordOffsetLbl.setText(text)
+
+    def toolHandleKeys(self, button):
+        char = str(button.text())
+        text = self.toolOffsetLabel.text() or '0'
+        if text != '0':
+            text += char
+        else:
+            text = char
+        self.toolOffsetLabel.setText(text)
+
+    def toolHandleBackSpace(self):
+        if len(self.toolOffsetLabel.text()) > 0:
+            text = self.toolOffsetLabel.text()[:-1]
+            self.toolOffsetLabel.setText(text)
+
+
+    def on_exitBtn_clicked(self):
+        self.app.quit()
+
+    ############### end milltouch ################
+
     def initialize_controls(self):
         """Initialize custom controls and connect UI elements."""
         # Validator to allow only numbers with optional decimals
@@ -135,19 +236,11 @@ class MainWindow(VCPMainWindow):
         if self.save_limits_button:
             self.save_limits_button.clicked.connect(self.on_save_limits_clicked)
 
-        self.cancel_edit_limits_button = self.findChild(QPushButton, "cancel_edit_limits")
-        if self.cancel_edit_limits_button:
-            self.cancel_edit_limits_button.clicked.connect(self.on_cancel_edit_limits_clicked)
-
         self.traverse_speed_spinbox = self.findChild(QSpinBox, "traverse_speed")
-        # if self.traverse_speed_spinbox:
-        #     self.traverse_speed_spinbox.valueChanged.connect(self.on_traverse_speed_changed)
 
         self.infeed_stepover_edit = self.findChild(QLineEdit, "infeed_stepover")
        
         self.infeed_speed_spinbox = self.findChild(QSpinBox, "infeed_speed")
-        # if self.infeed_speed_spinbox:
-        #     self.infeed_speed_spinbox.valueChanged.connect(self.on_infeed_speed_changed)
 
         # Run/Stop Button
         self.run_stop_button = self.findChild(QPushButton, "run_stop_button")
@@ -195,17 +288,6 @@ class MainWindow(VCPMainWindow):
         self.infeed_axis_combo_box.setCurrentIndex(self.infeed_axis.to_int())
 
 
-    def on_save_infeed_clicked(self):
-        """Handle Save Infeed button click."""
-        LOG.info("Save Infeed button clicked.")
-        self.save_infeed_limits()
-
-    def on_cancel_edit_infeed_clicked(self):
-        """Handle Cancel Infeed button click."""
-        LOG.info("Cancel Infeed button clicked.")
-        # Implement cancel functionality, e.g., reset fields or revert changes
-        self.reset_infeed_fields()
-
     def on_infeed_speed_changed(self, value):
         """Handle Infeed Speed change."""
         LOG.info(f"Infeed speed changed to: {value}")
@@ -216,56 +298,6 @@ class MainWindow(VCPMainWindow):
         """Handle Traverse Speed change."""
         LOG.info(f"Traverse speed changed to: {value}")
         self.set_traverse_speed(value)
-
-    # def set_traverse_speed(self, speed):
-    #     """Set traverse speed in the system."""
-    #     # Implement functionality to set speed
-    #     LOG.info(f"Setting traverse speed to: {speed}")
-    #     self.traverse_speed = speed
-    #     try:
-    #         LOG.info("Save Traverse Speed button clicked.")
-    #         speed = float(self.traverse_speed_spinbox.value())
-    #         self.set_traverse_speed(speed)
-    #         self.settings.setData("traverse_speed", self.traverse_speed)
-    #     except ValueError:
-    #         LOG.error("Invalid input: Please enter numeric values for traverse speed.")
-
-    def on_cancel_edit_limits_clicked(self):
-        """Handle Cancel Traverse button click."""
-        LOG.info("Cancel Traverse button clicked.")
-        # Implement cancel functionality, e.g., reset fields or revert changes
-        self.reset_limit_fields()
-
-    def reset_limit_fields(self):
-        """Reset Traverse limit fields to previous values."""
-        self.traverse_limit_min_edit.setText(str(self.traverse_limit_min))
-        self.traverse_limit_max_edit.setText(str(self.traverse_limit_max))
-        self.infeed_limit_min_edit.setText(str(self.infeed_limit_min))
-        self.infeed_limit_max_edit.setText(str(self.infeed_limit_max))
-        self.infeed_stepover_edit.setText(str(self.infeed_stepover))
-
-        #todo: reset axis dropdowns
-        self.infeed_axis_combo_box.setIndex(self.infeed_axis.to_int())
-        self.traverse_axis_combo_box.setIndex(self.traverse_axis.to_int())
-        
-        LOG.info("Infeed limit fields reset to previous values.")
-        LOG.info("Traverse fields reset to previous values.")
-
-    def on_infeed_type_changed(self, index=None):
-        """Handle infeed type change event."""
-        if index is None:  # If called directly, set to the current index
-            index = self.infeed_type_combo_box.currentIndex()
-        
-        self.infeed_type = index
-        LOG.info(f"Infeed type changed to index: {index}")
-
-    def on_infeed_reverse_changed(self, index=None):
-        """Handle infeed reverse change event."""
-        if index is None:  # If called directly, set to the current index
-            index = self.infeed_reverse_combo_box.currentIndex()
-
-        self.infeed_reverse = index
-        LOG.info(f"Infeed reverse changed to index: {index}")
 
     def is_machine_idle(self):
         """Check if the machine is idle and ready for MDI."""
@@ -309,6 +341,9 @@ class MainWindow(VCPMainWindow):
         self.stop()  # Stops the timer and sets run_stop to False
 
         try:
+            self.infeed_type = self.infeed_type_combo_box.currentIndex()
+            self.infeed_reverse = self.infeed_reverse_combo_box.currentIndex()
+
             self.infeed_axis = Axis.from_int(self.infeed_axis_combo_box.currentIndex())
             self.settings.setData("infeed_axis", int(self.infeed_axis.to_int()))
 
