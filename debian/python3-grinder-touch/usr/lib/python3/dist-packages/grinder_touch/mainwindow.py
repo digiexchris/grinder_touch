@@ -1,5 +1,5 @@
 from qtpyvcp.widgets.form_widgets.main_window import VCPMainWindow
-from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QSpinBox, QCheckBox
+from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox
 from qtpy.QtGui import QDoubleValidator
 import linuxcnc
 import hal
@@ -254,11 +254,11 @@ class MainWindow(VCPMainWindow):
         if self.save_limits_button:
             self.save_limits_button.clicked.connect(self.on_save_limits_clicked)
 
-        self.traverse_speed_spinbox = self.findChild(QSpinBox, "traverse_speed")
+        self.traverse_speed_spinbox = self.findChild(QDoubleSpinBox, "traverse_speed")
 
         self.infeed_stepover_edit = self.findChild(QLineEdit, "infeed_stepover")
        
-        self.infeed_speed_spinbox = self.findChild(QSpinBox, "infeed_speed")
+        self.infeed_speed_spinbox = self.findChild(QDoubleSpinBox, "infeed_speed")
 
         # Run/Stop Button
         self.run_stop_button = self.findChild(QPushButton, "run_stop_button")
@@ -301,8 +301,8 @@ class MainWindow(VCPMainWindow):
         self.traverse_limit_min_edit.setText(str(self.traverse_limit_min))
         self.traverse_limit_max_edit.setText(str(self.traverse_limit_max))
 
-        self.infeed_speed_spinbox.setValue(int(self.infeed_speed))
-        self.traverse_speed_spinbox.setValue(int(self.traverse_speed))
+        self.infeed_speed_spinbox.setValue(float(self.infeed_speed))
+        self.traverse_speed_spinbox.setValue(float(self.traverse_speed))
         self.infeed_type_combo_box.setCurrentIndex(self.infeed_type)
         self.infeed_reverse_combo_box.setCurrentIndex(self.infeed_reverse)
 
@@ -313,13 +313,13 @@ class MainWindow(VCPMainWindow):
     def on_infeed_speed_changed(self, value):
         """Handle Infeed Speed change."""
         LOG.info(f"Infeed speed changed to: {value}")
-        self.infeed_speed = int(value)
+        self.infeed_speed = float(value)
         # self.settings.setData("infeed_speed", self.infeed_speed)
 
     def on_traverse_speed_changed(self, value):
         """Handle Traverse Speed change."""
         LOG.info(f"Traverse speed changed to: {value}")
-        self.set_traverse_speed(value)
+        self.traverse_speed = float(value)
 
     def is_machine_idle(self):
         """Check if the machine is idle and ready for MDI."""
