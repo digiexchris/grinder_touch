@@ -305,7 +305,7 @@ width: 100px;
                         </widget>
                        </item>
                        <item row="3" column="1">
-                        <widget class="QSpinBox" name="traverse_speed">
+                        <widget class="QDoubleSpinBox" name="traverse_speed">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -316,9 +316,6 @@ width: 100px;
                           <font>
                            <pointsize>15</pointsize>
                           </font>
-                         </property>
-                         <property name="maximum">
-                          <number>2000</number>
                          </property>
                         </widget>
                        </item>
@@ -465,7 +462,7 @@ width: 100px;
                         </widget>
                        </item>
                        <item row="4" column="1">
-                        <widget class="QSpinBox" name="infeed_speed">
+                        <widget class="QDoubleSpinBox" name="infeed_speed">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -476,9 +473,6 @@ width: 100px;
                           <font>
                            <pointsize>15</pointsize>
                           </font>
-                         </property>
-                         <property name="maximum">
-                          <number>2000</number>
                          </property>
                         </widget>
                        </item>
@@ -745,7 +739,7 @@ width: 100px;
                         <property name="minimumSize">
                          <size>
                           <width>52</width>
-                          <height>36</height>
+                          <height>52</height>
                          </size>
                         </property>
                         <property name="maximumSize">
@@ -3863,8 +3857,8 @@ Step</string>
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="toolButtonGroup"/>
-  <buttongroup name="coordOffsetGroup"/>
   <buttongroup name="mdiSmartButtonGroup"/>
+  <buttongroup name="coordOffsetGroup"/>
+  <buttongroup name="toolButtonGroup"/>
  </buttongroups>
 </ui>
