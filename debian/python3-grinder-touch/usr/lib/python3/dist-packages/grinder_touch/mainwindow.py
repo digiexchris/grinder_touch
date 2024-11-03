@@ -1,5 +1,5 @@
 from qtpyvcp.widgets.form_widgets.main_window import VCPMainWindow
-from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QSpinBox
+from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QSpinBox, QCheckBox
 from qtpy.QtGui import QDoubleValidator
 import linuxcnc
 import hal
@@ -68,6 +68,7 @@ class MainWindow(VCPMainWindow):
             Qt.WindowStaysOnTopHint
             )
 
+        LOG.setLevel('DEBUG')
 
         self.coordOffsetGroup.buttonClicked.connect(self.offsetHandleKeys)
         self.toolButtonGroup.buttonClicked.connect(self.toolHandleKeys)
@@ -97,6 +98,9 @@ class MainWindow(VCPMainWindow):
         self.downfeed_limit_min = float(0.0)
         self.downfeed_limit_max = float(0.0)
         self.infeed_stepover = float(0.05)
+
+        self.infeed_enabled = False
+        self.traverse_enabled = False
 
         self.traverse_axis = Axis.X
         self.infeed_axis = Axis.Z
@@ -223,7 +227,21 @@ class MainWindow(VCPMainWindow):
         double_validator.setDecimals(5)
         double_validator.setNotation(QDoubleValidator.StandardNotation)
 
-        # Limits Tab
+        self.enable_infeed_button = self.findChild(QPushButton, "enable_infeed_button")
+        self.enable_traverse_button = self.findChild(QPushButton, "enable_traverse_button")
+
+        self.disable_infeed_at_limit_checkbox = self.findChild(QCheckBox, "disable_infeed_at_limit_checkbox")
+        self.disable_infeed_at_limit_checkbox.clicked.connect(self.on_disable_infeed_at_limit_checkbox_clicked)
+        self.disable_traverse_at_infeed_limit_checkbox = self.findChild(QCheckBox, "disable_traverse_at_infeed_limit_checkbox")
+        self.disable_traverse_at_infeed_limit_checkbox.clicked.connect(self.on_disable_traverse_at_infeed_limit_checkbox_clicked)
+
+        self.enable_infeed_button.setCheckable(True)
+        self.enable_infeed_button.setChecked(False)
+        self.enable_infeed_button.clicked.connect(self.on_enable_infeed_button_clicked)
+
+        self.enable_traverse_button.setCheckable(True)
+        self.enable_traverse_button.setChecked(False)
+        self.enable_traverse_button.clicked.connect(self.on_enable_traverse_button_clicked)
 
         self.infeed_axis_combo_box = self.findChild(QComboBox, "infeed_axis")
         self.traverse_axis_combo_box = self.findChild(QComboBox, "traverse_axis")
@@ -256,10 +274,12 @@ class MainWindow(VCPMainWindow):
 
     def load_settings(self):
         """Load user settings using PersistentSettings."""
+        self.disable_infeed_at_limit = bool(self.settings.getData('disable_infeed_at_limit', False))
+        self.disable_traverse_at_infeed_limit = bool(self.settings.getData('disable_traverse_at_infeed_limit', False))
         self.infeed_limit_min = float(self.settings.getData('infeed_limit_min', 0))
-        self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 20))
+        self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 1))
         self.traverse_limit_min = np.array(self.settings.getData('traverse_limit_min', 0))
-        self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', 100))
+        self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', 1))
         self.infeed_stepover = float(self.settings.getData('infeed_stepover', 0.05))
         self.infeed_speed = int(self.settings.getData('infeed_speed', 200))
         self.traverse_speed = int(self.settings.getData('traverse_speed', 500))
@@ -273,6 +293,8 @@ class MainWindow(VCPMainWindow):
 
     def update_ui_from_settings(self):
         """Update UI fields from loaded settings."""
+        self.disable_infeed_at_limit_checkbox.setChecked(self.disable_infeed_at_limit)
+        self.disable_traverse_at_infeed_limit_checkbox.setChecked(self.disable_traverse_at_infeed_limit)
         self.infeed_limit_min_edit.setText(str(self.infeed_limit_min))
         self.infeed_limit_max_edit.setText(str(self.infeed_limit_max))
         self.infeed_stepover_edit.setText(str(self.infeed_stepover))
@@ -307,6 +329,30 @@ class MainWindow(VCPMainWindow):
             return True
         else:
             return False
+        
+    def on_disable_infeed_at_limit_checkbox_clicked(self):
+        self.disable_infeed_at_limit = not self.disable_infeed_at_limit
+        self.disable_infeed_at_limit_checkbox.setChecked(self.disable_infeed_at_limit)
+
+    def on_disable_traverse_at_infeed_limit_checkbox_clicked(self):
+        self.disable_traverse_at_infeed_limit = not self.disable_traverse_at_infeed_limit
+        self.disable_traverse_at_infeed_limit_checkbox.setChecked(self.disable_traverse_at_infeed_limit)
+
+    def on_enable_traverse_button_clicked(self):
+        """Handle run/stop button toggle."""
+        self.traverse_enabled = not self.traverse_enabled
+        if self.traverse_enabled:
+            self.enable_traverse_button.setChecked(True)
+        else:
+            self.enable_traverse_button.setChecked(False)
+
+    def on_enable_infeed_button_clicked(self):
+        """Handle run/stop button toggle."""
+        self.infeed_enabled = not self.infeed_enabled
+        if self.infeed_enabled:
+            self.enable_infeed_button.setChecked(True)
+        else:
+            self.enable_infeed_button.setChecked(False)
 
     def on_run_stop_button_clicked(self):
         """Handle run/stop button toggle."""
@@ -315,7 +361,7 @@ class MainWindow(VCPMainWindow):
         if self.start_motion:
 
             if not self.is_machine_idle():
-                LOG.info("Machine is busy, cannot enter MDI mode. Not starting.")
+                LOG.warn("Machine is busy, cannot enter MDI mode. Not starting.")
                 return
             
             self.c.mode(linuxcnc.MODE_MDI)
@@ -327,7 +373,7 @@ class MainWindow(VCPMainWindow):
             self.run_stop_button.setStyleSheet("background-color: green; color: white;")
             self.run_stop_button.setChecked(True)
             LOG.info("Run/Stop toggled to 'run'.")
-            self.timer.start(250)
+            self.timer.start(100)
         else:
             self.stop()
             LOG.info("Run/Stop toggled to 'stop'.")
@@ -343,6 +389,12 @@ class MainWindow(VCPMainWindow):
         try:
             self.infeed_type = self.infeed_type_combo_box.currentIndex()
             self.infeed_reverse = self.infeed_reverse_combo_box.currentIndex()
+            self.disable_infeed_at_limit = bool(self.disable_infeed_at_limit_checkbox.isChecked())
+            self.disable_traverse_at_infeed_limit = bool(self.disable_traverse_at_infeed_limit_checkbox.isChecked())
+
+            self.settings.setData("infeed_type", int(self.infeed_type))
+            self.settings.setData("infeed_reverse", int(self.infeed_reverse))
+            self.settings.setData("disable_infeed_at_limit", int(self.disable_infeed_at_limit))
 
             self.infeed_axis = Axis.from_int(self.infeed_axis_combo_box.currentIndex())
             self.settings.setData("infeed_axis", int(self.infeed_axis.to_int()))
@@ -365,7 +417,7 @@ class MainWindow(VCPMainWindow):
 
             self.settings.setData("infeed_limit_max", self.infeed_limit_max)
             self.settings.setData("infeed_limit_min", self.infeed_limit_min)
-            self.settings.setData("stepover", self.infeed_stepover)
+            self.settings.setData("infeed_stepover", self.infeed_stepover)
 
             self.settings.setData("infeed_speed", int(self.infeed_speed))
             self.settings.setData("traverse_speed", int(self.traverse_speed))
@@ -396,74 +448,102 @@ class MainWindow(VCPMainWindow):
         # 2: Infeed only at the left stop
         # 3: No infeed
 
-        if self.infeed_type == 0:
-            return True
-        elif self.infeed_type == 1 and target == MachineState.TRAVERSING_MAX:
-            return True
-        elif self.infeed_type == 2 and target == MachineState.TRAVERSING_MIN:
-            return True
-        return False
+        if self.infeed_enabled:
+            if self.infeed_type == 0:
+                return True
+            elif self.infeed_type == 1 and target == MachineState.TRAVERSING_MAX:
+                return True
+            elif self.infeed_type == 2 and target == MachineState.TRAVERSING_MIN:
+                return True
+            return False
 
-    def reverse_infeed(self):
+    def check_and_reverse_infeed_dir(self, current_pos) -> bool:
         """Invert the sign of the 3D stepover and handle infeed reverse logic."""
-        if self.infeed_reverse == 0:
-            # Reverse stepover
-            #self.infeed_stepover = -self.infeed_stepover
 
-            # Update UI elements
-            #self.infeed_stepover_edit.setText(str(self.infeed_stepover))
-
-            if self.last_infeed_direction == MachineState.INFEEDING_MAX:
-                self.last_infeed_direction = MachineState.INFEEDING_MIN
-                self.last_state = MachineState.INFEEDING_MIN
-            elif self.last_infeed_direction == MachineState.INFEEDING_MIN:
-                self.last_infeed_direction = MachineState.INFEEDING_MAX
-                self.last_state = MachineState.INFEEDING_MAX
-
-            LOG.info(f"Infeed reversed: {MachineState.INFEEDING_MAX.name}")
-
-            return True
-        elif self.infeed_reverse == 1:
-            self.move_to(self.infeed_axis, self.infeed_limit_min, self.infeed_speed)
-            return False
-        elif self.infeed_reverse == 2:
-            self.move_to(self.infeed_axis, self.infeed_limit_max, self.infeed_speed)
-            return False
-
-    def move_to(self, axis, pos, speed):
-        LOG.info(F"Move_To: G1 {axis}{pos} F{speed}")
-        self.c.mdi(F"G1 {axis}{pos} F{speed}")
-
-    def check_and_reverse(self, current_pos):
-        LOG.info(F"execute infeed at pos {self.s.position}")
+        continue_infeeding = True
         at_min_height = current_pos <= self.infeed_limit_min
         at_max_height = current_pos >= self.infeed_limit_max
-        if(at_min_height and self.state == MachineState.INFEEDING_MIN):
-            self.reverse_infeed()
-            return True
-        elif(at_max_height and self.state == MachineState.INFEEDING_MAX):
-            self.reverse_infeed()
-            return True
+
+        if self.infeed_reverse == 0:
+            if(at_min_height and self.state == MachineState.INFEEDING_MIN):
+                self.last_infeed_direction = MachineState.INFEEDING_MAX
+                self.state = MachineState.INFEEDING_MAX
+                self.disable_infeed_if_at_limit()
+                LOG.debug(f"Infeed reversed: {self.state.name}")
+            elif(at_max_height and self.state == MachineState.INFEEDING_MAX):
+                self.last_infeed_direction = MachineState.INFEEDING_MIN
+                self.state = MachineState.INFEEDING_MIN
+                self.disable_infeed_if_at_limit()
+                LOG.debug(f"Infeed reversed: {self.state.name}")
+            elif(self.state != MachineState.INFEEDING_MAX and self.state != MachineState.INFEEDING_MIN):
+                LOG.error(F"Attempting to check and reverse infeed dir while not in an infeed state: {self.state.name}")
+                raise Exception(F"Attempting to check and reverse infeed dir while not in an infeed state: {self.state.name}")
+    
+            continue_infeeding = True
+        elif self.infeed_reverse == 1:
+            if self.state != MachineState.INFEEDING_MAX:
+                self.last_infeed_direction = MachineState.INFEEDING_MAX
+                self.state = MachineState.INFEEDING_MAX
+            if at_max_height:
+                self.move_to(self.infeed_axis, self.infeed_limit_min, self.infeed_speed)
+                continue_infeeding = False
+                self.disable_infeed_if_at_limit()
+        elif self.infeed_reverse == 2:
+            if self.state != MachineState.INFEEDING_MIN:
+                self.last_infeed_direction = MachineState.INFEEDING_MIN
+                self.state = MachineState.INFEEDING_MIN
+            if at_min_height:
+                self.move_to(self.infeed_axis, self.infeed_limit_max, self.infeed_speed)
+                continue_infeeding = False
+                self.disable_infeed_if_at_limit()
+
+        return continue_infeeding
+    
+    def disable_infeed_if_at_limit(self):
+        if self.disable_infeed_at_limit:
+            self.infeed_enabled = False
+            self.enable_infeed_button.setChecked(False)
+            continue_infeeding = False
+
+            if self.disable_traverse_at_infeed_limit:
+                self.traverse_enabled = False
+                self.enable_traverse_button.setChecked(False)
+
+    def move_to(self, axis, pos, speed):
+        LOG.debug(F"Move_To: G1 {axis}{pos} F{speed}")
+        self.c.mdi(F"G1 {axis}{pos} F{speed}")
+
+    def reverse_traverse(self):
+        if self.state == MachineState.TRAVERSING_MAX:
+            self.last_traverse_direction = MachineState.TRAVERSING_MAX
+            self.state = MachineState.TRAVERSING_MIN
+        elif self.state == MachineState.TRAVERSING_MIN:
+            self.last_traverse_direction = MachineState.TRAVERSING_MIN
+            self.state = MachineState.TRAVERSING_MAX
         else:
-            return False
+            raise Exception(F"Unknown state during reverse {self.state.name}")
 
     def execute_infeed(self, infeed_dir):
         """Handle the infeed logic at each traverse limit."""
         self.s.poll()
         current_pos = round(self.s.position[self.infeed_axis.to_int()], self.position_rounding_tolerance)
-        LOG.info(F"Execute Infeed on {self.infeed_axis.to_str()} from {current_pos} ")
-        if self.last_traverse_direction == MachineState.TRAVERSING_MAX and self.should_infeed(MachineState.TRAVERSING_MAX):
-
-            if self.check_and_reverse(current_pos):
-                return
-
-        elif self.last_traverse_direction == MachineState.TRAVERSING_MIN and self.should_infeed(MachineState.TRAVERSING_MIN):
-
-            if self.check_and_reverse(current_pos):
-                return
+        LOG.debug(F"Execute Infeed on {self.infeed_axis.to_str()} from {current_pos} ")
         
+        LOG.debug(f"Infeed direction after checking: {infeed_dir}")
+        
+        self.last_infeed_direction = infeed_dir
+        self.last_state = infeed_dir
+
         LOG.info(F"Infeeding...")
         
+        # if we're only infeeding, just move to the limit. eg. dressing the wheel
+        if not self.traverse_enabled:
+            LOG.debug(F"Traverse not enabled, infeeding to the limit: {infeed_dir}")
+            if infeed_dir == MachineState.INFEEDING_MAX:
+                self.move_to(self.infeed_axis.name, self.infeed_limit_max, self.infeed_speed)
+            elif infeed_dir == MachineState.INFEEDING_MIN:
+                self.move_to(self.infeed_axis.name, self.infeed_limit_min, self.infeed_speed)
+            return
 
         infeed_stepover = self.infeed_stepover
 
@@ -482,15 +562,13 @@ class MainWindow(VCPMainWindow):
             LOG.warn("Infeed tried to infeed with 0 stepover.")
             return
         
+        LOG.debug(F"Stepover: {infeed_stepover}")
+        
         self.c.mdi(F"G91")
         self.c.mdi(F"G1 {self.infeed_axis.to_str()}{infeed_stepover} F{self.infeed_speed}")
         self.c.mdi(F"G90")
 
-        LOG.info("Infeed done.")
-
-        self.last_infeed_direction = infeed_dir
-        self.last_state = infeed_dir
-        self.state = MachineState.TRAVERSING_START
+        LOG.debug("Infeed done.")
 
     def control_loop(self):
         """Main control loop with state tracking and reentrancy protection."""
@@ -526,105 +604,117 @@ class MainWindow(VCPMainWindow):
         
             if self.s.interp_state == linuxcnc.INTERP_IDLE:
                 current_pos = np.array(self.s.position[:3])
-
+                LOG.info("*************************************")
                 LOG.info(F"Position: {current_pos}")
-                LOG.info(F"State: {self.state.name}")
+                # LOG.debug(F"State: {self.state.name}")
 
                 if self.state == MachineState.INIT:
-                    LOG.info(F"State is {self.state}")
-                    self.state = MachineState.TRAVERSING_MAX
+                    LOG.info(F"{self.state}")
+                    self.state = MachineState.TRAVERSING_START
                     self.exit_control_loop()
                     return
                 
                 if self.state == MachineState.TRAVERSING_START:
-                    LOG.info(F"State is {self.state}")
-                    if self.last_state == MachineState.INFEEDING_MAX or self.last_state == MachineState.INFEEDING_MIN:
-                        if self.last_traverse_direction == MachineState.TRAVERSING_MAX:
-                            self.state = MachineState.TRAVERSING_MIN
-                        elif self.last_traverse_direction == MachineState.TRAVERSING_MIN:
-                            self.state = MachineState.TRAVERSING_MAX
-                        else:
-                            self.state = MachineState.TRAVERSING_MAX
+                    LOG.info(F"{self.state}")
+                    self.state = self.last_traverse_direction
+
+                    if not self.traverse_enabled:
+                        LOG.debug(F"Traverse not enabled, skipping to infeed")
+                        self.state = MachineState.INFEEDING_START
                     else:
-                        self.state = MachineState.TRAVERSING_MAX
+                        LOG.debug(F"Next State: {self.state}")
+                        current_pos = round(self.s.position[self.traverse_axis.to_int()], self.position_rounding_tolerance)
+                        LOG.debug(F"Current: {current_pos} Limit Max: {self.traverse_limit_max} Limit Min: {self.traverse_limit_min}")
+                        if self.state == MachineState.TRAVERSING_MAX and current_pos >= self.traverse_limit_max:
+                            self.reverse_traverse()
+                            LOG.debug(F"Reversed direction to {self.state} due to max limit")
+                        elif self.state == MachineState.TRAVERSING_MIN and current_pos <= self.traverse_limit_min:
+                            self.reverse_traverse()
+                            LOG.debug(F"Reversed direction to {self.state} due to max limit")
 
                     self.exit_control_loop()
                     return
                     
                 
                 elif self.state == MachineState.TRAVERSING_MAX:
-                    LOG.info(F"State is {self.state}")
-                    LOG.info(F"Traverse Axis {self.traverse_axis.to_str()} position {round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance)} Traverse Limit {self.traverse_limit_max}")
-
-                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) < self.traverse_limit_max:
+                    LOG.info(F"{self.state}")
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance)} Traverse Limit {self.traverse_limit_max}")
+                    self.last_traverse_direction = MachineState.TRAVERSING_MAX
+                    self.last_state = MachineState.TRAVERSING_MAX
+                    
+                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) < self.traverse_limit_max and self.traverse_enabled:
                         self.move_to(self.traverse_axis.to_str(),self.traverse_limit_max, self.traverse_speed)
-                        self.last_traverse_direction = MachineState.TRAVERSING_MAX
-                        self.last_state = MachineState.TRAVERSING_MAX
                         self.exit_control_loop()
                         return
                     else:
                         self.state = MachineState.INFEEDING_START
-                        self.last_traverse_direction = MachineState.TRAVERSING_MAX
                         self.exit_control_loop()
                         return
 
                 elif self.state == MachineState.TRAVERSING_MIN:
-                    LOG.info(F"State is {self.state}")
-                    LOG.info(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos[self.traverse_axis.to_int()]} Traverse Limit {self.traverse_limit_max}")
-                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) > self.traverse_limit_min:
+                    LOG.info(F"{self.state}")
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos[self.traverse_axis.to_int()]} Traverse Limit {self.traverse_limit_max}")
+                    
+                    self.last_traverse_direction = MachineState.TRAVERSING_MIN
+                    self.last_state = MachineState.TRAVERSING_MIN
+                    
+                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) > self.traverse_limit_min  and self.traverse_enabled:
                         self.move_to(self.traverse_axis.to_str(), self.traverse_limit_min, self.traverse_speed)
-                        self.last_traverse_direction = MachineState.TRAVERSING_MIN
-                        self.last_state = MachineState.TRAVERSING_MIN
                         self.exit_control_loop()
                         return
                     else:
                         self.state = MachineState.INFEEDING_START
-                        self.last_traverse_direction = MachineState.TRAVERSING_MIN
                         self.exit_control_loop()
                         return
                         
                 elif self.state == MachineState.INFEEDING_START:
-                    LOG.info(F"State is {self.state}")
-                    if self.last_infeed_direction == MachineState.INFEEDING_MAX:
-                        self.state = MachineState.INFEEDING_MAX
-                    elif self.last_infeed_direction == MachineState.INFEEDING_MIN:
-                        self.state = MachineState.INFEEDING_MIN
+                    LOG.info(F"{self.state}")
+                    if self.infeed_enabled:
+                        self.state = self.last_infeed_direction
+                        LOG.debug(F"INFEEDING_START switched to last direction {self.state}")
+                        if self.state == MachineState.INFEEDING_MAX or self.state == MachineState.INFEEDING_MIN:
+                            continue_infeed = self.check_and_reverse_infeed_dir(round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance))
+                            LOG.debug(F"Direction after limits check now {self.state}")
+                            if not continue_infeed:
+                                LOG.debug(F"Skipping to traverse, continue_infeed was {continue_infeed}")
+                                self.state = MachineState.TRAVERSING_START
+                        else:
+                            raise Exception(F"INFEEDING_START changed to invalid last direction {self.state}")
                     else:
-                        self.state = MachineState.INFEEDING_MAX
+                        LOG.debug("Infeed not enabled, skipping to TRAVERSE_START")
+                        self.state = MachineState.TRAVERSING_START
 
+                    
                     self.exit_control_loop()
                     return
                 
                 elif self.state == MachineState.INFEEDING_MAX:
-                    LOG.info(F"State is {self.state}")
-                    if round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance) >= self.infeed_limit_max:
-                        if self.reverse_infeed():
+                    LOG.info(F"{self.state}")
+
+                    self.last_state = MachineState.INFEEDING_MAX
+
+                    if self.should_infeed(self.last_traverse_direction):
+                            self.execute_infeed(MachineState.INFEEDING_MAX)
                             self.state = MachineState.TRAVERSING_START
-                            self.last_state = MachineState.INFEEDING_MAX
                             self.exit_control_loop()
                             return
-                        else:
-                            #reverse_infeed is executing a move
-                            self.exit_control_loop()
-                            return
-                    else:    
-                        self.execute_infeed(MachineState.INFEEDING_MAX)
+                    else:
+                        self.state = MachineState.TRAVERSING_START
                         self.exit_control_loop()
                         return
                         
                 elif self.state == MachineState.INFEEDING_MIN:
-                    if round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance) <= self.infeed_limit_min:
-                        if self.reverse_infeed():
+                    LOG.info(F"{self.state}")
+
+                    self.last_state = MachineState.INFEEDING_MIN
+
+                    if self.should_infeed(self.last_traverse_direction):
+                            self.execute_infeed(MachineState.INFEEDING_MIN)
                             self.state = MachineState.TRAVERSING_START
-                            self.last_state = MachineState.INFEEDING_MIN
                             self.exit_control_loop()
                             return
-                        else:
-                            #reverse_infeed is executing a move
-                            self.exit_control_loop()
-                            return
-                    else:    
-                        self.execute_infeed(MachineState.INFEEDING_MIN)
+                    else:
+                        self.state = MachineState.TRAVERSING_START
                         self.exit_control_loop()
                         return
             
