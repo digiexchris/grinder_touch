@@ -83,7 +83,8 @@ class MainWindow(VCPMainWindow):
 
         self.settings = getPlugin('persistent_data_manager')
 
-        self.position_rounding_tolerance = 5
+        self.position_rounding_tolerance_in = 5
+        self.position_rounding_tolerance_mm = 3
 
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
@@ -137,6 +138,12 @@ class MainWindow(VCPMainWindow):
         self.last_state = MachineState.INIT
         self.last_traverse_direction = MachineState.TRAVERSING_MAX
         self.last_infeed_direction = MachineState.INFEEDING_MAX
+
+        self.axis_pins = [None] * 3  # Initialize a list with three elements
+        self.axis_pins[0] = hal.getHALPin('halui.axis.x.pos-relative')
+        self.axis_pins[1] = hal.getHALPin('halui.axis.y.pos-relative')
+        self.axis_pins[2] = hal.getHALPin('halui.axis.z.pos-relative')
+        self.is_on_pin = hal.getHALPin('halui.machine.is-on')
 
         # Add custom initialization logic here
         self.initialize_controls()
@@ -219,6 +226,19 @@ class MainWindow(VCPMainWindow):
         self.app.quit()
 
     ############### end milltouch ################
+
+    def get_rounding_tolerance(self):
+        # Check the current units
+        if self.linear_units == 1.0:
+            return self.position_rounding_tolerance_mm
+        elif self.linear_units == 25.4:
+            return self.position_rounding_tolerance_in
+        else:
+            raise Exception("Unknown work coordinate system units")
+
+    def get_pos(self, axis):
+
+        return round(self.axis_pins[axis.to_int()], self.get_rounding_tolerance())
 
     def initialize_controls(self):
         """Initialize custom controls and connect UI elements."""
@@ -526,7 +546,7 @@ class MainWindow(VCPMainWindow):
     def execute_infeed(self, infeed_dir):
         """Handle the infeed logic at each traverse limit."""
         self.s.poll()
-        current_pos = round(self.s.position[self.infeed_axis.to_int()], self.position_rounding_tolerance)
+        current_pos = self.get_pos(self.infeed_axis)
         LOG.debug(F"Execute Infeed on {self.infeed_axis.to_str()} from {current_pos} ")
         
         LOG.debug(f"Infeed direction after checking: {infeed_dir}")
@@ -557,7 +577,7 @@ class MainWindow(VCPMainWindow):
             if(current_pos + infeed_stepover > self.infeed_limit_max):
                 infeed_stepover = self.infeed_limit_max - current_pos        
         
-        if round(infeed_stepover, 7) == 0:
+        if round(infeed_stepover, self.get_rounding_tolerance()) == 0:
             #this probably should never happen
             LOG.warn("Infeed tried to infeed with 0 stepover.")
             return
@@ -579,7 +599,7 @@ class MainWindow(VCPMainWindow):
         self.control_loop_running = True
         self.s.poll()
 
-        if not self.s.enabled or self.s.estop or not self.start_motion:
+        if not self.s.enabled or self.s.estop == linuxcnc.STATE_ESTOP or not self.start_motion or not self.is_on_pin.value:
             self.timer.stop()
             LOG.info("Control loop stopped: Machine not ready.")
             self.stopped_mid_cycle = True
@@ -603,10 +623,7 @@ class MainWindow(VCPMainWindow):
                 return
         
             if self.s.interp_state == linuxcnc.INTERP_IDLE:
-                current_pos = np.array(self.s.position[:3])
                 LOG.info("*************************************")
-                LOG.info(F"Position: {current_pos}")
-                # LOG.debug(F"State: {self.state.name}")
 
                 if self.state == MachineState.INIT:
                     LOG.info(F"{self.state}")
@@ -623,7 +640,7 @@ class MainWindow(VCPMainWindow):
                         self.state = MachineState.INFEEDING_START
                     else:
                         LOG.debug(F"Next State: {self.state}")
-                        current_pos = round(self.s.position[self.traverse_axis.to_int()], self.position_rounding_tolerance)
+                        current_pos = self.et_pos(self.traverse_axis)
                         LOG.debug(F"Current: {current_pos} Limit Max: {self.traverse_limit_max} Limit Min: {self.traverse_limit_min}")
                         if self.state == MachineState.TRAVERSING_MAX and current_pos >= self.traverse_limit_max:
                             self.reverse_traverse()
@@ -638,11 +655,12 @@ class MainWindow(VCPMainWindow):
                 
                 elif self.state == MachineState.TRAVERSING_MAX:
                     LOG.info(F"{self.state}")
-                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance)} Traverse Limit {self.traverse_limit_max}")
+                    current_pos = self.et_pos(self.traverse_axis)
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.traverse_limit_max}")
                     self.last_traverse_direction = MachineState.TRAVERSING_MAX
                     self.last_state = MachineState.TRAVERSING_MAX
                     
-                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) < self.traverse_limit_max and self.traverse_enabled:
+                    if current_pos < self.traverse_limit_max and self.traverse_enabled:
                         self.move_to(self.traverse_axis.to_str(),self.traverse_limit_max, self.traverse_speed)
                         self.exit_control_loop()
                         return
@@ -653,12 +671,13 @@ class MainWindow(VCPMainWindow):
 
                 elif self.state == MachineState.TRAVERSING_MIN:
                     LOG.info(F"{self.state}")
-                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos[self.traverse_axis.to_int()]} Traverse Limit {self.traverse_limit_max}")
+                    current_pos = self.et_pos(self.traverse_axis)
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.traverse_limit_max}")
                     
                     self.last_traverse_direction = MachineState.TRAVERSING_MIN
                     self.last_state = MachineState.TRAVERSING_MIN
                     
-                    if round(current_pos[self.traverse_axis.to_int()], self.position_rounding_tolerance) > self.traverse_limit_min  and self.traverse_enabled:
+                    if current_pos > self.traverse_limit_min  and self.traverse_enabled:
                         self.move_to(self.traverse_axis.to_str(), self.traverse_limit_min, self.traverse_speed)
                         self.exit_control_loop()
                         return
@@ -669,11 +688,12 @@ class MainWindow(VCPMainWindow):
                         
                 elif self.state == MachineState.INFEEDING_START:
                     LOG.info(F"{self.state}")
+                    current_pos = self.et_pos(self.traverse_axis)
                     if self.infeed_enabled:
                         self.state = self.last_infeed_direction
                         LOG.debug(F"INFEEDING_START switched to last direction {self.state}")
                         if self.state == MachineState.INFEEDING_MAX or self.state == MachineState.INFEEDING_MIN:
-                            continue_infeed = self.check_and_reverse_infeed_dir(round(current_pos[self.infeed_axis.to_int()], self.position_rounding_tolerance))
+                            continue_infeed = self.check_and_reverse_infeed_dir(current_pos)
                             LOG.debug(F"Direction after limits check now {self.state}")
                             if not continue_infeed:
                                 LOG.debug(F"Skipping to traverse, continue_infeed was {continue_infeed}")
@@ -690,7 +710,7 @@ class MainWindow(VCPMainWindow):
                 
                 elif self.state == MachineState.INFEEDING_MAX:
                     LOG.info(F"{self.state}")
-
+                    
                     self.last_state = MachineState.INFEEDING_MAX
 
                     if self.should_infeed(self.last_traverse_direction):
