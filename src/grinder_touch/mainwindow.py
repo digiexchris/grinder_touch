@@ -60,12 +60,12 @@ class MainWindow(VCPMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
+        self.setFixedSize(1024, 600)
         ############# milltouch ##############
 
         self.setWindowFlags(
             Qt.Window |
-            Qt.CustomizeWindowHint |
-            Qt.WindowStaysOnTopHint
+            Qt.CustomizeWindowHint
             )
 
         LOG.setLevel('DEBUG')
@@ -138,12 +138,6 @@ class MainWindow(VCPMainWindow):
         self.last_state = MachineState.INIT
         self.last_traverse_direction = MachineState.TRAVERSING_MAX
         self.last_infeed_direction = MachineState.INFEEDING_MAX
-
-        self.axis_pins = [None] * 3  # Initialize a list with three elements
-        self.axis_pins[0] = hal.getHALPin('halui.axis.x.pos-relative')
-        self.axis_pins[1] = hal.getHALPin('halui.axis.y.pos-relative')
-        self.axis_pins[2] = hal.getHALPin('halui.axis.z.pos-relative')
-        self.is_on_pin = hal.getHALPin('halui.machine.is-on')
 
         # Add custom initialization logic here
         self.initialize_controls()
@@ -238,7 +232,8 @@ class MainWindow(VCPMainWindow):
 
     def get_pos(self, axis):
 
-        return round(self.axis_pins[axis.to_int()], self.get_rounding_tolerance())
+        self.s.poll()
+        return round(self.s.actual_position[axis.to_int()], self.get_rounding_tolerance())
 
     def initialize_controls(self):
         """Initialize custom controls and connect UI elements."""

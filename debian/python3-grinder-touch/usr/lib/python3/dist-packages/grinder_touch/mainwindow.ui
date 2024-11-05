@@ -2,16 +2,19 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>913</width>
+    <width>1024</width>
     <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -74,7 +77,28 @@ border: 5px solid rgb(136, 138, 133);
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QFrame" name="verticalFrame">
       <property name="frameShape">
@@ -98,24 +122,42 @@ border: 5px solid rgb(136, 138, 133);
        </property>
        <item>
         <widget class="QFrame" name="horizontalFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
+         <property name="lineWidth">
+          <number>3</number>
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <property name="leftMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="topMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="rightMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <item>
            <widget class="QTabWidget" name="tabWidget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
@@ -124,7 +166,7 @@ border: 5px solid rgb(136, 138, 133);
             </property>
             <property name="styleSheet">
              <string notr="true">QTabBar::tab {
-height: 50px;
+height: 52px;
 width: 100px;
 }
 </string>
@@ -317,6 +359,12 @@ width: 100px;
                            <pointsize>15</pointsize>
                           </font>
                          </property>
+                         <property name="maximum">
+                          <double>9999.000000000000000</double>
+                         </property>
+                         <property name="singleStep">
+                          <double>0.500000000000000</double>
+                         </property>
                         </widget>
                        </item>
                       </layout>
@@ -474,6 +522,12 @@ width: 100px;
                            <pointsize>15</pointsize>
                           </font>
                          </property>
+                         <property name="maximum">
+                          <double>9999.989999999999782</double>
+                         </property>
+                         <property name="singleStep">
+                          <double>0.250000000000000</double>
+                         </property>
                         </widget>
                        </item>
                       </layout>
@@ -488,6 +542,12 @@ width: 100px;
                     </property>
                     <item>
                      <widget class="QWidget" name="widget" native="true">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <layout class="QVBoxLayout" name="verticalLayout_4">
                        <property name="leftMargin">
                         <number>0</number>
@@ -512,10 +572,16 @@ width: 100px;
                            <verstretch>0</verstretch>
                           </sizepolicy>
                          </property>
+                         <property name="minimumSize">
+                          <size>
+                           <width>96</width>
+                           <height>60</height>
+                          </size>
+                         </property>
                          <property name="maximumSize">
                           <size>
-                           <width>16777215</width>
-                           <height>60</height>
+                           <width>52</width>
+                           <height>52</height>
                           </size>
                          </property>
                          <property name="text">
@@ -534,10 +600,16 @@ width: 100px;
                            <verstretch>0</verstretch>
                           </sizepolicy>
                          </property>
+                         <property name="minimumSize">
+                          <size>
+                           <width>96</width>
+                           <height>60</height>
+                          </size>
+                         </property>
                          <property name="maximumSize">
                           <size>
-                           <width>16777215</width>
-                           <height>60</height>
+                           <width>52</width>
+                           <height>52</height>
                           </size>
                          </property>
                          <property name="text">
@@ -556,10 +628,16 @@ width: 100px;
                            <verstretch>0</verstretch>
                           </sizepolicy>
                          </property>
+                         <property name="minimumSize">
+                          <size>
+                           <width>96</width>
+                           <height>60</height>
+                          </size>
+                         </property>
                          <property name="maximumSize">
                           <size>
-                           <width>120</width>
-                           <height>120</height>
+                           <width>52</width>
+                           <height>52</height>
                           </size>
                          </property>
                          <property name="font">
@@ -588,6 +666,12 @@ width: 100px;
                      <layout class="QFormLayout" name="formLayout">
                       <property name="sizeConstraint">
                        <enum>QLayout::SetDefaultConstraint</enum>
+                      </property>
+                      <property name="horizontalSpacing">
+                       <number>6</number>
+                      </property>
+                      <property name="verticalSpacing">
+                       <number>6</number>
                       </property>
                       <item row="0" column="0">
                        <widget class="QLabel" name="infeedTypeLabel">
@@ -745,7 +829,7 @@ width: 100px;
                         <property name="maximumSize">
                          <size>
                           <width>120</width>
-                          <height>120</height>
+                          <height>52</height>
                          </size>
                         </property>
                         <property name="font">
@@ -819,6 +903,21 @@ width: 0px;
                      <string>[{&quot;channels&quot;: [{&quot;url&quot;: &quot;status:all_axes_homed&quot;, &quot;trigger&quot;: true}], &quot;property&quot;: &quot;Enable&quot;, &quot;expression&quot;: &quot;ch[0]&quot;, &quot;name&quot;: &quot;New Rule&quot;}]</string>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_14">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
                      <item row="1" column="0">
                       <widget class="QFrame" name="frame">
                        <property name="frameShape">
@@ -831,6 +930,18 @@ width: 0px;
                         <number>2</number>
                        </property>
                        <layout class="QGridLayout" name="gridLayout_5">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item row="0" column="0">
                          <widget class="MDIEntry" name="mdiSmartEntry">
                           <property name="font">
@@ -878,6 +989,21 @@ width: 0px;
                         <number>2</number>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_9">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QWidget" name="widget_15" native="true">
                           <layout class="QHBoxLayout" name="horizontalLayout_14">
@@ -908,6 +1034,21 @@ width: 0px;
                               <number>2</number>
                              </property>
                              <layout class="QVBoxLayout" name="verticalLayout_8">
+                              <property name="spacing">
+                               <number>0</number>
+                              </property>
+                              <property name="leftMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
                               <item>
                                <widget class="QWidget" name="widget_9" native="true">
                                 <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -1400,6 +1541,21 @@ width: 0px;
                               <number>2</number>
                              </property>
                              <layout class="QVBoxLayout" name="verticalLayout_5">
+                              <property name="spacing">
+                               <number>0</number>
+                              </property>
+                              <property name="leftMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
                               <item>
                                <widget class="QWidget" name="widget_19" native="true">
                                 <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -2252,17 +2408,20 @@ Parameters</string>
              <enum>QFrame::Box</enum>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <property name="leftMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="topMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="rightMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="bottomMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <item>
               <widget class="QFrame" name="gridFrame">
@@ -2575,6 +2734,12 @@ Parameters</string>
              </item>
              <item>
               <widget class="QTabWidget" name="tabWidget_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="styleSheet">
                 <string notr="true"/>
                </property>
@@ -2619,75 +2784,25 @@ Parameters</string>
                     <property name="spacing">
                      <number>5</number>
                     </property>
-                    <item row="7" column="0" colspan="4">
-                     <widget class="QFrame" name="gridFrame">
+                    <item row="0" column="3">
+                     <widget class="QLabel" name="cordOffsetLbl">
+                      <property name="font">
+                       <font>
+                        <family>Monospace</family>
+                        <pointsize>11</pointsize>
+                        <weight>50</weight>
+                        <italic>false</italic>
+                        <bold>false</bold>
+                       </font>
+                      </property>
                       <property name="frameShape">
                        <enum>QFrame::Box</enum>
                       </property>
-                      <layout class="QGridLayout" name="gridLayout_11">
-                       <property name="leftMargin">
-                        <number>5</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>5</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>5</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>5</number>
-                       </property>
-                       <item row="0" column="2">
-                        <widget class="MDIButton" name="mdibutton_4">
-                         <property name="text">
-                          <string>Set
-Y</string>
-                         </property>
-                         <property name="MDICommand" stdset="0">
-                          <string>G10L20P0Y#&lt;cordOffsetLbl&gt;</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="0" column="0">
-                        <widget class="MDIButton" name="mdibutton_9">
-                         <property name="text">
-                          <string>Set
-X Y Z</string>
-                         </property>
-                         <property name="MDICommand" stdset="0">
-                          <string>G10L20P0X#&lt;cordOffsetLbl&gt;Y#&lt;cordOffsetLbl&gt;Z#&lt;cordOffsetLbl&gt;</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="0" column="3">
-                        <widget class="MDIButton" name="mdibutton_5">
-                         <property name="text">
-                          <string>Set
-Z</string>
-                         </property>
-                         <property name="MDICommand" stdset="0">
-                          <string>G10L20P0Z#&lt;cordOffsetLbl&gt;</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="0" column="1">
-                        <widget class="MDIButton" name="mdibutton_3">
-                         <property name="text">
-                          <string>Set
-X</string>
-                         </property>
-                         <property name="MDICommand" stdset="0">
-                          <string>G10L20P0X#&lt;cordOffsetLbl&gt;</string>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </item>
-                    <item row="5" column="0">
-                     <widget class="QPushButton" name="pushButton_41">
                       <property name="text">
-                       <string>-0.125</string>
+                       <string/>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -2710,18 +2825,14 @@ X</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="6" column="0">
-                     <widget class="QPushButton" name="pushButton_88">
+                    <item row="2" column="0">
+                     <widget class="QPushButton" name="pushButton_14">
                       <property name="text">
-                       <string/>
+                       <string>0.250</string>
                       </property>
-                     </widget>
-                    </item>
-                    <item row="6" column="3">
-                     <widget class="QPushButton" name="coordClear">
-                      <property name="text">
-                       <string>Clear</string>
-                      </property>
+                      <attribute name="buttonGroup">
+                       <string notr="true">coordOffsetGroup</string>
+                      </attribute>
                      </widget>
                     </item>
                     <item row="2" column="1" rowspan="4" colspan="3">
@@ -2865,10 +2976,27 @@ X</string>
                       </layout>
                      </widget>
                     </item>
-                    <item row="6" column="2">
-                     <widget class="QPushButton" name="pushButton_91">
+                    <item row="4" column="0">
+                     <widget class="QPushButton" name="pushButton">
                       <property name="text">
-                       <string>Bksp</string>
+                       <string>0.125</string>
+                      </property>
+                      <attribute name="buttonGroup">
+                       <string notr="true">coordOffsetGroup</string>
+                      </attribute>
+                     </widget>
+                    </item>
+                    <item row="6" column="1">
+                     <widget class="QPushButton" name="pushButton_90">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="6" column="3">
+                     <widget class="QPushButton" name="coordClear">
+                      <property name="text">
+                       <string>Clear</string>
                       </property>
                      </widget>
                     </item>
@@ -2882,53 +3010,90 @@ X</string>
                       </attribute>
                      </widget>
                     </item>
-                    <item row="0" column="3">
-                     <widget class="QLabel" name="cordOffsetLbl">
-                      <property name="font">
-                       <font>
-                        <family>Monospace</family>
-                        <pointsize>11</pointsize>
-                        <weight>50</weight>
-                        <italic>false</italic>
-                        <bold>false</bold>
-                       </font>
+                    <item row="5" column="0">
+                     <widget class="QPushButton" name="pushButton_41">
+                      <property name="text">
+                       <string>-0.125</string>
                       </property>
+                     </widget>
+                    </item>
+                    <item row="6" column="2">
+                     <widget class="QPushButton" name="pushButton_91">
+                      <property name="text">
+                       <string>Bksp</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="7" column="0" colspan="4">
+                     <widget class="QFrame" name="gridFrame">
                       <property name="frameShape">
                        <enum>QFrame::Box</enum>
                       </property>
+                      <layout class="QGridLayout" name="gridLayout_11">
+                       <property name="leftMargin">
+                        <number>5</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>5</number>
+                       </property>
+                       <property name="rightMargin">
+                        <number>5</number>
+                       </property>
+                       <property name="bottomMargin">
+                        <number>5</number>
+                       </property>
+                       <item row="0" column="2">
+                        <widget class="MDIButton" name="mdibutton_4">
+                         <property name="text">
+                          <string>Set
+Y</string>
+                         </property>
+                         <property name="MDICommand" stdset="0">
+                          <string>G10L20P0Y#&lt;cordOffsetLbl&gt;</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <widget class="MDIButton" name="mdibutton_9">
+                         <property name="text">
+                          <string>Set
+X Y Z</string>
+                         </property>
+                         <property name="MDICommand" stdset="0">
+                          <string>G10L20P0X#&lt;cordOffsetLbl&gt;Y#&lt;cordOffsetLbl&gt;Z#&lt;cordOffsetLbl&gt;</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="3">
+                        <widget class="MDIButton" name="mdibutton_5">
+                         <property name="text">
+                          <string>Set
+Z</string>
+                         </property>
+                         <property name="MDICommand" stdset="0">
+                          <string>G10L20P0Z#&lt;cordOffsetLbl&gt;</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="1">
+                        <widget class="MDIButton" name="mdibutton_3">
+                         <property name="text">
+                          <string>Set
+X</string>
+                         </property>
+                         <property name="MDICommand" stdset="0">
+                          <string>G10L20P0X#&lt;cordOffsetLbl&gt;</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </widget>
+                    </item>
+                    <item row="6" column="0">
+                     <widget class="QPushButton" name="pushButton_88">
                       <property name="text">
                        <string/>
                       </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="6" column="1">
-                     <widget class="QPushButton" name="pushButton_90">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="QPushButton" name="pushButton_14">
-                      <property name="text">
-                       <string>0.250</string>
-                      </property>
-                      <attribute name="buttonGroup">
-                       <string notr="true">coordOffsetGroup</string>
-                      </attribute>
-                     </widget>
-                    </item>
-                    <item row="4" column="0">
-                     <widget class="QPushButton" name="pushButton">
-                      <property name="text">
-                       <string>0.125</string>
-                      </property>
-                      <attribute name="buttonGroup">
-                       <string notr="true">coordOffsetGroup</string>
-                      </attribute>
                      </widget>
                     </item>
                    </layout>
@@ -3517,24 +3682,45 @@ Tool</string>
        </item>
        <item>
         <widget class="QFrame" name="gridFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <property name="leftMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="topMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="rightMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>5</number>
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>0</number>
           </property>
           <item row="0" column="11">
            <widget class="ActionButton" name="actionbutton_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Abort
 Program</string>
@@ -3546,6 +3732,12 @@ Program</string>
           </item>
           <item row="0" column="6">
            <widget class="ActionButton" name="actionbutton_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Run
 Program</string>
@@ -3557,6 +3749,12 @@ Program</string>
           </item>
           <item row="0" column="2">
            <widget class="ActionButton" name="actionbutton_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Power</string>
             </property>
@@ -3570,6 +3768,12 @@ Program</string>
           </item>
           <item row="0" column="1">
            <widget class="ActionButton" name="actionbutton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>E Stop</string>
             </property>
@@ -3583,6 +3787,12 @@ Program</string>
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="exitBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Exit</string>
             </property>
@@ -3590,6 +3800,12 @@ Program</string>
           </item>
           <item row="0" column="3">
            <widget class="ActionButton" name="actionbutton_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true"/>
             </property>
@@ -3607,6 +3823,12 @@ All</string>
           </item>
           <item row="0" column="10">
            <widget class="ActionButton" name="actionbutton_6">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Resume
 Program</string>
@@ -3618,6 +3840,12 @@ Program</string>
           </item>
           <item row="0" column="8">
            <widget class="ActionButton" name="actionbutton_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Pause
 Program</string>
@@ -3629,6 +3857,12 @@ Program</string>
           </item>
           <item row="0" column="4">
            <widget class="MDIButton" name="mdibutton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Go
 XYZ0</string>
@@ -3640,6 +3874,12 @@ XYZ0</string>
           </item>
           <item row="0" column="5">
            <widget class="MDIButton" name="mdibutton_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Load
 T1</string>
@@ -3651,6 +3891,12 @@ T1</string>
           </item>
           <item row="0" column="7">
            <widget class="ActionButton" name="actionbutton_7">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>Single
 Step</string>
@@ -3858,7 +4104,7 @@ Step</string>
  </connections>
  <buttongroups>
   <buttongroup name="mdiSmartButtonGroup"/>
-  <buttongroup name="coordOffsetGroup"/>
   <buttongroup name="toolButtonGroup"/>
+  <buttongroup name="coordOffsetGroup"/>
  </buttongroups>
 </ui>

@@ -15,13 +15,7 @@ Description-Content-Type: text/markdown
 #### Surface Grinder CNC
 Semi-automatic surface grinder interface similar to hydraulic grinders, but with extra functionality
 
-The left/right traverse allows for all 3 dimensions, so it's possible to traverse at a 3d angle instead of just horizontally!
-
-Infeed also takes a 3d vector, so you can do in/out stepover like usual, but can also plunge or do an angle instead.
-
-TODO:
-
-Make a calculator that sets the stepover vector according to angles
+Traverse, Infeed, and Downfeed axis are arbitrary so it's easy to make it move in a weird way.
 
 A fork of https://github.com/turboss/sg_cnc.git
 
@@ -40,18 +34,12 @@ https://repository.qtpyvcp.com/apt/pool/main/stable/
 
 https://www.qtpyvcp.com/install/prerequisites.html
 
+install the .deb from this repo
+
 ### Dependencies
 
 ```
 $ sudo apt install python3-pyqt5 python3-pyqt5.qtquick python3-dbus.mainloop.pyqt5 python3-pyqt5.qtopengl python3-pyqt5.qsci python3-pyqt5.qtmultimedia qml-module-qtquick-controls gstreamer1.0-plugins-bad libqt5multimedia5-plugins pyqt5-dev-tools python3-dev python3-setuptools python3-pip git
-```
-
-### installation
-
-```
-$ git clone https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui
-$ cd semiauto_sg
-$ pip install -e .
 ```
 
 ## Customize
@@ -61,24 +49,24 @@ https://www.qtpyvcp.com/install/apt_install.html
 https://repository.qtpyvcp.com/apt/pool/main/stable/
 
 ```
-$ cd semiauto_sg/ui
+$ cd src/grinder_touch
 $ editvcp config.yml
 ```
 
 ## Resources
 
-* [Development](https://github.com/digiexchris/SurfaceGrinder-linuxcnc-ui)
+* [Development](https://github.com/digiexchris/qtpyvcp-grinder-touch)
 * [Documentation](https://qtpyvcp.com)
 
 
 ## Dependancies
 
-* [LinuxCNC](https://linuxcnc.org) 2.9pre
+* [LinuxCNC](https://linuxcnc.org) 2.9.1 or later
 * Python 3.9
 * PyQt5 or PySide2
 * [QtPyVCP](https://qtpyvcp.com/)
 
-semiauto_sg is developed and tested using the LinuxCNC Debian 12, It should run on any system that can have PyQt5 installed, but Debian 12 is the only OS
+grinder_touch is developed and tested using the LinuxCNC Debian 12, It should run on any system that can have PyQt5 installed, but Debian 12 is the only OS
 that is officially supported.
 
 
