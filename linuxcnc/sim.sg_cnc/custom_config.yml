@@ -1,6 +1,0 @@
-# example of a machine specific settings
-windows:
-  mainwindow:
-    kwargs:
-      confirm_exit: false
-
