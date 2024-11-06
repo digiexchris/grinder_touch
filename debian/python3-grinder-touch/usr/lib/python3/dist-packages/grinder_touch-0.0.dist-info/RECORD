@@ -2,8 +2,8 @@
 grinder_touch/__init__.py,sha256=RuAxcFrxLQFmEtjypW2jWXjoMu8uoizGOWF9HXWrZfc,512
 grinder_touch/config.yml,sha256=CXG168JVrhWduRXhoXYmn7MeVdJ6qPdWj1VH799dLLY,1173
 grinder_touch/helptext.py,sha256=oWycCUs6hWYQgt4I1zSek66IZMXrKXAJPSK_I7gTX4w,26623
-grinder_touch/mainwindow.py,sha256=hNiEnEHuv-iSOhItj340bAwS6SPpU6HUeQBY-jyOGB4,32321
-grinder_touch/mainwindow.ui,sha256=etBGnditusZuz7MxdcIqaqoqcSmMbhRfL5nbEgOqXQQ,179405
+grinder_touch/mainwindow.py,sha256=8WPYS99E-bR0oPRWerfYonrrTP1OKOw_RRTPlmRGPzc,32708
+grinder_touch/mainwindow.ui,sha256=mlM5H2JZd5UKZmT9Un9WY8PR2-I0seHcYWiQhgJBM6A,178114
 grinder_touch/mainwindow.ui-vkt,sha256=YQ4SfcrHmqVg7g1prq8nHTnBuvvzC2_2Zm7ByQn86Ac,175787
 grinder_touch/sass/style.scss,sha256=abc5NxGY2hMBiIkuvtE48qihXQ4IpWDScaN_nZvJcL8,24
 grinder_touch/style.qss,sha256=Ns7PC1yZMll6FmlSIn4sAEjHxawhMYTEyZl3YXMBEwY,104

@@ -2,16 +2,19 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>913</width>
+    <width>1024</width>
     <height>600</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -72,6 +75,9 @@ background: rgb(186, 189, 182);
 border: 5px solid rgb(136, 138, 133);
 }
 </string>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -317,6 +323,12 @@ width: 100px;
                            <pointsize>15</pointsize>
                           </font>
                          </property>
+                         <property name="maximum">
+                          <double>9999.989999999999782</double>
+                         </property>
+                         <property name="singleStep">
+                          <double>0.500000000000000</double>
+                         </property>
                         </widget>
                        </item>
                       </layout>
@@ -473,6 +485,12 @@ width: 100px;
                           <font>
                            <pointsize>15</pointsize>
                           </font>
+                         </property>
+                         <property name="maximum">
+                          <double>9999.989999999999782</double>
+                         </property>
+                         <property name="singleStep">
+                          <double>0.250000000000000</double>
                          </property>
                         </widget>
                        </item>
@@ -739,7 +757,7 @@ width: 100px;
                         <property name="minimumSize">
                          <size>
                           <width>52</width>
-                          <height>52</height>
+                          <height>30</height>
                          </size>
                         </property>
                         <property name="maximumSize">
@@ -2266,6 +2284,12 @@ Parameters</string>
              </property>
              <item>
               <widget class="QFrame" name="gridFrame">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="frameShape">
                 <enum>QFrame::Box</enum>
                </property>
@@ -3432,53 +3456,6 @@ Tool</string>
                  </item>
                 </layout>
                </widget>
-               <widget class="QWidget" name="tab_6">
-                <attribute name="title">
-                 <string>Probe</string>
-                </attribute>
-                <layout class="QGridLayout" name="gridLayout_6">
-                 <item row="0" column="0">
-                  <widget class="VCPWidget" name="widget_2">
-                   <layout class="QGridLayout" name="gridLayout_23">
-                    <item row="0" column="0">
-                     <widget class="MDIButton" name="mdibutton_15">
-                      <property name="text">
-                       <string>Probe Y+</string>
-                      </property>
-                      <property name="MDICommand" stdset="0">
-                       <string>o&lt;p-back&gt; call</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="MDIButton" name="mdibutton_13"/>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="MDIButton" name="mdibutton_12"/>
-                    </item>
-                    <item row="3" column="1">
-                     <widget class="MDIButton" name="mdibutton_11"/>
-                    </item>
-                    <item row="0" column="1">
-                     <widget class="MDIButton" name="mdibutton_7"/>
-                    </item>
-                    <item row="1" column="1">
-                     <widget class="MDIButton" name="mdibutton_8"/>
-                    </item>
-                    <item row="3" column="0">
-                     <widget class="MDIButton" name="mdibutton_14"/>
-                    </item>
-                    <item row="2" column="1">
-                     <widget class="MDIButton" name="mdibutton_10"/>
-                    </item>
-                    <item row="4" column="0" colspan="2">
-                     <widget class="ProbeSim" name="probesim"/>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
                <widget class="QWidget" name="tab_8">
                 <attribute name="title">
                  <string>Settings</string>
@@ -3734,11 +3711,6 @@ Step</string>
    <header>qtpyvcp.widgets.input_widgets.file_system</header>
   </customwidget>
   <customwidget>
-   <class>ProbeSim</class>
-   <extends>QWidget</extends>
-   <header>qtpyvcp.widgets.input_widgets.probesim_widget</header>
-  </customwidget>
-  <customwidget>
    <class>VCPFrame</class>
    <extends>QFrame</extends>
    <header>qtpyvcp.widgets.containers.frame</header>
@@ -3857,8 +3829,8 @@ Step</string>
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="mdiSmartButtonGroup"/>
-  <buttongroup name="coordOffsetGroup"/>
   <buttongroup name="toolButtonGroup"/>
+  <buttongroup name="coordOffsetGroup"/>
+  <buttongroup name="mdiSmartButtonGroup"/>
  </buttongroups>
 </ui>

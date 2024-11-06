@@ -67,6 +67,8 @@ class MainWindow(VCPMainWindow):
             Qt.CustomizeWindowHint |
             Qt.WindowStaysOnTopHint
             )
+        
+        self.setFixedSize(1024, 600)
 
         LOG.setLevel('DEBUG')
 
@@ -255,10 +257,14 @@ class MainWindow(VCPMainWindow):
             self.save_limits_button.clicked.connect(self.on_save_limits_clicked)
 
         self.traverse_speed_spinbox = self.findChild(QDoubleSpinBox, "traverse_speed")
+        self.traverse_speed_spinbox.valueChanged.connect(self.on_traverse_speed_changed)
+
 
         self.infeed_stepover_edit = self.findChild(QLineEdit, "infeed_stepover")
        
         self.infeed_speed_spinbox = self.findChild(QDoubleSpinBox, "infeed_speed")
+        self.infeed_speed_spinbox.valueChanged.connect(self.on_infeed_speed_changed)
+
 
         # Run/Stop Button
         self.run_stop_button = self.findChild(QPushButton, "run_stop_button")
@@ -277,12 +283,12 @@ class MainWindow(VCPMainWindow):
         self.disable_infeed_at_limit = bool(self.settings.getData('disable_infeed_at_limit', False))
         self.disable_traverse_at_infeed_limit = bool(self.settings.getData('disable_traverse_at_infeed_limit', False))
         self.infeed_limit_min = float(self.settings.getData('infeed_limit_min', 0))
-        self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 1))
+        self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 3))
         self.traverse_limit_min = np.array(self.settings.getData('traverse_limit_min', 0))
         self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', 1))
         self.infeed_stepover = float(self.settings.getData('infeed_stepover', 0.05))
-        self.infeed_speed = int(self.settings.getData('infeed_speed', 200))
-        self.traverse_speed = int(self.settings.getData('traverse_speed', 500))
+        self.infeed_speed = int(self.settings.getData('infeed_speed', 100))
+        self.traverse_speed = int(self.settings.getData('traverse_speed', 240))
         self.infeed_type = int(self.settings.getData('infeed_type', 0))
         self.infeed_reverse = int(self.settings.getData('infeed_reverse', 0))
         self.traverse_axis = Axis.from_int(self.settings.getData('traverse_axis', Axis.X.to_int()))
@@ -439,6 +445,10 @@ class MainWindow(VCPMainWindow):
         self.stopped_mid_cycle = True
         LOG.info("Waiting for machine to stop...")
         self.wait_for_idle()
+
+        self.wait_for_idle()
+        self.c.mode(linuxcnc.MODE_MANUAL)  # Switch back to MANUAL mode
+        LOG.info("Machine set to MANUAL mode after stopping.")
 
     def should_infeed(self, target):
         """Determine if infeed should occur based on target and infeed type."""
