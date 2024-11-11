@@ -1,0 +1,17 @@
+O<ZMove_RepeatTZpe2> sub
+#4 = [HAL_PIN_Z_MIN]
+#5 = [HAL_PIN_Z_MAX]
+#6 = [HAL_PIN_Z_INFEED]
+
+IF [Z >= #5]
+   #10 = [Z - #6]
+   IF [#10 < #4]
+      G1 Z[#4]
+   ELSE
+      G1 Z[#10]
+   ENDIF
+ELSE IF [Z <= #4]
+   G1 Z[#5]
+ENDIF
+M99
+O<ZMove_RepeatType2> endsub

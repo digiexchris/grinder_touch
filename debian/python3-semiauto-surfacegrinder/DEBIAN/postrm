@@ -1,7 +1,0 @@
-#!/bin/sh
-set -e
-# Automatically added by dh_icons/13.11.4
-if command -v update-icon-caches >/dev/null; then
-	update-icon-caches /usr/share/icons/bg.png /usr/share/icons/down_arrow.png /usr/share/icons/down_arrow_disabled.png /usr/share/icons/left_arrow.png /usr/share/icons/left_arrow_disabled.png /usr/share/icons/right_arrow.png /usr/share/icons/right_arrow_disabled.png /usr/share/icons/up_arrow.png /usr/share/icons/up_arrow_disabled.png
-fi
-# End automatically added section

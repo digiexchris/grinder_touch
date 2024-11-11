@@ -1,0 +1,7 @@
+O<XMove_To_Min> sub
+#1 = [HAL_PIN_X_MIN]      (Get x_min from HAL)
+#3 = [HAL_PIN_X_SPEED]    (Set X-axis speed)
+
+G1 X[#1] F[#3]            (Move to x_min)
+M99
+O<XMove_To_Min> endsub

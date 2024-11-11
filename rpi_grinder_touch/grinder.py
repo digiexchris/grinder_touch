@@ -1,17 +1,12 @@
-from qtpyvcp.widgets.form_widgets.main_window import VCPMainWindow
 from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox
 from qtpy.QtGui import QDoubleValidator
-import linuxcnc
-import hal
+
 import numpy as np
 from qtpy.QtCore import QTimer, QEventLoop, Qt
 from qtpyvcp.plugins import getPlugin
 from enum import Enum
 
 from qtpyvcp.hal import QPin
-
-# Setup Help Text
-import grinder_touch.helptext as helptext
 
 class Axis(Enum):
     X = 0

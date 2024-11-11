@@ -1,9 +1,0 @@
-[console_scripts]
-grinder_touch=grinder_touch:main
-
-[qtpyvcp.vcp]
-grinder_touch=grinder_touch
-
-[qtpyvcp.widgets]
-semiauto_widgets=widgets
-
