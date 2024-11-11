@@ -5,20 +5,29 @@ net y_min classicladder.y_min float in                  # Y-axis minimum limit
 net y_max classicladder.y_max float in                  # Y-axis maximum limit
 net z_min classicladder.z_min float in                  # Z-axis minimum limit
 net z_max classicladder.z_max float in                  # Z-axis maximum limit
+
 net x_speed classicladder.x_speed float in              # X-axis speed
-net y_infeed classicladder.y_infeed float in            # Y-axis infeed increment
-net z_downfeed classicladder.z_downfeed float in        # Z-axis downfeed increment
+net y_speed classicladder.y_speed float in              # X-axis speed
+net z_speed classicladder.z_speed float in              # X-axis speed
+
+net z_crossfeed classicladder.y_crossfeed float in            # Y-axis crossfeed increment
+net y_downfeed classicladder.z_downfeed float in        # Z-axis downfeed increment
 
 # HAL Pins for Enable/Control Flags
-net enable_infeed classicladder.enable_infeed bit in            # Enable infeed control
-net enable_downfeed classicladder.enable_downfeed bit in        # Enable downfeed control
-net stop_infeed_at_y_limit classicladder.stop_infeed_at_y_limit bit in  # Stop infeed at Y max
-net stop_traverse_at_y_limit classicladder.stop_traverse_at_y_limit bit in  # Stop traverse at Y max
+net enable_x classicladder.enable_x bit in
+net enable_z classicladder.enable_z bit in            # Enable infeed control
+net enable_y classicladder.enable_y bit in        # Enable downfeed control
+
+net stop_z_at_z_limit classicladder.stop_z_at_z_limit bit in  # Stop infeed at Z max
+net stop_x_at_z_limit classicladder.stop_x_at_z_limit bit in  # Stop traverse at Z max
 
 # HAL Pins for Behavior Control Settings
-net infeed_at_x_limit classicladder.infeed_at_x_limit s32 in    # Control infeed behavior at X limits
-net infeed_repeat_type classicladder.infeed_repeat_type s32 in  # Set infeed repeat behavior
-net downfeed_at_y_limit classicladder.downfeed_at_y_limit bit in # Enable downfeed at Y limits
+net crossfeed_at classicladder.crossfeed_at s32 in    # Control infeed behavior at X limits
+net repeat_at classicladder.repeat_at s32 in  # Set infeed repeat behavior
+
+net enable_x classicladder.enable_x bit in # Enable traverse
+net enable_y classicladder.enable_y bit in # Enable downfeed
+net enable_z classicladder.enable_z bit in # Enable crossfeed
 
 # Axis Position Feedback to ClassicLadder
 net x_position joint.0.motor-pos-fb => classicladder.x_position float in  # X-axis position feedback
@@ -26,7 +35,7 @@ net y_position joint.1.motor-pos-fb => classicladder.y_position float in  # Y-ax
 net z_position joint.2.motor-pos-fb => classicladder.z_position float in  # Z-axis position feedback
 
 # Define a custom Start/Stop pin for ClassicLadder
-net classicladder_start classicladder.0.start bit in   # Manual start/stop control for ClassicLadder
+net run_stop classicladder.0.start bit in   # Manual start/stop control for ClassicLadder
 
 # Machine State Signals
 net machine-on iocontrol.0.machine-on => classicladder.machine_on  # Machine power status
