@@ -15,7 +15,7 @@ install linuxcnc 2.9pre using the debian 11
 
 http://www.linuxcnc.org/
 
-install qtpyvcp from packages (pypi's version is too old for python3)
+install python3-qtpy
 
 qtpyvcp packages can be found here 
 https://repository.qtpyvcp.com/apt/pool/main/stable/
