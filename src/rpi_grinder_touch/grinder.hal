@@ -1,0 +1,37 @@
+# HAL Pins for Min/Max Limits, Speeds, and Increments
+net x_min classicladder.x_min float in                  # X-axis minimum limit
+net x_max classicladder.x_max float in                  # X-axis maximum limit
+net y_min classicladder.y_min float in                  # Y-axis minimum limit
+net y_max classicladder.y_max float in                  # Y-axis maximum limit
+net z_min classicladder.z_min float in                  # Z-axis minimum limit
+net z_max classicladder.z_max float in                  # Z-axis maximum limit
+net x_speed classicladder.x_speed float in              # X-axis speed
+net y_infeed classicladder.y_infeed float in            # Y-axis infeed increment
+net z_downfeed classicladder.z_downfeed float in        # Z-axis downfeed increment
+
+# HAL Pins for Enable/Control Flags
+net enable_infeed classicladder.enable_infeed bit in            # Enable infeed control
+net enable_downfeed classicladder.enable_downfeed bit in        # Enable downfeed control
+net stop_infeed_at_y_limit classicladder.stop_infeed_at_y_limit bit in  # Stop infeed at Y max
+net stop_traverse_at_y_limit classicladder.stop_traverse_at_y_limit bit in  # Stop traverse at Y max
+
+# HAL Pins for Behavior Control Settings
+net infeed_at_x_limit classicladder.infeed_at_x_limit s32 in    # Control infeed behavior at X limits
+net infeed_repeat_type classicladder.infeed_repeat_type s32 in  # Set infeed repeat behavior
+net downfeed_at_y_limit classicladder.downfeed_at_y_limit bit in # Enable downfeed at Y limits
+
+# Axis Position Feedback to ClassicLadder
+net x_position joint.0.motor-pos-fb => classicladder.x_position float in  # X-axis position feedback
+net y_position joint.1.motor-pos-fb => classicladder.y_position float in  # Y-axis position feedback
+net z_position joint.2.motor-pos-fb => classicladder.z_position float in  # Z-axis position feedback
+
+# Define a custom Start/Stop pin for ClassicLadder
+net classicladder_start classicladder.0.start bit in   # Manual start/stop control for ClassicLadder
+
+# Machine State Signals
+net machine-on iocontrol.0.machine-on => classicladder.machine_on  # Machine power status
+net e-stop-not iocontrol.0.emc-enable-in => classicladder.e_stop_not  # E-stop condition (true if not in E-stop)
+
+# Combined Run Permission Signal for ClassicLadder
+# Allows ClassicLadder to run only if machine is on, not in E-stop, and start pin is active
+net classicladder_run_permission classicladder_start classicladder.e_stop_not classicladder.machine_on => classicladder.0.run_permission

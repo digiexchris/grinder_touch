@@ -61,26 +61,7 @@ class MainWindow(VCPMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.setFixedSize(1024, 600)
-        ############# milltouch ##############
-
-        self.setWindowFlags(
-            Qt.Window |
-            Qt.CustomizeWindowHint
-            )
-
-        LOG.setLevel('DEBUG')
-
-        self.coordOffsetGroup.buttonClicked.connect(self.offsetHandleKeys)
-        self.toolButtonGroup.buttonClicked.connect(self.toolHandleKeys)
-        self.toolBackSpace.clicked.connect(self.toolHandleBackSpace)
-        self.mdiSmartButtonGroup.buttonClicked.connect(self.mdiSmartHandleKeys)
-        self.mdiLoadParameters.clicked.connect(self.mdiSmartSetLabels)
-        self.mdiSmartBackspace.clicked.connect(self.mdiSmartHandleBackSpace)
-        self.gcodeHelpBtn.clicked.connect(self.tabForward)
-        self.mdiBackBtn.clicked.connect(self.tabBack)
-
-        ############### end milltouch ###########
-
+        
         self.settings = getPlugin('persistent_data_manager')
 
         self.position_rounding_tolerance_in = 5
@@ -91,135 +72,6 @@ class MainWindow(VCPMainWindow):
         self.s = linuxcnc.stat()
         self.h = hal.component("dynamic_control")
 
-        # Local variables for traverse limits and stepover
-        self.traverse_limit_min = float(0.0)
-        self.traverse_limit_max = float(0.0)
-        self.infeed_limit_min = float(0.0)
-        self.infeed_limit_max = float(0.0)
-        self.downfeed_limit_min = float(0.0)
-        self.downfeed_limit_max = float(0.0)
-        self.infeed_stepover = float(0.05)
-
-        self.infeed_enabled = False
-        self.traverse_enabled = False
-
-        self.traverse_axis = Axis.X
-        self.infeed_axis = Axis.Z
-
-        # Local variables for infeed type and reverse logic
-        # Infeed types are
-        # 0: reverse at either stop
-        # 1: move to the min and don't reverse
-        # 2: move to the max and don't reverse
-        # 3: none, don't move or reverse
-        self.infeed_reverse = 0
-
-        # Infeed types are
-        # 0: Infeed at either traverse stop
-        # 1: Infeed only at the right stop
-        # 2: Infeed only at the left stop
-        # 3: No infeed
-        self.infeed_type = 0
-
-        self.infeed_speed = 200
-        self.traverse_speed = 500
-
-        # Add HAL pin for run/stop
-        self.start_motion = False
-
-        # Add a QTimer for looping control
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.control_loop)
-
-        # Add variables to keep track of state
-        self.control_loop_running = False
-
-        self.state = MachineState.INIT
-        self.last_state = MachineState.INIT
-        self.last_traverse_direction = MachineState.TRAVERSING_MAX
-        self.last_infeed_direction = MachineState.INFEEDING_MAX
-
-        # Add custom initialization logic here
-        self.initialize_controls()
-        self.load_settings()
-
-    ############ milltouch ##################
-
-    def tabForward(parent):
-        parent.mdiStackedWidget.setCurrentIndex(parent.mdiStackedWidget.currentIndex() + 1)
-    def tabBack(parent):
-        parent.mdiStackedWidget.setCurrentIndex(parent.mdiStackedWidget.currentIndex() - 1)
-
-    def mdiSmartHandleKeys(self, button):
-        char = str(button.text())
-        text = self.mdiSmartEntry.text() or '0'
-        if text != '0':
-            text += char
-        else:
-            text = char
-        self.mdiSmartEntry.setText(text)
-
-    def mdiSmartSetLabels(self):
-        # get smart and figure out what axes are used
-
-        text = self.mdiSmartEntry.text() or '0'
-        if text != '0':
-            words = helptext.gcode_words()
-            if text in words:
-                self.mdiSmartClear()
-                print(type(words[text]))
-                for index, value in enumerate(words[text], start=1):
-                    getattr(self, 'gcodeParameter_' + str(index)).setText(value)
-            else:
-                self.mdiSmartClear()
-            titles = helptext.gcode_titles()
-            if text in titles:
-                self.gcodeDescription.setText(titles[text])
-            else:
-                self.mdiSmartClear()
-            self.gcodeHelpLabel.setText(helptext.gcode_descriptions(text))
-        else:
-            self.mdiSmartClear()
-
-    def mdiSmartClear(self):
-        for index in range(1,13):
-            getattr(self, 'gcodeParameter_' + str(index)).setText('')
-        self.gcodeDescription.setText('')
-        self.gcodeHelpLabel.setText('')
-
-    def mdiSmartHandleBackSpace(self):
-        if len(self.mdiSmartEntry.text()) > 0:
-            text = self.mdiSmartEntry.text()[:-1]
-            self.mdiSmartEntry.setText(text)
-
-    def offsetHandleKeys(self, button):
-        char = str(button.text())
-        text = self.cordOffsetLbl.text() or '0'
-        if text != '0':
-            text += char
-        else:
-            text = char
-        self.cordOffsetLbl.setText(text)
-
-    def toolHandleKeys(self, button):
-        char = str(button.text())
-        text = self.toolOffsetLabel.text() or '0'
-        if text != '0':
-            text += char
-        else:
-            text = char
-        self.toolOffsetLabel.setText(text)
-
-    def toolHandleBackSpace(self):
-        if len(self.toolOffsetLabel.text()) > 0:
-            text = self.toolOffsetLabel.text()[:-1]
-            self.toolOffsetLabel.setText(text)
-
-
-    def on_exitBtn_clicked(self):
-        self.app.quit()
-
-    ############### end milltouch ################
 
     def get_rounding_tolerance(self):
         # Check the current units
@@ -237,13 +89,32 @@ class MainWindow(VCPMainWindow):
 
     def initialize_controls(self):
         """Initialize custom controls and connect UI elements."""
-        # Validator to allow only numbers with optional decimals
-        double_validator = QDoubleValidator()
-        double_validator.setDecimals(5)
-        double_validator.setNotation(QDoubleValidator.StandardNotation)
 
-        self.enable_infeed_button = self.findChild(QPushButton, "enable_infeed_button")
-        self.enable_traverse_button = self.findChild(QPushButton, "enable_traverse_button")
+        self.x_max_edit = self.findChild(QPushButton, "x_max_edit")
+        self.x_min_edit = self.findChild(QPushButton, "x_min_edit")
+        self.z_max_edit = self.findChild(QPushButton, "z_max_edit")
+        self.z_min_edit = self.findChild(QPushButton, "z_min_edit")
+        self.y_max_edit = self.findChild(QPushButton, "y_max_edit")
+        self.y_min_edit = self.findChild(QPushButton, "y_min_edit")
+
+        self.x_max_here_pb = self.findChild(QPushButton, "x_max_here_pb")
+        self.x_min_here_pb = self.findChild(QPushButton, "x_min_here_pb")
+        self.z_max_here_pb = self.findChild(QPushButton, "z_max_here_pb")
+        self.z_min_here_pb = self.findChild(QPushButton, "z_min_here_pb")
+        self.y_max_here_pb = self.findChild(QPushButton, "y_max_here_pb")
+        self.y_min_here_pb = self.findChild(QPushButton, "y_min_here_pb")
+
+        self.x_speed_sb = self.findChild(QPushButton, "x_speed_sb")
+        self.z_speed_sb = self.findChild(QPushButton, "z_speed_sb")
+        self.y_speed_sb = self.findChild(QPushButton, "y_speed_sb")
+
+        self.crossfeed_stepover_edit = self.findChild(QPushButton, "crossfeed_stepover_edit")
+        self.downfeed_depth_edit = self.findChild(QPushButton, "downfeed_depth_edit")
+
+        self.crossfeed_at_cb = self.findChild(QPushButton, "crossfeed_at_cb")
+        self.repeat_at_cb = self.findChild(QPushButton, "repeat_at_cb")
+        self.stop_x_at_z_limit_cb = self.findChild(QPushButton, "stop_x_at_z_limit_cb")
+        self.stop_z_at_z_limit_cb = self.findChild(QPushButton, "stop_z_at_z_limit_cb")
 
         self.disable_infeed_at_limit_checkbox = self.findChild(QCheckBox, "disable_infeed_at_limit_checkbox")
         self.disable_infeed_at_limit_checkbox.clicked.connect(self.on_disable_infeed_at_limit_checkbox_clicked)
@@ -260,10 +131,10 @@ class MainWindow(VCPMainWindow):
 
         self.infeed_axis_combo_box = self.findChild(QComboBox, "infeed_axis")
         self.traverse_axis_combo_box = self.findChild(QComboBox, "traverse_axis")
-        self.traverse_limit_min_edit = self.findChild(QLineEdit, "traverse_limit_min")
-        self.traverse_limit_max_edit = self.findChild(QLineEdit, "traverse_limit_max")
-        self.infeed_limit_min_edit = self.findChild(QLineEdit, "infeed_limit_min")
-        self.infeed_limit_max_edit = self.findChild(QLineEdit, "infeed_limit_max")
+        self.x_min_edit = self.findChild(QLineEdit, "x_min")
+        self.x_max_edit = self.findChild(QLineEdit, "x_max")
+        self.z_min_edit = self.findChild(QLineEdit, "z_min")
+        self.z_max_edit = self.findChild(QLineEdit, "z_max")
 
         self.save_limits_button = self.findChild(QPushButton, "save_limits_button")
         if self.save_limits_button:
@@ -291,10 +162,10 @@ class MainWindow(VCPMainWindow):
         """Load user settings using PersistentSettings."""
         self.disable_infeed_at_limit = bool(self.settings.getData('disable_infeed_at_limit', False))
         self.disable_traverse_at_infeed_limit = bool(self.settings.getData('disable_traverse_at_infeed_limit', False))
-        self.infeed_limit_min = float(self.settings.getData('infeed_limit_min', 0))
-        self.infeed_limit_max = float(self.settings.getData('infeed_limit_max', 1))
-        self.traverse_limit_min = np.array(self.settings.getData('traverse_limit_min', 0))
-        self.traverse_limit_max = np.array(self.settings.getData('traverse_limit_max', 1))
+        self.z_min = float(self.settings.getData('z_min', 0))
+        self.z_max = float(self.settings.getData('z_max', 1))
+        self.x_min = np.array(self.settings.getData('x_min', 0))
+        self.x_max = np.array(self.settings.getData('x_max', 1))
         self.infeed_stepover = float(self.settings.getData('infeed_stepover', 0.05))
         self.infeed_speed = int(self.settings.getData('infeed_speed', 200))
         self.traverse_speed = int(self.settings.getData('traverse_speed', 500))
@@ -310,11 +181,11 @@ class MainWindow(VCPMainWindow):
         """Update UI fields from loaded settings."""
         self.disable_infeed_at_limit_checkbox.setChecked(self.disable_infeed_at_limit)
         self.disable_traverse_at_infeed_limit_checkbox.setChecked(self.disable_traverse_at_infeed_limit)
-        self.infeed_limit_min_edit.setText(str(self.infeed_limit_min))
-        self.infeed_limit_max_edit.setText(str(self.infeed_limit_max))
+        self.z_min_edit.setText(str(self.z_min))
+        self.z_max_edit.setText(str(self.z_max))
         self.infeed_stepover_edit.setText(str(self.infeed_stepover))
-        self.traverse_limit_min_edit.setText(str(self.traverse_limit_min))
-        self.traverse_limit_max_edit.setText(str(self.traverse_limit_max))
+        self.x_min_edit.setText(str(self.x_min))
+        self.x_max_edit.setText(str(self.x_max))
 
         self.infeed_speed_spinbox.setValue(float(self.infeed_speed))
         self.traverse_speed_spinbox.setValue(float(self.traverse_speed))
@@ -417,21 +288,21 @@ class MainWindow(VCPMainWindow):
             self.traverse_axis = Axis.from_int(self.traverse_axis_combo_box.currentIndex())
             self.settings.setData("traverse_axis", int(self.traverse_axis.to_int()))
 
-            self.traverse_limit_min = round(float(self.traverse_limit_min_edit.text()), self.get_rounding_tolerance())
-            self.traverse_limit_max = round(float(self.traverse_limit_max_edit.text()), self.get_rounding_tolerance())
+            self.x_min = round(float(self.x_min_edit.text()), self.get_rounding_tolerance())
+            self.x_max = round(float(self.x_max_edit.text()), self.get_rounding_tolerance())
 
-            self.settings.setData("traverse_limit_min", self.traverse_limit_min)
-            self.settings.setData("traverse_limit_max", self.traverse_limit_max)
+            self.settings.setData("x_min", self.x_min)
+            self.settings.setData("x_max", self.x_max)
 
             LOG.info("Traverse limits saved successfully.")
 
-            self.infeed_limit_min = round(float(self.infeed_limit_min_edit.text()), self.get_rounding_tolerance())
-            self.infeed_limit_max = round(float(self.infeed_limit_max_edit.text()), self.get_rounding_tolerance())
+            self.z_min = round(float(self.z_min_edit.text()), self.get_rounding_tolerance())
+            self.z_max = round(float(self.z_max_edit.text()), self.get_rounding_tolerance())
             
             self.infeed_stepover = round(float(self.infeed_stepover_edit.text()), self.get_rounding_tolerance())
 
-            self.settings.setData("infeed_limit_max", self.infeed_limit_max)
-            self.settings.setData("infeed_limit_min", self.infeed_limit_min)
+            self.settings.setData("z_max", self.z_max)
+            self.settings.setData("z_min", self.z_min)
             self.settings.setData("infeed_stepover", self.infeed_stepover)
 
             self.settings.setData("infeed_speed", int(self.infeed_speed))
@@ -476,8 +347,8 @@ class MainWindow(VCPMainWindow):
         """Invert the sign of the 3D stepover and handle infeed reverse logic."""
 
         continue_infeeding = True
-        at_min_height = current_pos <= self.infeed_limit_min
-        at_max_height = current_pos >= self.infeed_limit_max
+        at_min_height = current_pos <= self.z_min
+        at_max_height = current_pos >= self.z_max
 
         if self.infeed_reverse == 0:
             if(at_min_height and self.state == MachineState.INFEEDING_MIN):
@@ -500,7 +371,7 @@ class MainWindow(VCPMainWindow):
                 self.last_infeed_direction = MachineState.INFEEDING_MAX
                 self.state = MachineState.INFEEDING_MAX
             if at_max_height:
-                self.move_to(self.infeed_axis, self.infeed_limit_min, self.infeed_speed)
+                self.move_to(self.infeed_axis, self.z_min, self.infeed_speed)
                 continue_infeeding = False
                 self.disable_infeed_if_at_limit()
         elif self.infeed_reverse == 2:
@@ -508,7 +379,7 @@ class MainWindow(VCPMainWindow):
                 self.last_infeed_direction = MachineState.INFEEDING_MIN
                 self.state = MachineState.INFEEDING_MIN
             if at_min_height:
-                self.move_to(self.infeed_axis, self.infeed_limit_max, self.infeed_speed)
+                self.move_to(self.infeed_axis, self.z_max, self.infeed_speed)
                 continue_infeeding = False
                 self.disable_infeed_if_at_limit()
 
@@ -555,9 +426,9 @@ class MainWindow(VCPMainWindow):
         if not self.traverse_enabled:
             LOG.debug(F"Traverse not enabled, infeeding to the limit: {infeed_dir}")
             if infeed_dir == MachineState.INFEEDING_MAX:
-                self.move_to(self.infeed_axis.name, self.infeed_limit_max, self.infeed_speed)
+                self.move_to(self.infeed_axis.name, self.z_max, self.infeed_speed)
             elif infeed_dir == MachineState.INFEEDING_MIN:
-                self.move_to(self.infeed_axis.name, self.infeed_limit_min, self.infeed_speed)
+                self.move_to(self.infeed_axis.name, self.z_min, self.infeed_speed)
             return
 
         infeed_stepover = self.infeed_stepover
@@ -566,11 +437,11 @@ class MainWindow(VCPMainWindow):
 
         if infeed_dir == MachineState.INFEEDING_MIN:
             infeed_stepover = -infeed_stepover
-            if(current_pos + infeed_stepover < self.infeed_limit_min):
-                infeed_stepover = self.infeed_limit_min - current_pos
+            if(current_pos + infeed_stepover < self.z_min):
+                infeed_stepover = self.z_min - current_pos
         elif infeed_dir == MachineState.INFEEDING_MAX:
-            if(current_pos + infeed_stepover > self.infeed_limit_max):
-                infeed_stepover = self.infeed_limit_max - current_pos        
+            if(current_pos + infeed_stepover > self.z_max):
+                infeed_stepover = self.z_max - current_pos        
         
         if round(infeed_stepover, self.get_rounding_tolerance()) == 0:
             #this probably should never happen
@@ -636,11 +507,11 @@ class MainWindow(VCPMainWindow):
                     else:
                         LOG.debug(F"Next State: {self.state}")
                         current_pos = self.get_pos(self.traverse_axis)
-                        LOG.debug(F"Current: {current_pos} Limit Max: {self.traverse_limit_max} Limit Min: {self.traverse_limit_min}")
-                        if self.state == MachineState.TRAVERSING_MAX and current_pos >= self.traverse_limit_max:
+                        LOG.debug(F"Current: {current_pos} Limit Max: {self.x_max} Limit Min: {self.x_min}")
+                        if self.state == MachineState.TRAVERSING_MAX and current_pos >= self.x_max:
                             self.reverse_traverse()
                             LOG.debug(F"Reversed direction to {self.state} due to max limit")
-                        elif self.state == MachineState.TRAVERSING_MIN and current_pos <= self.traverse_limit_min:
+                        elif self.state == MachineState.TRAVERSING_MIN and current_pos <= self.x_min:
                             self.reverse_traverse()
                             LOG.debug(F"Reversed direction to {self.state} due to max limit")
 
@@ -651,12 +522,12 @@ class MainWindow(VCPMainWindow):
                 elif self.state == MachineState.TRAVERSING_MAX:
                     LOG.info(F"{self.state}")
                     current_pos = self.get_pos(self.traverse_axis)
-                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.traverse_limit_max}")
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.x_max}")
                     self.last_traverse_direction = MachineState.TRAVERSING_MAX
                     self.last_state = MachineState.TRAVERSING_MAX
                     
-                    if current_pos < self.traverse_limit_max and self.traverse_enabled:
-                        self.move_to(self.traverse_axis.to_str(),self.traverse_limit_max, self.traverse_speed)
+                    if current_pos < self.x_max and self.traverse_enabled:
+                        self.move_to(self.traverse_axis.to_str(),self.x_max, self.traverse_speed)
                         self.exit_control_loop()
                         return
                     else:
@@ -667,13 +538,13 @@ class MainWindow(VCPMainWindow):
                 elif self.state == MachineState.TRAVERSING_MIN:
                     LOG.info(F"{self.state}")
                     current_pos = self.get_pos(self.traverse_axis)
-                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.traverse_limit_max}")
+                    LOG.debug(F"Traverse Axis {self.traverse_axis.to_str()} position {current_pos} Traverse Limit {self.x_max}")
                     
                     self.last_traverse_direction = MachineState.TRAVERSING_MIN
                     self.last_state = MachineState.TRAVERSING_MIN
                     
-                    if current_pos > self.traverse_limit_min  and self.traverse_enabled:
-                        self.move_to(self.traverse_axis.to_str(), self.traverse_limit_min, self.traverse_speed)
+                    if current_pos > self.x_min  and self.traverse_enabled:
+                        self.move_to(self.traverse_axis.to_str(), self.x_min, self.traverse_speed)
                         self.exit_control_loop()
                         return
                     else:
