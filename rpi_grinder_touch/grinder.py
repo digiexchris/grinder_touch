@@ -8,6 +8,8 @@ from qtpy.QtCore import QTimer, QEventLoop, Qt
 from qtpyvcp.plugins import getPlugin
 from enum import Enum
 
+from qtpyvcp.hal import QPin
+
 # Setup Help Text
 import grinder_touch.helptext as helptext
 
@@ -68,7 +70,6 @@ class GrinderWindow():
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
         self.h = hal.HAL()
-
 
     def get_rounding_tolerance(self):
         # Check the current units
@@ -152,10 +153,59 @@ class GrinderWindow():
         self.window.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.enable_y_pb, "enable_y"))
         self.window.enable_z_pb = self.window.findChild(QPushButton, "enable_z_pb")
         self.window.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.enable_z_pb, "enable_z"))
+
+        #respond to the classicladder routine toggling these buttons
+        self.hal_enable_x_pin = QPin("enable_x")
+        self.hal_enable_x_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.window.enable_x_pb, "enable_x"))
+        self.hal_enable_z_pin = QPin("enable_z")
+        self.hal_enable_z_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.window.enable_z_pb, "enable_z"))
+
+        #deactivate Run if the estop triggers high
+        self.hal_estop_activated_pin = QPin("halui.estop.is-activated")
+        self.hal_enable_x_pin.value_changed.connect(self.estop_changed)
+
+        #convert all units if machine units changes
+        self.units_pin = QPin("halui.program.is-metric")
+        self.units_pin.value_changed.connect(self.handle_units_change)
+
+    def handle_units_change(self):
+        if self.previous_linear_units != self.s.linear_units:
+            conversion_factor = 1
+            if self.previous_linear_units == 1:
+                conversion_factor = 25.4
+                self.previous_linear_units = 25.4
+            else:
+                conversion_factor = 1/25.4
+                self.previous_linear_units = 1
+
+            self.window.x_min_edit.setText(str(self.h["x_min"] * conversion_factor))    
+            self.window.x_min_edit.setText(str(self.h["x_max"] * conversion_factor))  
+            self.window.x_min_edit.setText(str(self.h["y_min"] * conversion_factor))    
+            self.window.x_min_edit.setText(str(self.h["y_max"] * conversion_factor))  
+            self.window.x_min_edit.setText(str(self.h["z_min"] * conversion_factor))    
+            self.window.x_min_edit.setText(str(self.h["z_max"] * conversion_factor))  
+            self.window.x_speed_sb.setValue(float(self.h["x_speed"] * conversion_factor))
+            self.window.y_speed_sb.setValue(float(self.h["y_speed"] * conversion_factor))
+            self.window.z_speed_sb.setValue(float(self.h["z_speed"] * conversion_factor))
+            self.window.z_crossfeed_edit.setText(str(self.h["z_crossfeed"] * conversion_factor))
+            self.window.y_downfeed_edit.setText(str(self.h["y_downfeed"] * conversion_factor))
+
+            self.save_grind_clicked()
+
+    def estop_changed(self):
+        if self.h["halui.estop.is-activated"]:
+            if self.h["run_stop"]:
+                self.stop()
+
+    def on_hal_toggle_changed(self, button, hal_field):
+
+        self.set_checked(button, hal_field)
+        self.set_toggle_button_color(button,hal_field)
         
 
     def load_settings(self):
         """Load user settings using PersistentSettings."""
+        self.previous_linear_units = self.settings.get_data('grinder_previous_linear_units',1)
         self.h["x_min"] = self.settings.get_data('grinder_x_min',0)
         self.window.x_min_edit.setText(str(self.h["x_min"]))
         self.h["x_max"] = self.settings.getData('grinder_x_max', self.get_converted_value(1, "inch"))
@@ -229,9 +279,12 @@ class GrinderWindow():
         else:
             raise Exception("unknown sender")
         
+    def set_checked(self, button, hal_field):
+        button.setChecked(self.h[hal_field])
+        
     def on_toggle_clicked(self, button, hal_field):
         self.h[hal_field] = -self.h[hal_field]
-        button.setChecked(self.h[hal_field])
+        self.set_checked(button, hal_field)
 
         self.set_toggle_button_color(button,hal_field)
 
@@ -289,9 +342,8 @@ class GrinderWindow():
         """Start or stop the control loop based on the run_stop signal."""
         self.c.abort()
         self.h["run_stop"] = False
-        self.window.run_stop_button.setText("RUN")
-        self.window.run_stop_button.setStyleSheet("")
-        self.window.run_stop_button.setChecked(False)
+        self.set_checked(self.window.run_stop_pb, "run_stop")
+        self.set_toggle_button_color(self.window.run_stop_pb, "run_stop")
 
     def move_to(self, axis, pos, speed):
         LOG.debug(F"Move_To: G1 {axis}{pos} F{speed}")
