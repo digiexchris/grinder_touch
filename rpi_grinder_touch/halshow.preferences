@@ -11,6 +11,8 @@ set ::watchlist {
     pin+flexhal.test_mdi_pin1
     sig+but-zero_material_xy
     sig+but-zero_vise_xy
+    pin+grinder.x_max
+    pin+grinder.x_min
 }
 set ::workmode watchhal
 set ::watchInterval 100

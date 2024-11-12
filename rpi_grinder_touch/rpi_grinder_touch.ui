@@ -391,7 +391,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="iconSize">
        <size>
@@ -533,7 +533,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="font">
@@ -551,7 +551,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="font">
@@ -581,7 +581,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="font">
@@ -673,6 +673,12 @@
              </item>
              <item row="0" column="1">
               <widget class="QLineEdit" name="z_max_edit">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>26</pointsize>
@@ -697,6 +703,12 @@
              </item>
              <item row="1" column="1">
               <widget class="QLineEdit" name="z_min_edit">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>26</pointsize>
@@ -721,6 +733,12 @@
              </item>
              <item row="2" column="1">
               <widget class="QDoubleSpinBox" name="z_speed_sb">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>26</pointsize>
@@ -732,7 +750,13 @@
               </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="crossfeed_stepover_edit">
+              <widget class="QLineEdit" name="z_crossfeed_edit">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>26</pointsize>
@@ -760,7 +784,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="font">
@@ -802,7 +826,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="font">
@@ -938,7 +962,13 @@
               </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="downfeed_depth_edit">
+              <widget class="QLineEdit" name="y_downfeed_edit">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>40</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>26</pointsize>
@@ -4245,7 +4275,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

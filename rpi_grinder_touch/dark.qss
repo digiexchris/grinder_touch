@@ -152,7 +152,7 @@ QTabBar::tab {
 QToolButton { /* all types of tool button */
 	background-color: rgba(230, 230, 230, 50%);
 	min-width: 75px;
-	min-height: 50px;
+	min-height: 40px;
 	border: 2px solid rgb(128, 128, 128);
 	border-radius: 10px;
 	}

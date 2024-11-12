@@ -1,49 +1,35 @@
-loaduser classicladder_rt
+# Load the Python script and wait for it to initialize
+loadusr -Wn grinder python3 grinder-backend.py
 
-loadusr classicladder
-# HAL Pins for Min/Max Limits, Speeds, and Increments
-net x_min classicladder.x_min float in                  # X-axis minimum limit
-net x_max classicladder.x_max float in                  # X-axis maximum limit
-net y_min classicladder.y_min float in                  # Y-axis minimum limit
-net y_max classicladder.y_max float in                  # Y-axis maximum limit
-net z_min classicladder.z_min float in                  # Z-axis minimum limit
-net z_max classicladder.z_max float in                  # Z-axis maximum limit
+# Connect position feedback to the Python component
+net xpos-fb => grinder.x_position
+net ypos-fb => grinder.y_position
+net zpos-fb => grinder.z_position
 
-net x_speed classicladder.x_speed float in              # X-axis speed
-net y_speed classicladder.y_speed float in              # X-axis speed
-net z_speed classicladder.z_speed float in              # X-axis speed
+# Define configurable parameters
+setp grinder.x_min 0.0
+setp grinder.x_max 0.0
+setp grinder.y_min 0.0
+setp grinder.y_max 0.0
+setp grinder.z_min 0.0
+setp grinder.z_max 0.0
 
-net z_crossfeed classicladder.y_crossfeed float in            # Y-axis crossfeed increment
-net y_downfeed classicladder.z_downfeed float in        # Z-axis downfeed increment
+setp grinder.x_speed 0.0
+setp grinder.y_speed 0.0
+setp grinder.z_speed 0.0
 
-# HAL Pins for Enable/Control Flags
-net enable_x classicladder.enable_x bit in
-net enable_z classicladder.enable_z bit in            # Enable infeed control
-net enable_y classicladder.enable_y bit in        # Enable downfeed control
+setp grinder.z_crossfeed 0.0
+setp grinder.y_downfeed 0.0
 
-net stop_z_at_z_limit classicladder.stop_z_at_z_limit bit in  # Stop infeed at Z max
-net stop_x_at_z_limit classicladder.stop_x_at_z_limit bit in  # Stop traverse at Z max
+# Enable and control signals
+setp grinder.enable_x false
+setp grinder.enable_y false
+setp grinder.enable_z false
+setp grinder.run_permission false
+setp grinder.run_stop false
+setp grinder.stop_x_at_z_limit false
+setp grinder.stop_z_at_z_limit false
 
-# HAL Pins for Behavior Control Settings
-net crossfeed_at classicladder.crossfeed_at s32 in    # Control infeed behavior at X limits
-net repeat_at classicladder.repeat_at s32 in  # Set infeed repeat behavior
-
-net enable_x classicladder.enable_x bit in # Enable traverse
-net enable_y classicladder.enable_y bit in # Enable downfeed
-net enable_z classicladder.enable_z bit in # Enable crossfeed
-
-# Axis Position Feedback to ClassicLadder
-net x_position joint.0.motor-pos-fb => classicladder.x_position float in  # X-axis position feedback
-net y_position joint.1.motor-pos-fb => classicladder.y_position float in  # Y-axis position feedback
-net z_position joint.2.motor-pos-fb => classicladder.z_position float in  # Z-axis position feedback
-
-# Define a custom Start/Stop pin for ClassicLadder
-net run_stop classicladder.0.start bit in   # Manual start/stop control for ClassicLadder
-
-# Machine State Signals
-net machine-on iocontrol.0.machine-on => classicladder.machine_on  # Machine power status
-net e-stop-not iocontrol.0.emc-enable-in => classicladder.e_stop_not  # E-stop condition (true if not in E-stop)
-
-# Combined Run Permission Signal for ClassicLadder
-# Allows ClassicLadder to run only if machine is on, not in E-stop, and start pin is active
-net classicladder_run_permission classicladder_start classicladder.e_stop_not classicladder.machine_on => classicladder.0.run_permission
+# Crossfeed and repeat settings
+setp grinder.crossfeed_at 0
+setp grinder.repeat_at 0

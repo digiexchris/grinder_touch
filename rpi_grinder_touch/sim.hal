@@ -8,9 +8,6 @@ setp parport.0.reset-time 5000
 loadrt stepgen step_type=0,0,0
 loadrt pwmgen output_type=1
 
-loadrt classicladder_rt
-addf classicladder.0.refresh servo-thread
-
 addf parport.0.read base-thread
 source sim_hardware.hal
 addf stepgen.make-pulses base-thread
@@ -100,3 +97,5 @@ net tool-change iocontrol.0.tool-change => hal_manualtoolchange.change
 net tool-changed iocontrol.0.tool-changed <= hal_manualtoolchange.changed
 net tool-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
 net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
+
+source grinder.hal

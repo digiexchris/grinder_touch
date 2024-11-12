@@ -1,12 +1,15 @@
-from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox
+import os
+from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
 from qtpy.QtGui import QDoubleValidator
 
-import linuxcnc
+import linuxcnc, hal
 from qtpy.QtCore import QTimer, QEventLoop, Qt
-from qtpyvcp.plugins import getPlugin
 from enum import Enum
 
-from qtpyvcp.hal import QPin
+from hal_glib import GStat
+GSTAT = GStat()
+
+# from qtpyvcp.hal import QPin
 
 import pickle
 
@@ -43,34 +46,43 @@ class Axis(Enum):
 def startup(parent):
     parent.setFixedSize(1024, 600)
     parent.grinder_window = GrinderWindow(parent)
-    parent.grinder_window.initialize_controls()
+    parent.grinder_window.initialize_controls(parent)
     parent.grinder_window.load_settings()
+    
 
-class GrinderWindow():
+class GrinderWindow(QWidget):
     """Main window class for the VCP."""
-    def __init__(self, aParentWindow):
-        self.window = aParentWindow
+    def __init__(self, parent):
 
-        self.window.setFixedSize(1024, 600)
-        
-        self.settings = getPlugin('persistent_data_manager')
+        self.parent = parent
+        # self = aParentWindow
+
+        # self.setFixedSize(1024, 600)
+
+        self.settings_file = "./grinder.pkl"
 
         self.position_rounding_tolerance_in = 5
         self.position_rounding_tolerance_mm = 3
 
+        self.pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        GSTAT.connect("current-position", self.update_pos)
+
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
-        self.h = hal.HAL()
+        self.h = hal
+
+    def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
+        self.pos = relative_pos
+
 
     def get_rounding_tolerance(self):
         # Check the current units
-        if self.s.linear_units == 1.0:
+        if GSTAT.is_metric_mode():
             return self.position_rounding_tolerance_mm
-        elif self.s.linear_units == 25.4:
-            return self.position_rounding_tolerance_in
         else:
-            raise Exception("Unknown work coordinate system units")
+            return self.position_rounding_tolerance_in
         
     def get_converted_value(self, value, units):
         if units != "inch" and units != "mm":
@@ -94,74 +106,79 @@ class GrinderWindow():
 
     def get_pos(self, axis):
 
-        self.s.poll()
-        return round(self.s.actual_position[axis.to_int()], self.get_rounding_tolerance())
+        return round(self.pos[axis.to_int()], self.get_rounding_tolerance())
 
-    def initialize_controls(self):
+    def initialize_controls(self, parent):
         """Initialize custom controls and connect UI elements."""
 
-        self.window.x_max_edit = self.window.findChild(QPushButton, "x_max_edit")
-        self.window.x_min_edit = self.window.findChild(QPushButton, "x_min_edit")
-        self.window.z_max_edit = self.window.findChild(QPushButton, "z_max_edit")
-        self.window.z_min_edit = self.window.findChild(QPushButton, "z_min_edit")
-        self.window.y_max_edit = self.window.findChild(QPushButton, "y_max_edit")
-        self.window.y_min_edit = self.window.findChild(QPushButton, "y_min_edit")
+        # GSTAT.connect("state-estop",lambda w: self.update_estate_label('ESTOP'))
 
-        self.window.x_max_here_pb = self.window.findChild(QPushButton, "x_max_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
-        self.window.x_min_here_pb = self.window.findChild(QPushButton, "x_min_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
-        self.window.z_max_here_pb = self.window.findChild(QPushButton, "z_max_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
-        self.window.z_min_here_pb = self.window.findChild(QPushButton, "z_min_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
-        self.window.y_max_here_pb = self.window.findChild(QPushButton, "y_max_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
-        self.window.y_min_here_pb = self.window.findChild(QPushButton, "y_min_here_pb")
-        self.window.x_max_here_pb.clicked.connect(self.on_set_limit_clicked)
+        self.x_max_edit = parent.findChild(QLineEdit, "x_max_edit")
+        self.x_min_edit = parent.findChild(QLineEdit, "x_min_edit")
+        self.z_max_edit = parent.findChild(QLineEdit, "z_max_edit")
+        self.z_min_edit = parent.findChild(QLineEdit, "z_min_edit")
+        self.y_max_edit = parent.findChild(QLineEdit, "y_max_edit")
+        self.y_min_edit = parent.findChild(QLineEdit, "y_min_edit")
 
-        self.window.x_speed_sb = self.window.findChild(QPushButton, "x_speed_sb")
-        self.window.z_speed_sb = self.window.findChild(QPushButton, "z_speed_sb")
-        self.window.y_speed_sb = self.window.findChild(QPushButton, "y_speed_sb")
+        self.x_max_here_pb = parent.findChild(QPushButton, "x_max_here_pb")
+        self.x_max_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("x_max", self.x_max_edit))
+        self.x_min_here_pb = parent.findChild(QPushButton, "x_min_here_pb")
+        self.x_min_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("x_min", self.x_min_edit))
+        self.z_max_here_pb = parent.findChild(QPushButton, "z_max_here_pb")
+        self.z_max_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("z_max", self.z_max_edit))
+        self.z_min_here_pb = parent.findChild(QPushButton, "z_min_here_pb")
+        self.z_min_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("z_min", self.z_min_edit))
+        self.y_max_here_pb = parent.findChild(QPushButton, "y_max_here_pb")
+        self.y_max_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("y_max", self.y_max_edit))
+        self.y_min_here_pb = parent.findChild(QPushButton, "y_min_here_pb")
+        self.y_min_here_pb.clicked.connect(lambda: self.on_set_limit_clicked("y_min", self.y_min_edit))
 
-        self.window.crossfeed_stepover_edit = self.window.findChild(QPushButton, "crossfeed_stepover_edit")
-        self.window.downfeed_depth_edit = self.window.findChild(QPushButton, "downfeed_depth_edit")
+        self.x_speed_sb = parent.findChild(QDoubleSpinBox, "x_speed_sb")
+        self.z_speed_sb = parent.findChild(QDoubleSpinBox, "z_speed_sb")
+        self.y_speed_sb = parent.findChild(QDoubleSpinBox, "y_speed_sb")
 
-        self.window.crossfeed_at_cb = self.window.findChild(QPushButton, "crossfeed_at_cb")
-        self.window.repeat_at_cb = self.window.findChild(QPushButton, "repeat_at_cb")
+        self.z_crossfeed_edit = parent.findChild(QLineEdit, "z_crossfeed_edit")
+        self.y_downfeed_edit = parent.findChild(QLineEdit, "y_downfeed_edit")
 
-        self.window.stop_x_at_z_limit_pb = self.window.findChild(QPushButton, "stop_x_at_z_limit_pb")
-        self.window.stop_x_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.stop_x_at_z_limit_pb, "stop_x_at_z_limit"))
-        self.window.stop_z_at_z_limit_pb = self.window.findChild(QPushButton, "stop_z_at_z_limit_pb")
-        self.window.stop_z_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.stop_z_at_z_limit_pb, "stop_z_at_z_limit_pb"))
+        self.crossfeed_at_cb = parent.findChild(QComboBox, "crossfeed_at_cb")
+        self.repeat_at_cb = parent.findChild(QComboBox, "repeat_at_cb")
 
-        self.window.save_grind_pb = self.window.findChild(QPushButton, "save_grind_pb")
-        self.window.save_grind_pb.clicked.connect(self.save_grind_clicked)
+        self.stop_x_at_z_limit_pb = parent.findChild(QPushButton, "stop_x_at_z_limit_pb")
+        self.stop_x_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_x_at_z_limit_pb, "stop_x_at_z_limit", "OFF", "ON"))
+        self.stop_z_at_z_limit_pb = parent.findChild(QPushButton, "stop_z_at_z_limit_pb")
+        self.stop_z_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_z_at_z_limit_pb, "stop_z_at_z_limit", "OFF", "ON"))
+
+        self.save_grind_pb = parent.findChild(QPushButton, "save_grind_pb")
+        self.save_grind_pb.clicked.connect(self.save_grind_clicked)
+
+        print(self.save_grind_pb)
 
         # Run/Stop Button
-        self.window.run_stop_pb = self.window.findChild(QPushButton, "run_stop_pb")
-        self.window.run_stop_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.run_stop_pb, "run_stop"))
+        self.run_stop_pb = parent.findChild(QPushButton, "run_stop_pb")
+        self.run_stop_pb.clicked.connect(lambda: self.on_toggle_clicked(self.run_stop_pb, "run_stop", "RUN", "STOP"))
 
-        self.window.enable_x_pb = self.window.findChild(QPushButton, "enable_x_pb")
-        self.window.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.enable_x_pb, "enable_x"))
-        self.window.enable_y_pb = self.window.findChild(QPushButton, "enable_y_pb")
-        self.window.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.enable_y_pb, "enable_y"))
-        self.window.enable_z_pb = self.window.findChild(QPushButton, "enable_z_pb")
-        self.window.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked(self.window.enable_z_pb, "enable_z"))
+        self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
+        self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_x_pb, "enable_x"))
+        self.enable_y_pb = parent.findChild(QPushButton, "enable_y_pb")
+        self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_y_pb, "enable_y"))
+        self.enable_z_pb = parent.findChild(QPushButton, "enable_z_pb")
+        self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_z_pb, "enable_z"))
 
+
+        #TODO do the below with gstat
         #respond to the classicladder routine toggling these buttons
-        self.hal_enable_x_pin = QPin("enable_x")
-        self.hal_enable_x_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.window.enable_x_pb, "enable_x"))
-        self.hal_enable_z_pin = QPin("enable_z")
-        self.hal_enable_z_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.window.enable_z_pb, "enable_z"))
+        # self.hal_enable_x_pin = QPin("enable_x")
+        # self.hal_enable_x_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.enable_x_pb, "enable_x"))
+        # self.hal_enable_z_pin = QPin("enable_z")
+        # self.hal_enable_z_pin.value_changed.connect(lambda: self.on_hal_toggle_changed(self.enable_z_pb, "enable_z"))
 
         #deactivate Run if the estop triggers high
-        self.hal_estop_activated_pin = QPin("halui.estop.is-activated")
-        self.hal_enable_x_pin.value_changed.connect(self.estop_changed)
+        # self.hal_estop_activated_pin = QPin("halui.estop.is-activated")
+        # self.hal_enable_x_pin.value_changed.connect(self.estop_changed)
 
-        #convert all units if machine units changes
-        self.units_pin = QPin("halui.program.is-metric")
-        self.units_pin.value_changed.connect(self.handle_units_change)
+        # #convert all units if machine units changes
+        # self.units_pin = QPin("halui.program.is-metric")
+        # self.units_pin.value_changed.connect(self.handle_units_change)
 
     def handle_units_change(self):
         if self.previous_linear_units != self.s.linear_units:
@@ -173,181 +190,203 @@ class GrinderWindow():
                 conversion_factor = 1/25.4
                 self.previous_linear_units = 1
 
-            self.window.x_min_edit.setText(str(self.h["x_min"] * conversion_factor))    
-            self.window.x_min_edit.setText(str(self.h["x_max"] * conversion_factor))  
-            self.window.x_min_edit.setText(str(self.h["y_min"] * conversion_factor))    
-            self.window.x_min_edit.setText(str(self.h["y_max"] * conversion_factor))  
-            self.window.x_min_edit.setText(str(self.h["z_min"] * conversion_factor))    
-            self.window.x_min_edit.setText(str(self.h["z_max"] * conversion_factor))  
-            self.window.x_speed_sb.setValue(float(self.h["x_speed"] * conversion_factor))
-            self.window.y_speed_sb.setValue(float(self.h["y_speed"] * conversion_factor))
-            self.window.z_speed_sb.setValue(float(self.h["z_speed"] * conversion_factor))
-            self.window.z_crossfeed_edit.setText(str(self.h["z_crossfeed"] * conversion_factor))
-            self.window.y_downfeed_edit.setText(str(self.h["y_downfeed"] * conversion_factor))
+            self.x_min_edit.setText(str(self.get_hal("x_min") * conversion_factor))    
+            self.x_min_edit.setText(str(self.get_hal("x_max") * conversion_factor))  
+            self.x_min_edit.setText(str(self.get_hal("y_min") * conversion_factor))    
+            self.x_min_edit.setText(str(self.get_hal("y_max") * conversion_factor))  
+            self.x_min_edit.setText(str(self.get_hal("z_min") * conversion_factor))    
+            self.x_min_edit.setText(str(self.get_hal("z_max") * conversion_factor))  
+            self.x_speed_sb.setValue(float(self.get_hal("x_speed") * conversion_factor))
+            self.y_speed_sb.setValue(float(self.get_hal("y_speed") * conversion_factor))
+            self.z_speed_sb.setValue(float(self.get_hal("z_speed") * conversion_factor))
+            self.z_crossfeed_edit.setText(str(self.get_hal("z_crossfeed") * conversion_factor))
+            self.y_downfeed_edit.setText(str(self.get_hal("y_downfeed") * conversion_factor))
 
             self.save_grind_clicked()
 
     def estop_changed(self):
-        if self.h["halui.estop.is-activated"]:
-            if self.h["run_stop"]:
+        if self.get_hal("halui.estop.is-activated"):
+            if self.get_hal("grinder.run_stop"):
                 self.stop()
 
     def on_hal_toggle_changed(self, button, hal_field):
 
         self.set_checked(button, hal_field)
         self.set_toggle_button_color(button,hal_field)
+
+    def set_hal(self, field, value):
+        print("Setting hal value: "+str(value))
+        hal.set_p("grinder."+field, str(value))
         
+    def get_hal(self, field):
+        return hal.get_value("grinder."+field)
 
     def load_settings(self):
-        if os.path.exists("grinder.pkl"):
-            with open("grinder.pkl", "rb") as file:
-                settings = pickle.load(file)
+        if os.path.exists(self.settings_file):
+            with open(self.settings_file, "rb") as file:
+                self.settings = pickle.load(file)
+                print("Grinder settings loaded")
         else:
-            settings = {}
+            self.settings = {}
 
         self.previous_linear_units = self.settings.get('previous_linear_units',1)
-        self.h["x_min"] = self.settings.get('x_min',0)
-        self.window.x_min_edit.setText(str(self.h["x_min"]))
-        self.h["x_max"] = self.settings.get('x_max', self.get_converted_value(1, "inch"))
-        self.window.x_max_edit.setText(str(self.h["x_max"]))
-        self.h["y_min"] = self.settings.get('y_min',0)
-        self.window.y_min_edit.setText(str(self.h["y_min"]))
-        self.h["y_max"] = self.settings.get('y_max', self.get_converted_value(1, "inch"))
-        self.window.y_max_edit.setText(str(self.h["y_max"]))
-        self.h["z_min"] = self.settings.get('z_min',0)
-        self.window.z_min_edit.setText(str(self.h["z_min"]))
-        self.h["z_max"] = self.settings.get('z_max', self.get_converted_value(1, "inch"))
-        self.window.z_max_edit.setText(str(self.h["z_max"]))
+        self.set_hal("x_min", self.settings.get('x_min',0))
+        self.x_min_edit.setText(str(self.get_hal("x_min")))
+        self.set_hal("x_max", self.settings.get('x_max', self.get_converted_value(1, "inch")))
+        self.x_max_edit.setText(str(self.get_hal("x_max")))
+        self.set_hal("y_min", self.settings.get('y_min',0))
+        self.y_min_edit.setText(str(self.get_hal("y_min")))
+        self.set_hal("y_max", self.settings.get('y_max', self.get_converted_value(1, "inch")))
+        self.y_max_edit.setText(str(self.get_hal("y_max")))
+        self.set_hal("z_min",  self.settings.get('z_min',0))
+        self.z_min_edit.setText(str(self.get_hal("z_min")))
+        self.set_hal("z_max",  self.settings.get('z_max', self.get_converted_value(1, "inch")))
+        self.z_max_edit.setText(str(self.get_hal("z_max")))
 
-        self.h["x_speed"] = self.settings.get('x_speed', self.get_converted_value(500, "inch"))
-        self.window.x_speed_sb.setValue(float(self.h["x_speed"]))
-        self.h["y_speed"] = self.settings.get('y_speed', self.get_converted_value(200, "inch"))
-        self.window.y_speed_sb.setValue(float(self.h["y_speed"]))
-        self.h["z_speed"] = self.settings.get('z_speed', self.get_converted_value(200, "inch"))
-        self.window.z_speed_sb.setValue(float(self.h["z_speed"]))
+        self.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
+        self.x_speed_sb.setValue(float(self.get_hal("x_speed")))
+        self.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
+        self.y_speed_sb.setValue(float(self.get_hal("y_speed")))
+        self.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
+        self.z_speed_sb.setValue(float(self.get_hal("z_speed")))
 
-        self.h["z_crossfeed"] = self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch"))
-        self.window.z_crossfeed_edit.setText(str(self.h["z_crossfeed"]))
-        self.h["y_downfeed"] = self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch"))
-        self.window.y_downfeed_edit.setText(str(self.h["y_downfeed"]))
+        self.set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))
+        self.z_crossfeed_edit.setText(str(self.get_hal("z_crossfeed")))
+        self.set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
+        self.y_downfeed_edit.setText(str(self.get_hal("y_downfeed")))
 
-        self.h["enable_x"] = False
-        self.h["enable_y"] = False
-        self.h["enable_z"] = False
+        # self.set_hal("enable_x",  False)
+        # self.set_hal("enable_y",  False)
+        # self.set_hal("enable_z",  False)
 
-        self.h["stop_x_at_z_limit"] = self.settings.get('stop_x_at_z_limit', 0)
-        self.window.stop_x_at_z_limit_pb.setChecked(bool(self.h["stop_x_at_z_limit"]))
-        self.h["stop_z_at_z_limit"] = self.settings.get('stop_z_at_z_limit', 0)
-        self.window.stop_x_at_z_limit_pb.setChecked(bool(self.h["stop_z_at_z_limit"]))
+        self.set_hal("stop_x_at_z_limit",  self.settings.get('stop_x_at_z_limit', 0))
+        self.stop_x_at_z_limit_pb.setChecked(bool(self.get_hal("stop_x_at_z_limit")))
+        self.set_hal("stop_z_at_z_limit",  self.settings.get('stop_z_at_z_limit', 0))
+        self.stop_x_at_z_limit_pb.setChecked(bool(self.get_hal("stop_z_at_z_limit")))
 
-        self.h["crossfeed_at"] = self.settings.get('crossfeed_at', 0)
-        self.window.crossfeed_at_cb.setCurrentIndex(int(self.h["crossfeed_at"]))
-        self.h["repeat_at"] = self.settings.get('repeat_at', 0)
-        self.window.repeat_at_cb.setCurrentIndex(int(self.h["repeat_at"]))
+        self.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 0))
+        self.crossfeed_at_cb.setCurrentIndex(int(self.get_hal("crossfeed_at")))
+        self.set_hal("repeat_at",  self.settings.get('repeat_at', 0))
+        self.repeat_at_cb.setCurrentIndex(int(self.get_hal("repeat_at")))
 
     def validate_and_convert(self, field_name, value, value_type):
         if value_type == "float":
             try:
-                self.h[field_name] = float(value)
+                self.set_hal(field_name,float(value))
                 return float(value)
             except ValueError:
                 raise Exception(F"{field_name} must be numeric")
             
         if value_type == "int":
             try:
-                self.h[field_name] = int(value)
+                self.set_hal(field_name, int(value))
                 return int(value)
             except ValueError:
                 raise Exception(F"{field_name} must be an integer")
             
         if value_type == "bool":
             try:
-                self.h[field_name] = bool(value)
+                self.set_hal(field_name, bool(value))
                 return int(value)
             except ValueError:
                 raise Exception(F"{field_name} must be a boolean")
 
-    def on_set_limit_clicked(self):
-        sender = self.sender()
-        if sender:
-            full_name = sender.objectName()
-            base_name = full_name.removesuffix("_here_pb")  # Removes the '_pb' suffix
-            axis_name = base_name.removesuffix("_min")
-            axis_name = base_name.removesuffix("_max")
-            self.s.poll()
-            self.h[base_name] = self.s.actual_position[Axis.from_str(axis_name).to_int()]
-        else:
-            raise Exception("unknown sender")
+    def on_set_limit_clicked(self, base_name, edit):
+        print("base: "+base_name)
+        axis_name = base_name.removesuffix("_min")
+        print("Removed Min: "+axis_name)
+        axis_name = axis_name.removesuffix("_max")
+        print("Removed Max: "+axis_name)
+        self.s.poll()
+        
+        axis = Axis.from_str(axis_name)
+        print("axis: "+ axis.to_str())
+        print("Actual Position:" + str(self.s.position[axis.to_int()]))
+        self.set_hal(base_name, self.get_pos(axis))
+        edit.setText(str(self.get_hal(base_name)))
+
         
     def set_checked(self, button, hal_field):
-        button.setChecked(self.h[hal_field])
+        button.setChecked(bool(self.get_hal(hal_field)))
         
-    def on_toggle_clicked(self, button, hal_field):
-        self.h[hal_field] = -self.h[hal_field]
-        self.set_checked(button, hal_field)
+    def on_toggle_clicked(self, button, hal_field, off_text = "", on_text = ""):
+        self.set_hal(hal_field, button.isChecked())
+        # self.set_checked(button, hal_field)
 
-        self.set_toggle_button_color(button,hal_field)
+        if button.isChecked():
+            if on_text != "":
+                button.setText(on_text)
+        else:
+            if off_text != "":
+                button.setText(off_text)
+
+        # self.set_toggle_button_color(button,hal_field)
 
     def set_toggle_button_color(self, button, hal_field):
-        if self.h[hal_field]:
-            button.setStylesheet("background-color: red")
-        else:
-            if self.h[hal_field]:
-                button.setStylesheet("background-color: green")
+
+        existing_styles = button.styleSheet()
+        new_background = "background-color: red;" if bool(self.get_hal(hal_field)) else "background-color: green;"
+        button.setStyleSheet(f"{existing_styles} {new_background}")
 
     def save_grind_clicked(self):
         """Stop movement, wait for idle, then save the traverse limits and 3D stepover values."""
 
-        try:
-            settings = {
-                'previous_linear_units': self.previous_linear_units,
-                'x_min': self.validate_and_convert("x_min", self.window.x_min_edit.text(),"float"),
-                'x_max': self.validate_and_save("x_max", self.window.x_max_edit.text(),"float"),
-                'y_min': self.validate_and_save("y_min", self.window.y_min_edit.text(),"float"),
-                'y_max': self.validate_and_save("y_max", self.window.y_max_edit.text(),"float"),
-                'z_min': self.validate_and_save("x_min", self.window.x_min_edit.text(),"float"),
-                'z_max': self.validate_and_save("x_max", self.window.x_max_edit.text(),"float"),
-                'x_speed': self.validate_and_save("x_speed", self.window.x_speed_sb.text(),"float"),
-                'y_speed': self.validate_and_save("y_speed", self.window.y_speed_sb.text(),"float"),
-                'z_speed': self.validate_and_save("z_speed", self.window.z_speed_sb.text(),"float"),
-                'z_crossfeed': self.validate_and_save("z_crossfeed", self.window.z_crossfeed_edit.text(),"float"),
-                'y_downfeed': self.validate_and_save("y_downfeed", self.window.z_crossfeed_edit.text(),"float"),
-                'stop_x_at_z_limit': self.validate_and_save("stop_x_at_z_limit", self.window.stop_x_at_z_limit_pb.isChecked(),"bool"),
-                'stop_z_at_z_limit': self.validate_and_save("stop_z_at_z_limit", self.window.stop_x_at_z_limit_pb.isChecked(),"bool"),
-                'crossfeed_at': self.validate_and_save("crossfeed_at", self.window.crossfeed_at_cb.value(),"int"),
-                'repeat_at': self.validate_and_save("repeat_at", self.window.crossfeed_at_cb.value(),"int"),
-            }
+        print("Saving grind settings")
 
-            self.h["x_min"] = self.window.x_min_edit.text()
-            self.h["x_max"] = self.window.x_max_edit.text()
-            self.h["y_min"] = self.window.y_min_edit.text()
-            self.h["y_max"] = self.window.y_max_edit.text()
-            self.h["z_min"] = self.window.z_min_edit.text()
-            self.h["z_max"] = self.window.z_max_edit.text()
-            self.h["x_speed"] = self.window.x_speed_edit.text()
-            self.h["y_speed"] = self.window.y_speed_edit.text()
-            self.h["z_speed"] = self.window.z_speed_edit.text()
-            self.h["z_crossfeed"] = self.window.z_crossfeed_edit.text()
-            self.h["y_downfeed"] = self.window.y_downfeed_edit.text()
-            self.h["stop_x_at_z_limit"] = self.window.stop_x_at_z_limit_pb.isChecked()
-            self.h["stop_z_at_z_limit"] = self.window.stop_x_at_z_limit_pb.isChecked()
-            self.h["crossfeed_at"] = self.window.crossfeed_at_cb.value()
-            self.h["repeat_at"] = self.window.repeat_at_cb.value()
+        # try:
+        self.settings = {
+            'previous_linear_units': self.previous_linear_units,
+            'x_min': self.validate_and_convert("x_min", self.x_min_edit.text(),"float"),
+            'x_max': self.validate_and_save("x_max", self.x_max_edit.text(),"float"),
+            'y_min': self.validate_and_save("y_min", self.y_min_edit.text(),"float"),
+            'y_max': self.validate_and_save("y_max", self.y_max_edit.text(),"float"),
+            'z_min': self.validate_and_save("x_min", self.x_min_edit.text(),"float"),
+            'z_max': self.validate_and_save("x_max", self.x_max_edit.text(),"float"),
+            'x_speed': self.validate_and_save("x_speed", self.x_speed_sb.text(),"float"),
+            'y_speed': self.validate_and_save("y_speed", self.y_speed_sb.text(),"float"),
+            'z_speed': self.validate_and_save("z_speed", self.z_speed_sb.text(),"float"),
+            'z_crossfeed': self.validate_and_save("z_crossfeed", self.z_crossfeed_edit.text(),"float"),
+            'y_downfeed': self.validate_and_save("y_downfeed", self.z_crossfeed_edit.text(),"float"),
+            'stop_x_at_z_limit': self.validate_and_save("stop_x_at_z_limit", self.stop_x_at_z_limit_pb.isChecked(),"bool"),
+            'stop_z_at_z_limit': self.validate_and_save("stop_z_at_z_limit", self.stop_x_at_z_limit_pb.isChecked(),"bool"),
+            'crossfeed_at': self.validate_and_save("crossfeed_at", self.crossfeed_at_cb.value(),"int"),
+            'repeat_at': self.validate_and_save("repeat_at", self.crossfeed_at_cb.value(),"int"),
+        }
 
-        except Exception:
-            self.stop()
-            #todo set a notification
-            self.load_settings()
+        print(self.settings)
+
+        with open("grinder.pkl", "wb") as file:
+            pickle.dump("grinder.pkl", file)
+
+        # self.set_hal("x_min", self.x_min_edit.text())
+        # self.set_hal("x_max", self.x_max_edit.text())
+        # self.set_hal("y_min", self.y_min_edit.text())
+        # self.set_hal("y_max", self.y_max_edit.text())
+        # self.set_hal("z_min", self.z_min_edit.text())
+        # self.set_hal("z_max", self.z_max_edit.text())
+        # self.set_hal("x_speed", self.x_speed_edit.text())
+        # self.set_hal("y_speed", self.y_speed_edit.text())
+        # self.set_hal("z_speed", self.z_speed_edit.text())
+        # self.set_hal("z_crossfeed", self.z_crossfeed_edit.text())
+        # self.set_hal("y_downfeed", self.y_downfeed_edit.text())
+        # self.set_hal("stop_x_at_z_limit", self.stop_x_at_z_limit_pb.isChecked())
+        # self.set_hal("stop_z_at_z_limit", self.stop_x_at_z_limit_pb.isChecked())
+        # self.set_hal("crossfeed_at", self.crossfeed_at_cb.value())
+        # self.set_hal("repeat_at", self.repeat_at_cb.value())
+
+        self.load_settings()
+
+        # except Exception:
+        #     self.stop()
+        #     #todo set a notification
+        #     self.load_settings()
 
     def stop(self):
         """Start or stop the control loop based on the run_stop signal."""
         self.c.abort()
-        self.h["run_stop"] = False
-        self.set_checked(self.window.run_stop_pb, "run_stop")
-        self.set_toggle_button_color(self.window.run_stop_pb, "run_stop")
+        self.set_hal("run_stop", False)
+        self.set_checked(self.run_stop_pb, "run_stop")
+        self.set_toggle_button_color(self.run_stop_pb, "run_stop")
 
-    def move_to(self, axis, pos, speed):
-        LOG.debug(F"Move_To: G1 {axis}{pos} F{speed}")
-        self.c.mdi(F"G1 {axis}{pos} F{speed}")
 
     
