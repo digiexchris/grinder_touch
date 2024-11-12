@@ -481,6 +481,9 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="text">
+                <string>0.000</string>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
@@ -511,6 +514,9 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="text">
+                <string>0.000</string>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
@@ -540,6 +546,9 @@
                 <font>
                  <pointsize>26</pointsize>
                 </font>
+               </property>
+               <property name="maximum">
+                <double>99999.990000000005239</double>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
@@ -684,6 +693,9 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="text">
+                <string>0.000</string>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
@@ -713,6 +725,9 @@
                 <font>
                  <pointsize>26</pointsize>
                 </font>
+               </property>
+               <property name="text">
+                <string>0.000</string>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
@@ -744,6 +759,9 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="maximum">
+                <double>99999.990000000005239</double>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
@@ -761,6 +779,9 @@
                 <font>
                  <pointsize>26</pointsize>
                 </font>
+               </property>
+               <property name="text">
+                <string>0.000</string>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
@@ -886,6 +907,18 @@
              <property name="bottomMargin">
               <number>0</number>
              </property>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="y_max_here_pb">
+               <property name="font">
+                <font>
+                 <pointsize>26</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>+Y</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="1">
               <widget class="QLineEdit" name="y_max_edit">
                <property name="font">
@@ -894,7 +927,7 @@
                 </font>
                </property>
                <property name="text">
-                <string/>
+                <string>0.000</string>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
@@ -920,6 +953,9 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="text">
+                <string>0.000</string>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
@@ -943,6 +979,9 @@
                 <font>
                  <pointsize>26</pointsize>
                 </font>
+               </property>
+               <property name="maximum">
+                <double>99999.000000000000000</double>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
@@ -974,38 +1013,14 @@
                  <pointsize>26</pointsize>
                 </font>
                </property>
+               <property name="text">
+                <string>0.000</string>
+               </property>
+               <property name="cursorPosition">
+                <number>5</number>
+               </property>
                <property name="input" stdset="0">
                 <string>number</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QPushButton" name="save_grind_pb">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Save</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QPushButton" name="y_max_here_pb">
-               <property name="font">
-                <font>
-                 <pointsize>26</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>+Y</string>
                </property>
               </widget>
              </item>
@@ -1119,7 +1134,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 Z[#&lt;_hal[z_min]&gt;]</string>
+             <string>G0 Z[#&lt;_hal[grinder.z_min]&gt;]</string>
             </property>
            </widget>
           </item>
@@ -1138,7 +1153,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 Z[#&lt;_hal[z_max]&gt;]</string>
+             <string>G0 Z[#&lt;_hal[grinder.z_max]&gt;]</string>
             </property>
            </widget>
           </item>
@@ -1157,7 +1172,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 X[#&lt;_hal[x_max]&gt;]</string>
+             <string>G0 X[#&lt;_hal[grinder.x_max]&gt;]</string>
             </property>
            </widget>
           </item>
@@ -1176,7 +1191,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 X[#&lt;_hal[x_min]&gt;]</string>
+             <string>G0 X[#&lt;_hal[grinder.x_min]&gt;]</string>
             </property>
            </widget>
           </item>
@@ -1195,7 +1210,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 Y[#&lt;_hal[y_max]&gt;]</string>
+             <string>G0 Y[#&lt;_hal[grinder.y_max]&gt;]</string>
             </property>
            </widget>
           </item>
@@ -1214,7 +1229,7 @@
              <string>mdi</string>
             </property>
             <property name="command" stdset="0">
-             <string>G0 Y[#&lt;_hal[z_min]&gt;]</string>
+             <string>G0 Y[#&lt;_hal[grinder.z_min]&gt;]</string>
             </property>
            </widget>
           </item>
