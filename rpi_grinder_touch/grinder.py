@@ -70,6 +70,14 @@ class GrinderWindow(QWidget):
 
         GSTAT.connect("current-position", self.update_pos)
 
+        self.is_running = False
+        self.is_paused = False
+        self.is_idle = True
+
+        GSTAT.connect("interp-paused",lambda value: self.onPause(value))
+        GSTAT.connect("interp-run",lambda value: self.onRun(value))
+        GSTAT.connect("interp-idle",lambda value: self.onIdle(value))
+
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
@@ -78,6 +86,26 @@ class GrinderWindow(QWidget):
     def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
         self.pos = relative_pos
 
+    def onPause(self, value):
+        self.is_paused = value
+        if self.is_paused:
+            self.run_start_pb.setChecked(1)
+            self.run_stop_pb.setText("STOP")
+            self.set_run_stop_style()
+
+    def onRun(self, value):
+        self.is_running = value
+        if self.is_running:
+            self.run_start_pb.setChecked(1)
+            self.run_stop_pb.setText("STOP")
+            self.set_run_stop_style()
+
+    def onIdle(self, value):
+        self.is_idle = value
+        if self.is_idle:
+            self.run_start_pb.setChecked(0)
+            self.run_stop_pb.setText("RUN")
+            self.set_run_stop_style()
 
     def get_rounding_tolerance(self):
         # Check the current units
@@ -121,6 +149,84 @@ class GrinderWindow(QWidget):
 
     def initialize_controls(self, parent):
         """Initialize custom controls and connect UI elements."""
+
+        # Initialize HAL and LinuxCNC
+        h = hal.component("grinder")
+        c = linuxcnc.command()
+
+        self.previous_mode = 0
+
+        # Define HAL pins
+        h.newpin("x_min", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("x_max", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("y_min", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("y_max", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_min", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_max", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("x_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("y_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("x_position", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("y_position", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_position", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_crossfeed", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("z_direction", hal.HAL_BIT, hal.HAL_IO)
+        h.newpin("y_downfeed", hal.HAL_FLOAT, hal.HAL_IN)
+        h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
+        h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
+        h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
+        h.newpin("stop_x_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
+        h.newpin("stop_z_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
+        h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
+        h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
+
+        hal.new_sig("z_dir", hal.HAL_BIT)  
+        hal.connect("motion.digital-out-00", "z_dir")  
+        hal.connect("grinder.z_direction", "z_dir")  
+
+        hal.new_sig("en_x", hal.HAL_BIT)  
+        hal.connect("motion.digital-out-01", "en_x")  
+        hal.connect("grinder.enable_x", "en_x")
+
+        hal.new_sig("en_z", hal.HAL_BIT)  
+        hal.connect("motion.digital-out-02", "en_z")  
+        hal.connect("grinder.enable_z", "en_z")
+
+        hal.new_sig("en_y", hal.HAL_BIT)  
+        hal.connect("motion.digital-out-03", "en_y")  
+        hal.connect("grinder.enable_y", "en_y")
+
+        # Connect position feedback
+        hal.connect("xpos-fb", "grinder.x_position")
+        hal.connect("ypos-fb", "grinder.y_position")
+        hal.connect("zpos-fb", "grinder.z_position")
+
+        h.set_p("grinder.z_direction", True)
+
+        h.set_p("grinder.x_min", 0.0)
+        h.set_p("grinder.x_max", 0.0)
+        h.set_p("grinder.y_min", 0.0)
+        h.set_p("grinder.y_max", 0.0)
+        h.set_p("grinder.z_min", 0.0)
+        h.set_p("grinder.z_max", 0.0)
+
+        h.set_p("grinder.x_speed", 0.0)
+        h.set_p("grinder.y_speed", 0.0)
+        h.set_p("grinder.z_speed", 0.0)
+
+        h.set_p("grinder.z_crossfeed", 0.0)
+        h.set_p("grinder.y_downfeed", 0.0)
+
+        # Enable and control signals
+        h.set_p("grinder.enable_x", False)
+        h.set_p("grinder.enable_y", False)
+        h.set_p("grinder.enable_z", False)
+        h.set_p("grinder.stop_x_at_z_limit", False)
+        h.set_p("grinder.stop_z_at_z_limit", False)
+
+        # Crossfeed and repeat settings
+        h.set_p("grinder.crossfeed_at", 0)
+        h.set_p("grinder.repeat_at", 0)
 
         self.previous_linear_units = 1
 
@@ -168,7 +274,7 @@ class GrinderWindow(QWidget):
 
         # Run/Stop Button
         self.run_stop_pb = parent.findChild(QPushButton, "run_stop_pb")
-        self.run_stop_pb.clicked.connect(lambda: self.on_toggle_clicked(self.run_stop_pb, "run_stop", "RUN", "STOP"))
+        self.run_stop_pb.clicked.connect(lambda: self.on_run_stop_clicked())
 
         self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
         self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_x_pb, "enable_x"))
@@ -216,6 +322,21 @@ class GrinderWindow(QWidget):
         self.z_crossfeed_edit.textChanged.connect(lambda value: self.on_value_changed("z_crossfeed", value, "float"))
         self.y_downfeed_edit.textChanged.connect(lambda value: self.on_value_changed("y_downfeed", value, "float"))
 
+    def set_run_stop_style(self):
+        existing_styles = self.run_stop_pb.styleSheet()
+        new_background = "background-color: red;" if self.run_stop_pb.isChecked() else "background-color: green;"
+        self.run_stop_pb.setStyleSheet(f"{existing_styles} {new_background}")
+
+    def on_run_stop_clicked(self):
+        if self.is_running or self.is_paused:
+            self.stop()
+
+        if self.is_idle:
+            self.previous_mode = GSTAT.get_current_mode()
+            self.c.mode(linuxcnc.MODE_MDI)
+            self.c.wait_complete() # wait until mode switch executed
+            self.c.mdi("o<Flat_Grind> call")
+
     def handle_units_change(self):
         if self.previous_linear_units != self.s.linear_units:
             raise Exception("This doesn't work, in progress")
@@ -241,9 +362,9 @@ class GrinderWindow(QWidget):
 
             # self.save_grind_clicked()
 
-    def estop_changed(self):
+    def estop_changed(self): #todo: wire this up
         if self.get_hal("halui.estop.is-activated"):
-            if self.get_hal("grinder.run_stop"):
+            if self.is_running or self.is_paused:
                 self.stop()
 
     def on_hal_toggle_changed(self, button, hal_field):
@@ -359,7 +480,7 @@ class GrinderWindow(QWidget):
         self.set_hal(hal_field, button.isChecked())
         # self.set_checked(button, hal_field)
 
-        self.set_toggle_button_text()
+        self.set_toggle_button_text(self, button, off_text, on_text)
 
         self.save_grind_clicked()
 
@@ -435,9 +556,7 @@ class GrinderWindow(QWidget):
     def stop(self):
         """Start or stop the control loop based on the run_stop signal."""
         self.c.abort()
-        self.set_hal("run_stop", False)
-        self.set_checked(self.run_stop_pb, "run_stop")
-        self.set_toggle_button_color(self.run_stop_pb, "run_stop")
+        self.c.mode(self.previous_mode)
 
 
     
