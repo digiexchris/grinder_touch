@@ -1,6 +1,6 @@
 o<flat_grind> sub
 
-    (print, if any coords are outside the bounds, move to the nearest limit)
+    (p, if any coords are outside the bounds, move to the nearest limit)
 
     o10 IF [[#<_x> GT #<_hal[grinder.x_max]>] AND [#<_hal[grinder.enable_x]> EQ 1]]
         G0 X[#<_hal[grinder.x_max]>]
@@ -31,11 +31,12 @@ o<flat_grind> sub
     #<_x_cycles> = 0
     #<_y_cycles> = 0
     #<_z_cycles> = 0
+
     o101 while [#<continue>]
 
        
 
-        (print, =============== Positions are X#<_x> Z#<_z> Y#<_y>)
+        (p, =============== Positions are X#<_x> Z#<_z> Y#<_y>)
         #1 = #<_hal[grinder.enable_x]>
         #2 = #<_hal[grinder.enable_y]>
         #3 = #<_hal[grinder.enable_z]>
@@ -56,25 +57,24 @@ o<flat_grind> sub
 
         o<xmove_to_min> call
 
-        (print, Determining if there are moves left)
+        (p, Determining if there are moves left)
 
         #<at_x_done_point> = 0
         #<at_z_done_point> = 0
         #<at_y_done_point> = 0
 
-        (print, checking Z pos at the time we want to check if it's done  #<_z>, RepeatAt #<_hal[grinder.repeat_at]>  #<_hal[grinder.z_max]>)
-
+        (p, checking Z pos at the time we want to check if it's done  #<_z>, RepeatAt #<_hal[grinder.repeat_at]>  #<_hal[grinder.z_max]>)
         o300 IF [#<_hal[grinder.enable_z]> EQ 1]
             o310 IF [[#<_hal[grinder.repeat_at]> EQ 0] OR [#<_hal[grinder.repeat_at]> EQ 1]]
-                (print, o310 IF [[#<_z> GE #<_hal[grinder.z_max]>] AND [#<_z_cycles> GT 0]])
-                o311 IF [[ABS[#<_z> - #<_hal[grinder.z_max]>] LE 0.00009] AND [#<_z_cycles> GT 0]]
-                    (print, o311)
+                (p, o310 IF [[#<_z> GE #<_hal[grinder.z_max]>] AND [#<_z_cycles> GT 0]])
+                o311 IF [[#<_z> GE [#<_hal[grinder.z_max]> - 0.00001]] AND [#<_z_cycles> GT 0]]
+                    (p, o311)
                     #<at_z_done_point> = 1
                 o311 ENDIF
             o310 ELSE IF [#<_hal[grinder.repeat_at]> EQ 2]
-                (print, o310 ELSE IF)
-                o312 IF [[#<_z> LE #<_hal[grinder.z_min]>] AND [#<_z_cycles> GT 0]]
-                    (print, o312)
+                (p, o310 ELSE IF)
+                o312 IF [[#<_z> LE [#<_hal[grinder.z_min]> + 0.00001]] AND [#<_z_cycles> GT 0]]
+                    (p, o312)
                     #<at_z_done_point> = 1
                 o312 ENDIF
             o310 ENDIF
@@ -83,7 +83,9 @@ o<flat_grind> sub
         o300 ENDIF
 
         o400 IF [#<_hal[grinder.enable_x]> EQ 1]
+            (print, #<_x_cycles>)
             o410 IF [#<_x_cycles> GT 0]
+                (print, SHOULD BE DONE)
                 #<at_x_done_point> = 1
             o410 ENDIF
         o400 ELSE
@@ -92,7 +94,7 @@ o<flat_grind> sub
 
         o500 IF [#<_hal[grinder.enable_y]> EQ 1]
             o510 IF [#<_y_cycles> GT 0]
-                o511 IF [#<_y> LE #<_hal[grinder.y_min]>]
+                o511 IF [#<_y> LE [#<_hal[grinder.y_min]> + 0.00001]]
                     #<at_y_done_point> = 1
                 o511 ENDIF
             o510 ENDIF
@@ -100,10 +102,14 @@ o<flat_grind> sub
             #<at_y_done_point> = 1
         o500 ENDIF
 
-        (print, AM I DONE? X #<at_x_done_point>:#<_x_cycles> Y #<at_y_done_point>:#<_y_cycles> Z #<at_z_done_point>:#<_z_cycles>)
+        (print, AM I DONE? X #<at_x_done_point> X CYCLES #<_x_cycles> Z#<at_z_done_point> Z CYCLES #<_z_cycles> Y#<at_y_done_point> Y CYCLES #<_y_cycles>)
+        (print, POSITION: X#<_x> Z#<_z> Y#<_y>)
+        (print, MAX_TARGETS: X#<_hal[grinder.x_max]> Z#<_hal[grinder.z_max]> Y#<_hal[grinder.y_max]>)
+        (print, MIN_TARGETS: X#<_hal[grinder.x_min]> Z#<_hal[grinder.z_min]> Y#<_hal[grinder.y_min]>)
 
         o600 IF [[#<at_x_done_point> EQ 1] AND [#<at_y_done_point> EQ 1] AND [#<at_z_done_point> EQ 1]]
         (print, +++++++DONE++++++++)
+        (print, POSITION: X#<_x> Z#<_z> Y#<_y>)
             #<continue> = 0
         o600 ENDIF
 

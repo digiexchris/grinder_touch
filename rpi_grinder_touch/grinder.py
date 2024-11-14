@@ -211,8 +211,7 @@ class GrinderWindow(QWidget):
         self.h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
         self.h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
         self.h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("stop_x_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
-        self.h.newpin("stop_z_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
+        self.h.newpin("stop_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
         self.h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
         self.h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
         
@@ -242,7 +241,7 @@ class GrinderWindow(QWidget):
         hal.set_p("grinder.enable_x", str(False))
         hal.set_p("grinder.enable_y", str(False))
         hal.set_p("grinder.enable_z", str(False))
-        hal.set_p("grinder.stop_x_at_z_limit", str(False))
+        hal.set_p("grinder.stop_at_z_limit", str(False))
         hal.set_p("grinder.stop_z_at_z_limit", str(False))
 
         # Crossfeed and repeat settings
@@ -286,10 +285,8 @@ class GrinderWindow(QWidget):
         self.crossfeed_at_cb = parent.findChild(QComboBox, "crossfeed_at_cb")
         self.repeat_at_cb = parent.findChild(QComboBox, "repeat_at_cb")
 
-        self.stop_x_at_z_limit_pb = parent.findChild(QPushButton, "stop_x_at_z_limit_pb")
-        self.stop_x_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_x_at_z_limit_pb, "stop_x_at_z_limit", "OFF", "ON"))
-        self.stop_z_at_z_limit_pb = parent.findChild(QPushButton, "stop_z_at_z_limit_pb")
-        self.stop_z_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_z_at_z_limit_pb, "stop_z_at_z_limit", "OFF", "ON"))
+        self.stop_at_z_limit_pb = parent.findChild(QPushButton, "stop_at_z_limit_pb")
+        self.stop_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_at_z_limit_pb, "stop_at_z_limit", "OFF", "ON"))
 
         # self.save_grind_pb = parent.findChild(QPushButton, "save_grind_pb")
         # self.save_grind_pb.clicked.connect(self.save_grind_clicked)
@@ -423,12 +420,9 @@ class GrinderWindow(QWidget):
         self.z_crossfeed_edit.setText(str(self.get_hal("z_crossfeed")))
         self.y_downfeed_edit.setText(str(self.get_hal("y_downfeed")))
 
-        self.stop_x_at_z_limit_pb.setChecked(bool(self.get_hal("stop_x_at_z_limit")))
-        self.set_toggle_button_color(self.stop_x_at_z_limit_pb, "stop_x_at_z_limit")
-        self.set_toggle_button_text(self.stop_x_at_z_limit_pb,"OFF", "ON")
-        self.stop_z_at_z_limit_pb.setChecked(bool(self.get_hal("stop_z_at_z_limit")))
-        self.set_toggle_button_color(self.stop_z_at_z_limit_pb, "stop_z_at_z_limit")
-        self.set_toggle_button_text(self.stop_z_at_z_limit_pb,"OFF", "ON")
+        self.stop_at_z_limit_pb.setChecked(bool(self.get_hal("stop_at_z_limit")))
+        self.set_toggle_button_color(self.stop_at_z_limit_pb, "stop_at_z_limit")
+        self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
 
         self.crossfeed_at_cb.setCurrentIndex(int(self.get_hal("crossfeed_at")))
         self.repeat_at_cb.setCurrentIndex(int(self.get_hal("repeat_at")))
@@ -465,12 +459,11 @@ class GrinderWindow(QWidget):
         # self.set_hal("enable_y",  False)
         # self.set_hal("enable_z",  False)
 
-        self.set_hal("stop_x_at_z_limit",  self.settings.get('stop_x_at_z_limit', 0))
-        self.set_hal("stop_z_at_z_limit",  self.settings.get('stop_z_at_z_limit', 0))
+        self.set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
         
 
-        self.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 0))
-        self.set_hal("repeat_at",  self.settings.get('repeat_at', 0))
+        self.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
+        self.set_hal("repeat_at",  self.settings.get('repeat_at', 1))
 
     def validate_and_set(self, field_name, value, value_type):
         if value_type == "float":
@@ -562,8 +555,7 @@ class GrinderWindow(QWidget):
             'z_speed': self.validate_and_set("z_speed", self.z_speed_sb.text(),"float"),
             'z_crossfeed': self.validate_and_set("z_crossfeed", self.z_crossfeed_edit.text(),"float"),
             'y_downfeed': self.validate_and_set("y_downfeed", self.y_downfeed_edit.text(),"float"),
-            'stop_x_at_z_limit': self.validate_and_set("stop_x_at_z_limit", self.stop_x_at_z_limit_pb.isChecked(),"bool"),
-            'stop_z_at_z_limit': self.validate_and_set("stop_z_at_z_limit", self.stop_z_at_z_limit_pb.isChecked(),"bool"),
+            'stop_at_z_limit': self.validate_and_set("stop_at_z_limit", self.stop_at_z_limit_pb.isChecked(),"bool"),
             'crossfeed_at': self.validate_and_set("crossfeed_at", self.crossfeed_at_cb.currentIndex(),"int"),
             'repeat_at': self.validate_and_set("repeat_at", self.repeat_at_cb.currentIndex(),"int"),
         }
@@ -571,23 +563,7 @@ class GrinderWindow(QWidget):
         print(self.settings)
 
         with open(self.settings_file, "wb") as file:
-            pickle.dump(self.settings, file)
-
-        # self.set_hal("x_min", self.x_min_edit.text())
-        # self.set_hal("x_max", self.x_max_edit.text())
-        # self.set_hal("y_min", self.y_min_edit.text())
-        # self.set_hal("y_max", self.y_max_edit.text())
-        # self.set_hal("z_min", self.z_min_edit.text())
-        # self.set_hal("z_max", self.z_max_edit.text())
-        # self.set_hal("x_speed", self.x_speed_edit.text())
-        # self.set_hal("y_speed", self.y_speed_edit.text())
-        # self.set_hal("z_speed", self.z_speed_edit.text())
-        # self.set_hal("z_crossfeed", self.z_crossfeed_edit.text())
-        # self.set_hal("y_downfeed", self.y_downfeed_edit.text())
-        # self.set_hal("stop_x_at_z_limit", self.stop_x_at_z_limit_pb.isChecked())
-        # self.set_hal("stop_z_at_z_limit", self.stop_x_at_z_limit_pb.isChecked())
-        # self.set_hal("crossfeed_at", self.crossfeed_at_cb.value())
-        # self.set_hal("repeat_at", self.repeat_at_cb.value())
+            pickle.dump(self.settings, file
 
         self.update_fields()
 

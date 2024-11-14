@@ -555,6 +555,18 @@
                </property>
               </widget>
              </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_50">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Infeed At</string>
+               </property>
+              </widget>
+             </item>
              <item row="3" column="1">
               <widget class="QComboBox" name="crossfeed_at_cb">
                <property name="minimumSize">
@@ -583,54 +595,6 @@
                  <string>Right Limit</string>
                 </property>
                </item>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QPushButton" name="stop_x_at_z_limit_pb">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>OFF</string>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_48">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Stop At ZL</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_50">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Infeed At</string>
-               </property>
               </widget>
              </item>
             </layout>
@@ -846,7 +810,7 @@
               </widget>
              </item>
              <item row="5" column="1">
-              <widget class="QPushButton" name="stop_z_at_z_limit_pb">
+              <widget class="QPushButton" name="stop_at_z_limit_pb">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -4003,14 +3967,7 @@
         </widget>
        </widget>
       </widget>
-            </widget>
-<widget class="QWidget" name="tab_3">
-<attribute name="title">
-<string>MDI</string>
-</widget>
-</widget>
-</widget>
-    <widget class="QWidget" name="tab_5">
+      <widget class="QWidget" name="tab_5">
        <attribute name="title">
         <string>Plot Options</string>
        </attribute>
@@ -4300,7 +4257,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

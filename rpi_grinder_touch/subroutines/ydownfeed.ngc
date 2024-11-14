@@ -1,7 +1,7 @@
 O<ydownfeed> sub
-#7 = [#<_hal[grinder.y_min]>] 
-#8 = [#<_hal[grinder.y_downfeed]>] 
-#9 = [#<_hal[grinder.y_speed]>]
+; #7 = [#<_hal[grinder.y_min]>] 
+; #8 = [#<_hal[grinder.y_downfeed]>] 
+; #9 = [#<_hal[grinder.y_speed]>]
 
 o99 IF [#<_hal[grinder.enable_y]> EQ 0]
    #<_y_cycles> = 1
