@@ -13,7 +13,7 @@ O<zmove_repeattype2> sub
 
 o100 IF [#11 EQ 1]
 
-   o110 IF [#8 EQ 1]
+   o110 IF [[#8 EQ 1] AND [#<_ignore_custom_mcode> NE 1]]
       M100 P0 (Set direction towards min, always go min. Though, this routine ignores this. It's just here for if the repeat type switches back to 0)
    o110 ENDIF
 
@@ -29,6 +29,7 @@ o100 IF [#11 EQ 1]
       o121 ENDIF
 
       o122 IF [#<_z> LE #5]
+         #<_z_cycles> = [#<_z_cycles> + 1]
          o<Disable_At_Z_Limit> call
       o122 ENDIF
    o120 ENDIF

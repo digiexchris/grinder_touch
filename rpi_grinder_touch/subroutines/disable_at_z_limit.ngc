@@ -3,14 +3,15 @@ o<disable_at_z_limit> sub
 #1 = [#<_hal[grinder.stop_x_at_z_limit]>]
 #2 = [#<_hal[grinder.stop_z_at_z_limit]>]
 
+
 (print, disable sub running, X is #1, Z is #2)
 
-o100 IF [#1 EQ 1]
+o100 IF [[#1 EQ 1] AND [#<_ignore_custom_mcode> NE 1]]
     M101 P0 Q0
     M101 P1 Q0
 o100 ENDIF
 
-o200 IF [#2 EQ 1]
+o200 IF [[#2 EQ 1]  AND [#<_ignore_custom_mcode> NE 1]]
     M101 P2 Q0
     M101 P1 Q0
 o200 ENDIF

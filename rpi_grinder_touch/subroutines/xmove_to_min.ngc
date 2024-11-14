@@ -6,23 +6,27 @@ O<xmove_to_min> sub
 #6 = #<_hal[grinder.enable_y]>
 #7 = #<_hal[grinder.crossfeed_at]>
 
-o100 IF [#4 EQ 1]
-G1 X[#1] F[#3]            (Move to x_min)
+o100 IF [#<_hal[grinder.enable_x]> EQ 1]
+G1 X[#<_hal[grinder.x_min]>] F[#<_hal[grinder.x_speed]>]            (Move to x_min)
 o100 ENDIF
 
-o110 IF [#5 EQ 0]
-    o111 IF [#6 EQ 1]
+o110 IF [#<_hal[grinder.enable_z]> EQ 0]
+    o111 IF [#<_hal[grinder.enable_y]> EQ 1]
         o<YDownfeed> call (If Z is off, it won't trigger a downfeed. If Z is off but Y is still on, like in a plunge, downfeed.)
     o111 ELSE
         G04 P0.5
     o111 ENDIF
 o110 ELSE
-    o112 IF [#7 EQ 0]
-        o<ZMove_RepeatType0> call
-    o112 ELSE 
-        o113 IF [#7 EQ 1] 
-            o<ZMove_RepeatType1>
-        o113 ENDIF
-    o112 ENDIF
+        o220 IF [[#<_hal[grinder.crossfeed_at]> EQ 0] OR [#<_hal[grinder.crossfeed_at]> EQ 1]]
+        o221 IF [#<_hal[grinder.repeat_at]> EQ 0]
+            o<ZMove_RepeatType0> call
+        o221 ELSE IF [#<_hal[grinder.repeat_at]> EQ 1]
+            o<ZMove_RepeatType1> call
+        o221 ELSE IF [#<_hal[grinder.repeat_at]> EQ 2]
+            o<ZMove_RepeatType2> call
+        o221 ENDIF
+    o220 ENDIF
+
+    #<_x_cycles> = [#<_x_cycles> + 1]
 o110 ENDIF
 o<xmove_to_min> endsub

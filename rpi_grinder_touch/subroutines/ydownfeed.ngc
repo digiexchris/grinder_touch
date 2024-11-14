@@ -3,11 +3,17 @@ O<ydownfeed> sub
 #8 = [#<_hal[grinder.y_downfeed]>] 
 #9 = [#<_hal[grinder.y_speed]>]
 
-#11 = [#<_y> - #8]
+o99 IF [#<_hal[grinder.enable_y]> EQ 0]
+   #<_y_cycles> = 1
+o99 ELSE
 
-o100 IF [#11 < #7]
-   G1 Y[#7] F[#9]
-o100 ELSE
-   G1 Y[#11] F[#9]
-o100 ENDIF
+   #11 = [#<_y> - #<_hal[grinder.y_downfeed]>]
+
+   o100 IF [#11 LT #<_hal[grinder.y_min]>]
+      G1 Y[#<_hal[grinder.y_min]>] F[#<_hal[grinder.y_speed]>]
+   o100 ELSE
+      G1 Y[#11] F[#<_hal[grinder.y_speed]>]
+   o100 ENDIF
+   #<_y_cycles> = [#<_y_cycles> + 1]
+o99 ENDIF
 O<ydownfeed> endsub
