@@ -1,0 +1,13 @@
+O<ydownfeed> sub
+#7 = [#<_hal[grinder.y_min]>] 
+#8 = [#<_hal[grinder.y_downfeed]>] 
+#9 = [#<_hal[grinder.y_speed]>]
+
+#11 = [#<_y> - #8]
+
+o100 IF [#11 < #7]
+   G1 Y[#7] F[#9]
+o100 ELSE
+   G1 Y[#11] F[#9]
+o100 ENDIF
+O<ydownfeed> endsub

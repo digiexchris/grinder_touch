@@ -1,4 +1,6 @@
+import inspect
 import os
+from pprint import pprint
 from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
 from qtpy.QtGui import QDoubleValidator
 
@@ -46,6 +48,7 @@ class Axis(Enum):
 def startup(parent):
     parent.setFixedSize(1024, 600)
     parent.grinder_window = GrinderWindow(parent)
+    parent.grinder_window.initialize_hal()
     parent.grinder_window.load_settings()
     parent.grinder_window.initialize_controls(parent)
     
@@ -70,42 +73,80 @@ class GrinderWindow(QWidget):
 
         GSTAT.connect("current-position", self.update_pos)
 
-        self.is_running = False
-        self.is_paused = False
-        self.is_idle = True
+        self.interp_state = linuxcnc.INTERP_IDLE
 
-        GSTAT.connect("interp-paused",lambda value: self.onPause(value))
-        GSTAT.connect("interp-run",lambda value: self.onRun(value))
-        GSTAT.connect("interp-idle",lambda value: self.onIdle(value))
+        GSTAT.connect("interp-paused",self.onInterpStateChanged)
+        GSTAT.connect("interp-run",self.onInterpStateChanged)
+        GSTAT.connect("interp-idle",self.onInterpStateChanged)
+        GSTAT.connect("state-estop-reset", self.enable_run_stop)
+        GSTAT.connect("state-on", self.enable_run_stop)
+
+
+        GSTAT.connect("m-code-changed", self.on_mcodes_changed)
 
         # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
         self.h = hal
 
+    def enable_run_stop(self, value):
+        if GSTAT.estop_is_clear() and GSTAT.machine_is_on():
+            self.run_stop_pb.setEnabled(True)
+
+    def on_mcodes_changed(self, value, something):
+        self.set_checked(self.enable_x_pb, "enable_x")
+        self.set_toggle_button_color(self.enable_x_pb,"enable_x")
+        self.set_checked(self.enable_y_pb, "enable_y")
+        self.set_toggle_button_color(self.enable_y_pb,"enable_y")
+        self.set_checked(self.enable_y_pb, "enable_y")
+        self.set_toggle_button_color(self.enable_y_pb,"enable_y")
+
     def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
         self.pos = relative_pos
 
-    def onPause(self, value):
-        self.is_paused = value
-        if self.is_paused:
-            self.run_start_pb.setChecked(1)
-            self.run_stop_pb.setText("STOP")
-            self.set_run_stop_style()
+    def onInterpStateChanged(self, value):
+        print("Interp State Changed:")
+        pprint(value.stat.interp_state)
+        self.interp_state = value.stat.interp_state
 
-    def onRun(self, value):
-        self.is_running = value
-        if self.is_running:
-            self.run_start_pb.setChecked(1)
-            self.run_stop_pb.setText("STOP")
-            self.set_run_stop_style()
+        print("self.interp_state "+str(self.interp_state))
 
-    def onIdle(self, value):
-        self.is_idle = value
-        if self.is_idle:
-            self.run_start_pb.setChecked(0)
+        # print("Interp idle is value:"+ str(linuxcnc.INTERP_IDLE))
+
+        if not GSTAT.estop_is_clear() and not GSTAT.machine_is_on():
+            return
+
+        if self.interp_state == linuxcnc.INTERP_IDLE:
+            self.run_stop_pb.setChecked(0)
             self.run_stop_pb.setText("RUN")
             self.set_run_stop_style()
+        else:
+            self.run_stop_pb.setChecked(1)
+            self.run_stop_pb.setText("STOP")
+            self.set_run_stop_style()
+        # self.is_paused = value
+        # if self.is_paused:
+        #     self.run_stop_pb.setChecked(1)
+        #     self.run_stop_pb.setText("STOP")
+        #     self.set_run_stop_style()
+
+    # def onRun(self, value):
+    #     print(F"Interp Mode Run Changed: ")
+    #     pprint(value.stat)
+    #     self.is_running = value
+    #     if self.is_running:
+    #         self.run_stop_pb.setChecked(1)
+    #         self.run_stop_pb.setText("STOP")
+    #         self.set_run_stop_style()
+
+    # def onIdle(self, value):
+    #     print(F"Interp Mode Idle Changed: ")
+    #     pprint(value.stat)
+    #     self.is_idle = value
+    #     if self.is_idle:
+    #         self.run_stop_pb.setChecked(0)
+    #         self.run_stop_pb.setText("RUN")
+    #         self.set_run_stop_style()
 
     def get_rounding_tolerance(self):
         # Check the current units
@@ -146,89 +187,72 @@ class GrinderWindow(QWidget):
             self.save_grind_clicked()
         except ValueError:
             return
-
-    def initialize_controls(self, parent):
-        """Initialize custom controls and connect UI elements."""
-
-        # Initialize HAL and LinuxCNC
-        h = hal.component("grinder")
+        
+    def initialize_hal(self):
+        self.h = hal.component("grinder")
         c = linuxcnc.command()
 
         self.previous_mode = 0
 
+        # raise Exception("These pin stuff need to be done at the same time flexgui creates it's pins, this is too late in the process I think")
         # Define HAL pins
-        h.newpin("x_min", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("x_max", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("y_min", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("y_max", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_min", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_max", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("x_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("y_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("x_position", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("y_position", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_position", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_crossfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("z_direction", hal.HAL_BIT, hal.HAL_IO)
-        h.newpin("y_downfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
-        h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
-        h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
-        h.newpin("stop_x_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
-        h.newpin("stop_z_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
-        h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
-        h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
+        self.h.newpin("x_min", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("x_max", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("y_min", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("y_max", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("z_min", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("z_max", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("x_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("y_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("z_speed", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("z_direction", hal.HAL_BIT, hal.HAL_IO)
+        self.h.newpin("z_crossfeed", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("y_downfeed", hal.HAL_FLOAT, hal.HAL_IN)
+        self.h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
+        self.h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
+        self.h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
+        self.h.newpin("stop_x_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
+        self.h.newpin("stop_z_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
+        self.h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
+        self.h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
+        
+        self.h.ready()
 
-        hal.new_sig("z_dir", hal.HAL_BIT)  
-        hal.connect("motion.digital-out-00", "z_dir")  
-        hal.connect("grinder.z_direction", "z_dir")  
+        print("Grinder hal ready")
 
-        hal.new_sig("en_x", hal.HAL_BIT)  
-        hal.connect("motion.digital-out-01", "en_x")  
-        hal.connect("grinder.enable_x", "en_x")
+        hal.new_sig("grinder.z_direction", hal.HAL_BIT)
 
-        hal.new_sig("en_z", hal.HAL_BIT)  
-        hal.connect("motion.digital-out-02", "en_z")  
-        hal.connect("grinder.enable_z", "en_z")
+        hal.set_p("grinder.z_direction", str(1))
 
-        hal.new_sig("en_y", hal.HAL_BIT)  
-        hal.connect("motion.digital-out-03", "en_y")  
-        hal.connect("grinder.enable_y", "en_y")
+        hal.set_p("grinder.x_min", str(0.0))
+        hal.set_p("grinder.x_max", str(0.0))
+        hal.set_p("grinder.y_min", str(0.0))
+        hal.set_p("grinder.y_max", str(0.0))
+        hal.set_p("grinder.z_min", str(0.0))
+        hal.set_p("grinder.z_max", str(0.0))
 
-        # Connect position feedback
-        hal.connect("xpos-fb", "grinder.x_position")
-        hal.connect("ypos-fb", "grinder.y_position")
-        hal.connect("zpos-fb", "grinder.z_position")
+        hal.set_p("grinder.x_speed", str(0.0))
+        hal.set_p("grinder.y_speed", str(0.0))
+        hal.set_p("grinder.z_speed", str(0.0))
 
-        h.set_p("grinder.z_direction", True)
-
-        h.set_p("grinder.x_min", 0.0)
-        h.set_p("grinder.x_max", 0.0)
-        h.set_p("grinder.y_min", 0.0)
-        h.set_p("grinder.y_max", 0.0)
-        h.set_p("grinder.z_min", 0.0)
-        h.set_p("grinder.z_max", 0.0)
-
-        h.set_p("grinder.x_speed", 0.0)
-        h.set_p("grinder.y_speed", 0.0)
-        h.set_p("grinder.z_speed", 0.0)
-
-        h.set_p("grinder.z_crossfeed", 0.0)
-        h.set_p("grinder.y_downfeed", 0.0)
+        hal.set_p("grinder.z_crossfeed", str(0.0))
+        hal.set_p("grinder.y_downfeed", str(0.0))
 
         # Enable and control signals
-        h.set_p("grinder.enable_x", False)
-        h.set_p("grinder.enable_y", False)
-        h.set_p("grinder.enable_z", False)
-        h.set_p("grinder.stop_x_at_z_limit", False)
-        h.set_p("grinder.stop_z_at_z_limit", False)
+        hal.set_p("grinder.enable_x", str(False))
+        hal.set_p("grinder.enable_y", str(False))
+        hal.set_p("grinder.enable_z", str(False))
+        hal.set_p("grinder.stop_x_at_z_limit", str(False))
+        hal.set_p("grinder.stop_z_at_z_limit", str(False))
 
         # Crossfeed and repeat settings
-        h.set_p("grinder.crossfeed_at", 0)
-        h.set_p("grinder.repeat_at", 0)
+        hal.set_p("grinder.crossfeed_at", str(0))
+        hal.set_p("grinder.repeat_at", str(0))
 
         self.previous_linear_units = 1
+
+    def initialize_controls(self, parent):
+        """Initialize custom controls and connect UI elements."""
 
         # GSTAT.connect("state-estop",lambda w: self.update_estate_label('ESTOP'))
 
@@ -275,13 +299,17 @@ class GrinderWindow(QWidget):
         # Run/Stop Button
         self.run_stop_pb = parent.findChild(QPushButton, "run_stop_pb")
         self.run_stop_pb.clicked.connect(lambda: self.on_run_stop_clicked())
+        self.run_stop_pb.setEnabled(False)
 
         self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
-        self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_x_pb, "enable_x"))
+        self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_x_pb, "M101 P0 Q"))
+        self.set_toggle_button_color(self.enable_x_pb, "enable_x")
         self.enable_y_pb = parent.findChild(QPushButton, "enable_y_pb")
-        self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_y_pb, "enable_y"))
+        self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_y_pb, "M101 P1 Q"))
+        self.set_toggle_button_color(self.enable_y_pb, "enable_y")
         self.enable_z_pb = parent.findChild(QPushButton, "enable_z_pb")
-        self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_z_pb, "enable_z"))
+        self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_z_pb, "M101 P2 Q"))
+        self.set_toggle_button_color(self.enable_z_pb, "enable_z")
 
 
         #TODO do the below with gstat
@@ -324,18 +352,19 @@ class GrinderWindow(QWidget):
 
     def set_run_stop_style(self):
         existing_styles = self.run_stop_pb.styleSheet()
-        new_background = "background-color: red;" if self.run_stop_pb.isChecked() else "background-color: green;"
+        new_background = "background-color: green;" if self.run_stop_pb.isChecked() else "background-color: red;"
         self.run_stop_pb.setStyleSheet(f"{existing_styles} {new_background}")
 
     def on_run_stop_clicked(self):
-        if self.is_running or self.is_paused:
+        if self.interp_state != linuxcnc.INTERP_IDLE:
             self.stop()
+        else:
+            mdi_command = f"o<Flat_Grind> call"
 
-        if self.is_idle:
             self.previous_mode = GSTAT.get_current_mode()
             self.c.mode(linuxcnc.MODE_MDI)
             self.c.wait_complete() # wait until mode switch executed
-            self.c.mdi("o<Flat_Grind> call")
+            self.c.mdi(mdi_command)
 
     def handle_units_change(self):
         if self.previous_linear_units != self.s.linear_units:
@@ -397,9 +426,9 @@ class GrinderWindow(QWidget):
         self.stop_x_at_z_limit_pb.setChecked(bool(self.get_hal("stop_x_at_z_limit")))
         self.set_toggle_button_color(self.stop_x_at_z_limit_pb, "stop_x_at_z_limit")
         self.set_toggle_button_text(self.stop_x_at_z_limit_pb,"OFF", "ON")
-        self.stop_x_at_z_limit_pb.setChecked(bool(self.get_hal("stop_z_at_z_limit")))
-        self.set_toggle_button_color(self.stop_x_at_z_limit_pb, "stop_z_at_z_limit")
-        self.set_toggle_button_text(self.stop_x_at_z_limit_pb,"OFF", "ON")
+        self.stop_z_at_z_limit_pb.setChecked(bool(self.get_hal("stop_z_at_z_limit")))
+        self.set_toggle_button_color(self.stop_z_at_z_limit_pb, "stop_z_at_z_limit")
+        self.set_toggle_button_text(self.stop_z_at_z_limit_pb,"OFF", "ON")
 
         self.crossfeed_at_cb.setCurrentIndex(int(self.get_hal("crossfeed_at")))
         self.repeat_at_cb.setCurrentIndex(int(self.get_hal("repeat_at")))
@@ -476,11 +505,25 @@ class GrinderWindow(QWidget):
     def set_checked(self, button, hal_field):
         button.setChecked(bool(self.get_hal(hal_field)))
         
+
+    def on_toggle_clicked_mcode(self, button, mcode, off_text = "", on_text = ""):
+        mode = GSTAT.get_current_mode()
+        self.c.mode(linuxcnc.MODE_MDI)
+        self.c.wait_complete() # wait until mode switch executed
+        mdi = F"{mcode}{str(int(button.isChecked()))}"
+        self.c.mdi(mdi)
+        print(mdi)
+        self.c.wait_complete()
+        self.c.mode(mode)
+        # self.set_checked(button, hal_field)
+
+        self.set_toggle_button_text(button, off_text, on_text)
+
     def on_toggle_clicked(self, button, hal_field, off_text = "", on_text = ""):
         self.set_hal(hal_field, button.isChecked())
         # self.set_checked(button, hal_field)
 
-        self.set_toggle_button_text(self, button, off_text, on_text)
+        self.set_toggle_button_text(button, off_text, on_text)
 
         self.save_grind_clicked()
 
@@ -556,7 +599,7 @@ class GrinderWindow(QWidget):
     def stop(self):
         """Start or stop the control loop based on the run_stop signal."""
         self.c.abort()
-        self.c.mode(self.previous_mode)
+        self.c.mode(linuxcnc.MODE_MANUAL)
 
 
     

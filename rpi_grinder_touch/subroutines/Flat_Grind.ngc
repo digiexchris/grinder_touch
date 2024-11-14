@@ -1,9 +1,0 @@
-o<infinite_loop> sub
-    (Your actions here, e.g., move axes, control pins, etc.)
-    o<XMove_To_Max> call
-    o<XMove_To_Min> call
-    M99    ; End the sub
-o<infinite_loop> endsub
-
-o<infinite_loop> call
-M30 ; this should never be reached, since we keep calling the loop

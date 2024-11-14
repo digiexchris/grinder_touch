@@ -1,0 +1,64 @@
+O<zmove_repeattype0> sub
+#4 = [#<_hal[grinder.z_min]>] 
+#5 = [#<_hal[grinder.z_max]>] 
+#6 = [#<_hal[grinder.z_crossfeed]>] 
+#7 = [#<_hal[grinder.z_speed]>]
+#8 = [#<_hal[grinder.z_direction]>]
+#9 = [#<_hal[grinder.enable_z]>]
+#10 = [#<_hal[grinder.enable_x]>]
+
+(print, starting repeattype0 with Z direction of #8)
+
+; #<_x> X
+; #<_y> Y
+; #<_z> Z
+
+( M65 P0 is setting z_direction to false, towards min )
+( M64 P0 is setting z_direction to true, towards max )
+
+o100 IF [#9 EQ 1]
+   (print, crossfeed enabled, infeeding...)
+   o110 IF [#<_z> LE #4] ;flip directions if required
+      (print, flipped direction to 1 due to being at min limit)
+      M100 P1
+   o110 ELSE IF [#<_z> GE #5]
+      (print, flipped direction to 0 due to being at max limit)
+      M100 P0
+   o110 ENDIF
+
+   #8 = [#<_hal[grinder.z_direction]>]
+
+   (print, Z direction is #8, crossfeed is #6, current pos is #<_z>)
+
+   o120 IF [#8 EQ 1]
+      #9 = [#<_z> + #6]
+      (print, Z target is #9)
+      o121 IF [#9 GT #5]
+         G1 Z[#5] F[#7]
+      o121 ELSE
+         G1 Z[#9] F[#7]
+      o121 ENDIF
+
+      o122 IF [#<_z> GE #5]
+         o<Disable_At_Z_Limit> call
+      o122 ENDIF
+   o120 ELSE
+      #10 = [#<_z> - #6]
+      o123 IF [#10 LT #4]
+         G1 Z[#4] F[#7]
+      o123 ELSE
+         G1 Z[#10] F[#7]
+      o123 ENDIF
+
+      o124 IF [#<_z> LE #4]
+         o<Disable_At_Z_Limit> call
+      o124 ENDIF
+   o120 ENDIF
+
+o100 ELSE
+   o130 IF [#10 EQ 0]
+      G04 P0.5 (Just so the interpreter isn't spinning, because both X and Z are off)
+   o130 ENDIF
+o100 ENDIF
+
+O<zmove_repeattype0> endsub

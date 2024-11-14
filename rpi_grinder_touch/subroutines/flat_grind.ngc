@@ -1,0 +1,27 @@
+o<flat_grind> sub
+    o101 while [1]
+        #1 = #<_hal[grinder.enable_x]>
+        #2 = #<_hal[grinder.enable_y]>
+        #3 = #<_hal[grinder.enable_z]>
+
+        o100 IF [[#1 EQ 0] AND [#2 EQ 0] AND [#3 EQ 0]]
+            M30
+        o100 ENDIF
+        
+        o<xmove_to_max> call
+
+        #1 = #<_hal[grinder.enable_x]>
+        #2 = #<_hal[grinder.enable_y]>
+        #3 = #<_hal[grinder.enable_z]>
+
+        o200 IF [[#1 EQ 0] AND [#2 EQ 0] AND [#3 EQ 0]]
+            M30
+        o200 ENDIF
+
+        o<xmove_to_min> call
+
+    o101 endwhile
+o<flat_grind> endsub
+
+o<flat_grind> call
+M30

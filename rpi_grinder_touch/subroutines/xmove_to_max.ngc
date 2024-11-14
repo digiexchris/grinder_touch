@@ -1,25 +1,29 @@
-O<XMove_To_Max> sub
+O<xmove_to_max> sub
 #1 = [#<_hal[grinder.x_max]>]     (Get x_max from HAL)
 #3 = [#<_hal[grinder.x_speed]>]   (Set X-axis speed)
 #4 = [#<_hal[grinder.enable_x]>]
+#5 = [#<_hal[grinder.enable_z]>]
+#6 = [#<_hal[grinder.enable_y]>]
+#7 = [#<_hal[grinder.crossfeed_at]>]
 
-IF [#4 EQ 1]
+o100 IF [#4 EQ 1]
 G1 X[#1] F[#3]            (Move to x_max)
-ENDIF
+o100 ENDIF
 
-IF [#<_hal[grinder.enable_z]> EQ 0]
-    IF [#<_hal[grinder.enable_y]> EQ 1]
+o200 IF [#5 EQ 0]
+    o210 IF [#6 EQ 1]
         o<YDownfeed> call (If Z is off, it won't trigger a downfeed. If Z is off but Y is still on, like in a plunge, downfeed.)
-    ELSE
+    o210 ELSE
         G04 P0.5
-    ENDIF
-ELSE
-    IF [#<_hal[grinder.crossfeed_at]> EQ 0]
+    o210 ENDIF
+o200 ELSE
+(print, crossfeed type #7)
+    o220 IF [#7 EQ 0]
         o<ZMove_RepeatType0> call
-    ELSE 
-        IF [#<_hal[grinder.crossfeed_at]> EQ 2] 
+    o220 ELSE 
+        o221 IF [#7 EQ 2] 
             o<ZMove_RepeatType2>
-        ENDIF
-    ENDIF
-ENDIF
-O<XMove_To_Max> endsub
+        o221 ENDIF
+    o220 ENDIF
+o200 ENDIF
+O<xmove_to_max> endsub
