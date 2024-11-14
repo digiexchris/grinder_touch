@@ -2323,6 +2323,306 @@
         </property>
        </widget>
       </widget>
+      <widget class="QWidget" name="tab_6">
+       <attribute name="title">
+        <string>Plot</string>
+       </attribute>
+       <widget class="QWidget" name="plot_widget" native="true">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>341</width>
+          <height>366</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_10">
+        <property name="geometry">
+         <rect>
+          <x>355</x>
+          <y>0</y>
+          <width>166</width>
+          <height>191</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Pan</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <widget class="QPushButton" name="view_pan_up_pb">
+         <property name="geometry">
+          <rect>
+           <x>45</x>
+           <y>25</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>^</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_pan_left_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>80</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_pan_right_pb">
+         <property name="geometry">
+          <rect>
+           <x>85</x>
+           <y>80</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&gt;</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_pan_down_pb">
+         <property name="geometry">
+          <rect>
+           <x>45</x>
+           <y>130</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>v</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_11">
+        <property name="geometry">
+         <rect>
+          <x>520</x>
+          <y>0</y>
+          <width>171</width>
+          <height>191</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Rotate</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <widget class="QPushButton" name="view_rotate_left_pb">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>80</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_rotate_right_pb">
+         <property name="geometry">
+          <rect>
+           <x>90</x>
+           <y>80</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&gt;</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_rotate_up_pb">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>30</y>
+           <width>66</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>^</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_rotate_down_pb">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>130</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>v</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_14">
+        <property name="geometry">
+         <rect>
+          <x>355</x>
+          <y>195</y>
+          <width>86</width>
+          <height>171</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Zoom</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <widget class="QPushButton" name="view_zoom_out_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>25</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>OUT</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_zoom_in_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>85</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>IN</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_16">
+        <property name="geometry">
+         <rect>
+          <x>440</x>
+          <y>195</y>
+          <width>251</width>
+          <height>171</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Controls</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <widget class="QPushButton" name="view_z2_pb">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>115</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View Z2</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_p_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>25</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View P</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_y2_pb">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>70</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View Y2</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_x_pb">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>25</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View X</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_z_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>115</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View Z</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_y_pb">
+         <property name="geometry">
+          <rect>
+           <x>5</x>
+           <y>70</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>View Y</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="view_clear_pb">
+         <property name="geometry">
+          <rect>
+           <x>165</x>
+           <y>25</y>
+           <width>76</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>CLEAR</string>
+         </property>
+        </widget>
+       </widget>
+      </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
         <string>MDI</string>
@@ -3701,6 +4001,225 @@
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
+       </widget>
+      </widget>
+            </widget>
+<widget class="QWidget" name="tab_3">
+<attribute name="title">
+<string>MDI</string>
+</widget>
+</widget>
+</widget>
+    <widget class="QWidget" name="tab_5">
+       <attribute name="title">
+        <string>Plot Options</string>
+       </attribute>
+       <widget class="QCheckBox" name="view_dro_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>20</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>DRO</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_extents_option_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>110</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Extents</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_tool_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>110</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Tool</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_dtg_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>155</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>DTG</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_limits_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>65</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Limits</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_live_plot_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>155</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Live Plot</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_metric_units_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>245</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Metric</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_offsets_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>200</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Offsets</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_overlay_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>245</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Overlay</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_velocity_cb">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>200</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Velocity</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_program_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>20</y>
+          <width>111</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Program</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="view_rapids_cb">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>65</y>
+          <width>81</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Rapids</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
        </widget>
       </widget>
      </widget>
