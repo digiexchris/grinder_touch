@@ -78,8 +78,8 @@ class GrinderWindow(QWidget):
         GSTAT.connect("interp-paused",self.onInterpStateChanged)
         GSTAT.connect("interp-run",self.onInterpStateChanged)
         GSTAT.connect("interp-idle",self.onInterpStateChanged)
-        GSTAT.connect("state-estop-reset", self.enable_run_stop)
-        GSTAT.connect("state-on", self.enable_run_stop)
+        GSTAT.connect("state-estop-reset", self.enable_controls)
+        GSTAT.connect("state-on", self.enable_controls)
 
 
         GSTAT.connect("m-code-changed", self.on_mcodes_changed)
@@ -89,9 +89,12 @@ class GrinderWindow(QWidget):
         self.s = linuxcnc.stat()
         self.h = hal
 
-    def enable_run_stop(self, value):
+    def enable_controls(self, value):
         if GSTAT.estop_is_clear() and GSTAT.machine_is_on():
             self.run_stop_pb.setEnabled(True)
+            self.enable_x_pb.setEnabled(True)
+            self.enable_y_pb.setEnabled(True)
+            self.enable_z_pb.setEnabled(True)
 
     def on_mcodes_changed(self, value, something):
         self.set_checked(self.enable_x_pb, "enable_x")
@@ -242,7 +245,6 @@ class GrinderWindow(QWidget):
         hal.set_p("grinder.enable_y", str(False))
         hal.set_p("grinder.enable_z", str(False))
         hal.set_p("grinder.stop_at_z_limit", str(False))
-        hal.set_p("grinder.stop_z_at_z_limit", str(False))
 
         # Crossfeed and repeat settings
         hal.set_p("grinder.crossfeed_at", str(0))
@@ -301,12 +303,15 @@ class GrinderWindow(QWidget):
         self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
         self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_x_pb, "M101 P0 Q"))
         self.set_toggle_button_color(self.enable_x_pb, "enable_x")
+        self.enable_x_pb.setEnabled(False)
         self.enable_y_pb = parent.findChild(QPushButton, "enable_y_pb")
         self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_y_pb, "M101 P1 Q"))
         self.set_toggle_button_color(self.enable_y_pb, "enable_y")
+        self.enable_y_pb.setEnabled(False)
         self.enable_z_pb = parent.findChild(QPushButton, "enable_z_pb")
         self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_z_pb, "M101 P2 Q"))
         self.set_toggle_button_color(self.enable_z_pb, "enable_z")
+        self.enable_y_pb.setEnabled(False)
 
 
         #TODO do the below with gstat
@@ -563,7 +568,7 @@ class GrinderWindow(QWidget):
         print(self.settings)
 
         with open(self.settings_file, "wb") as file:
-            pickle.dump(self.settings, file
+            pickle.dump(self.settings, file)
 
         self.update_fields()
 
