@@ -1,6 +1,6 @@
 # Halshow settings
 # This file is generated automatically.
-wm geometry . 700x475+921+643
+wm geometry . 700x475+32+32
 placeFrames 0.3
 set ::ratio 0.3
 set ::old_w_leftf 160
@@ -16,6 +16,8 @@ set ::watchlist {
     pin+grinder.enable_z
     pin+grinder.z_crossfeed
     pin+grinder.z_direction
+    pin+grinder.is_running
+    pin+motion.digital-out-00
 }
 set ::workmode watchhal
 set ::watchInterval 100

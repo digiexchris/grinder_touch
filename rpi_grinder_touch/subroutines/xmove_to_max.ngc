@@ -7,8 +7,8 @@ O<xmove_to_max> sub
 ; #7 = [#<_hal[grinder.crossfeed_at]>]
 ; [#<_hal[grinder.repeat_at]>]
 
-o100 IF [#4 EQ 1]
-G1 X[#1] F[#3]            (Move to x_max)
+o100 IF [#<_hal[grinder.enable_x]> EQ 1]
+G1 X[#<_hal[grinder.x_max]>] F[#<_hal[grinder.x_speed]>]            (Move to x_max)
 o100 ENDIF
 
 o200 IF [#<_hal[grinder.enable_z]> EQ 0]
