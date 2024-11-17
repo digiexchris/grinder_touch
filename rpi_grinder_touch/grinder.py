@@ -10,7 +10,8 @@ from qtpy.QtCore import QTimer, QEventLoop, Qt
 
 from hal_glib import GStat
 
-from GrinderCommon import GrinderCommon, Axis
+from python.axis import Axis
+from python.grinderhal import GrinderHal
 
 # from qtpyvcp.hal import QPin
 
@@ -57,12 +58,13 @@ class GrinderWindow(QWidget):
     def start(self):
         self.c.mode(linuxcnc.MODE_MDI)
         self.c.wait_complete()
-        self.c.mdi("M102 P1")
+        self.c.mdi("o<flat_grind> call")
 
     def stop(self):
-        self.c.mode(linuxcnc.MODE_MDI)
-        self.c.wait_complete()
-        self.c.mdi("M102 P0")
+        self.c.abort()
+        # self.c.mode(linuxcnc.MODE_MDI)
+        # self.c.wait_complete()
+        # self.c.mdi("M102 P0")
 
     def enable_controls(self, value):
         if self.GSTAT.estop_is_clear() and self.GSTAT.machine_is_on():
@@ -78,7 +80,7 @@ class GrinderWindow(QWidget):
             self.enable_z_pb.setEnabled(False)
 
     def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
-        running = bool(GrinderCommon.get_hal("is_running"))
+        running = bool(GrinderHal.get_hal("is_running"))
         if self.is_running != running:
             self.is_running = running
             if running:
@@ -111,7 +113,7 @@ class GrinderWindow(QWidget):
 
     def get_pos(self, axis):
 
-        return round(self.pos[axis.to_int()], GrinderCommon.get_rounding_tolerance())
+        return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
     
     def on_value_changed(self, field, value, value_type):
         try:
@@ -166,15 +168,15 @@ class GrinderWindow(QWidget):
         self.set_button_color(self.run_stop_pb,False)
 
         self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
-        self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_x_pb, "M101 P0 Q"))
+        self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_x_pb, "enable_x"))
         self.set_button_color(self.enable_x_pb, False)
         self.enable_x_pb.setEnabled(False)
         self.enable_y_pb = parent.findChild(QPushButton, "enable_y_pb")
-        self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_y_pb, "M101 P1 Q"))
+        self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_y_pb, "enable_y"))
         self.set_button_color(self.enable_y_pb, False)
         self.enable_y_pb.setEnabled(False)
         self.enable_z_pb = parent.findChild(QPushButton, "enable_z_pb")
-        self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_z_pb, "M101 P2 Q"))
+        self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked(self.enable_z_pb, "enable_z"))
         self.set_button_color(self.enable_z_pb, False)
         self.enable_y_pb.setEnabled(False)
 
@@ -231,17 +233,17 @@ class GrinderWindow(QWidget):
                 conversion_factor = 1/25.4
                 self.previous_linear_units = 1
 
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("x_min") * conversion_factor))    
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("x_max") * conversion_factor))  
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("y_min") * conversion_factor))    
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("y_max") * conversion_factor))  
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("z_min") * conversion_factor))    
-            self.x_min_edit.setText(str(GrinderCommon.get_hal("z_max") * conversion_factor))  
-            self.x_speed_sb.setValue(float(GrinderCommon.get_hal("x_speed") * conversion_factor))
-            self.y_speed_sb.setValue(float(GrinderCommon.get_hal("y_speed") * conversion_factor))
-            self.z_speed_sb.setValue(float(GrinderCommon.get_hal("z_speed") * conversion_factor))
-            self.z_crossfeed_edit.setText(str(GrinderCommon.get_hal("z_crossfeed") * conversion_factor))
-            self.y_downfeed_edit.setText(str(GrinderCommon.get_hal("y_downfeed") * conversion_factor))
+            self.x_min_edit.setText(str(GrinderHal.get_hal("x_min") * conversion_factor))    
+            self.x_min_edit.setText(str(GrinderHal.get_hal("x_max") * conversion_factor))  
+            self.x_min_edit.setText(str(GrinderHal.get_hal("y_min") * conversion_factor))    
+            self.x_min_edit.setText(str(GrinderHal.get_hal("y_max") * conversion_factor))  
+            self.x_min_edit.setText(str(GrinderHal.get_hal("z_min") * conversion_factor))    
+            self.x_min_edit.setText(str(GrinderHal.get_hal("z_max") * conversion_factor))  
+            self.x_speed_sb.setValue(float(GrinderHal.get_hal("x_speed") * conversion_factor))
+            self.y_speed_sb.setValue(float(GrinderHal.get_hal("y_speed") * conversion_factor))
+            self.z_speed_sb.setValue(float(GrinderHal.get_hal("z_speed") * conversion_factor))
+            self.z_crossfeed_edit.setText(str(GrinderHal.get_hal("z_crossfeed") * conversion_factor))
+            self.y_downfeed_edit.setText(str(GrinderHal.get_hal("y_downfeed") * conversion_factor))
 
             # self.save_grind_clicked()
 
@@ -251,26 +253,26 @@ class GrinderWindow(QWidget):
         self.set_button_color(button,bool(button.isChecked()))
     
     def update_fields(self):
-        self.x_min_edit.setText(str(GrinderCommon.get_hal("x_min")))
-        self.x_max_edit.setText(str(GrinderCommon.get_hal("x_max")))
-        self.y_min_edit.setText(str(GrinderCommon.get_hal("y_min")))
-        self.y_max_edit.setText(str(GrinderCommon.get_hal("y_max")))
-        self.z_min_edit.setText(str(GrinderCommon.get_hal("z_min")))
-        self.z_max_edit.setText(str(GrinderCommon.get_hal("z_max")))
+        self.x_min_edit.setText(str(GrinderHal.get_hal("x_min")))
+        self.x_max_edit.setText(str(GrinderHal.get_hal("x_max")))
+        self.y_min_edit.setText(str(GrinderHal.get_hal("y_min")))
+        self.y_max_edit.setText(str(GrinderHal.get_hal("y_max")))
+        self.z_min_edit.setText(str(GrinderHal.get_hal("z_min")))
+        self.z_max_edit.setText(str(GrinderHal.get_hal("z_max")))
 
-        self.x_speed_sb.setValue(float(GrinderCommon.get_hal("x_speed")))
-        self.y_speed_sb.setValue(float(GrinderCommon.get_hal("y_speed")))
-        self.z_speed_sb.setValue(float(GrinderCommon.get_hal("z_speed")))
+        self.x_speed_sb.setValue(float(GrinderHal.get_hal("x_speed")))
+        self.y_speed_sb.setValue(float(GrinderHal.get_hal("y_speed")))
+        self.z_speed_sb.setValue(float(GrinderHal.get_hal("z_speed")))
 
-        self.z_crossfeed_edit.setText(str(GrinderCommon.get_hal("z_crossfeed")))
-        self.y_downfeed_edit.setText(str(GrinderCommon.get_hal("y_downfeed")))
+        self.z_crossfeed_edit.setText(str(GrinderHal.get_hal("z_crossfeed")))
+        self.y_downfeed_edit.setText(str(GrinderHal.get_hal("y_downfeed")))
 
-        self.stop_at_z_limit_pb.setChecked(bool(GrinderCommon.get_hal("stop_at_z_limit")))
-        self.set_button_color(self.stop_at_z_limit_pb, bool(GrinderCommon.get_hal("stop_at_z_limit")))
+        self.stop_at_z_limit_pb.setChecked(bool(GrinderHal.get_hal("stop_at_z_limit")))
+        self.set_button_color(self.stop_at_z_limit_pb, bool(GrinderHal.get_hal("stop_at_z_limit")))
         self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
 
-        self.crossfeed_at_cb.setCurrentIndex(int(GrinderCommon.get_hal("crossfeed_at")))
-        self.repeat_at_cb.setCurrentIndex(int(GrinderCommon.get_hal("repeat_at")))
+        self.crossfeed_at_cb.setCurrentIndex(int(GrinderHal.get_hal("crossfeed_at")))
+        self.repeat_at_cb.setCurrentIndex(int(GrinderHal.get_hal("repeat_at")))
 
     def load_settings(self):
         if os.path.exists(self.settings_file):
@@ -283,51 +285,51 @@ class GrinderWindow(QWidget):
             print("Empty settings loaded")
 
         self.previous_linear_units = self.settings.get('previous_linear_units',1)
-        GrinderCommon.set_hal("x_min", self.settings.get('x_min',0))
-        GrinderCommon.set_hal("x_max", self.settings.get('x_max', self.get_converted_value(1, "inch")))
-        GrinderCommon.set_hal("y_min", self.settings.get('y_min',0))
-        GrinderCommon.set_hal("y_max", self.settings.get('y_max', self.get_converted_value(1, "inch")))
-        GrinderCommon.set_hal("z_min",  self.settings.get('z_min',0))
-        GrinderCommon.set_hal("z_max",  self.settings.get('z_max', self.get_converted_value(1, "inch")))
+        GrinderHal.set_hal("x_min", self.settings.get('x_min',0))
+        GrinderHal.set_hal("x_max", self.settings.get('x_max', self.get_converted_value(1, "inch")))
+        GrinderHal.set_hal("y_min", self.settings.get('y_min',0))
+        GrinderHal.set_hal("y_max", self.settings.get('y_max', self.get_converted_value(1, "inch")))
+        GrinderHal.set_hal("z_min",  self.settings.get('z_min',0))
+        GrinderHal.set_hal("z_max",  self.settings.get('z_max', self.get_converted_value(1, "inch")))
         
 
-        GrinderCommon.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
-        GrinderCommon.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
-        GrinderCommon.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
+        GrinderHal.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
+        GrinderHal.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
+        GrinderHal.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
         
 
-        GrinderCommon.set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))        
-        GrinderCommon.set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
+        GrinderHal.set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))        
+        GrinderHal.set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
         
 
-        # GrinderCommon.set_hal("enable_x",  False)
-        # GrinderCommon.set_hal("enable_y",  False)
-        # GrinderCommon.set_hal("enable_z",  False)
+        # GrinderHal.set_hal("enable_x",  False)
+        # GrinderHal.set_hal("enable_y",  False)
+        # GrinderHal.set_hal("enable_z",  False)
 
-        GrinderCommon.set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
+        GrinderHal.set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
         
 
-        GrinderCommon.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
-        GrinderCommon.set_hal("repeat_at",  self.settings.get('repeat_at', 1))
+        GrinderHal.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
+        GrinderHal.set_hal("repeat_at",  self.settings.get('repeat_at', 1))
 
     def validate_and_set(self, field_name, value, value_type):
         if value_type == "float":
             try:
-                GrinderCommon.set_hal(field_name,float(value))
+                GrinderHal.set_hal(field_name,float(value))
                 return float(value)
             except ValueError:
                 raise Exception(F"{field_name} must be numeric: {value}")
             
         if value_type == "int":
             try:
-                GrinderCommon.set_hal(field_name, int(value))
+                GrinderHal.set_hal(field_name, int(value))
                 return int(value)
             except ValueError:
                 raise Exception(F"{field_name} must be an integer: {value}")
             
         if value_type == "bool":
             try:
-                GrinderCommon.set_hal(field_name, bool(value))
+                GrinderHal.set_hal(field_name, bool(value))
                 return int(value)
             except ValueError:
                 raise Exception(F"{field_name} must be a boolean: {value}")
@@ -336,12 +338,12 @@ class GrinderWindow(QWidget):
         axis_name = base_name.removesuffix("_min")
         axis_name = axis_name.removesuffix("_max")
         axis = Axis.from_str(axis_name)
-        #GrinderCommon.set_hal(base_name, self.get_pos(axis))
+        #GrinderHal.set_hal(base_name, self.get_pos(axis))
         edit.setText(str(self.get_pos(axis)))
 
         
     def set_checked(self, button, hal_field):
-        button.setChecked(bool(GrinderCommon.get_hal(hal_field)))
+        button.setChecked(bool(GrinderHal.get_hal(hal_field)))
         
 
     def on_toggle_clicked_mcode(self, button, mcode, off_text = "", on_text = ""):
@@ -359,14 +361,15 @@ class GrinderWindow(QWidget):
         self.set_toggle_button_text(button, off_text, on_text)
 
     def on_toggle_clicked(self, button, hal_field, off_text = "", on_text = ""):
-        GrinderCommon.set_hal(hal_field, button.isChecked())
-        # self.set_checked(button, hal_field)
+        checked = not bool(GrinderHal.get_hal(hal_field))
+        GrinderHal.set_hal(hal_field, checked)
+        self.set_checked(button, hal_field)
 
         self.set_toggle_button_text(button, off_text, on_text)
 
         self.save_grind_clicked()
 
-        # self.set_toggle_button_color(button,hal_field)
+        self.set_button_color(button,checked)
 
     def set_toggle_button_text(self, button, off_text = "", on_text = ""):
         if button.isChecked():

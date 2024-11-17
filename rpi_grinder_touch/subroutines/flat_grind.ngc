@@ -36,7 +36,7 @@ o<flat_grind> sub
 
        
 
-        (p, =============== Positions are X#<_x> Z#<_z> Y#<_y>)
+        (prin, =============== Positions are X#<_x> Z#<_z> Y#<_y>)
         #1 = #<_hal[grinder.enable_x]>
         #2 = #<_hal[grinder.enable_y]>
         #3 = #<_hal[grinder.enable_z]>
@@ -51,6 +51,8 @@ o<flat_grind> sub
         #2 = #<_hal[grinder.enable_y]>
         #3 = #<_hal[grinder.enable_z]>
 
+        ; G13 ;stop the interpreter from continuing until these are executed
+
         o200 IF [[#1 EQ 0] AND [#2 EQ 0] AND [#3 EQ 0]]
             M30
         o200 ENDIF
@@ -62,6 +64,8 @@ o<flat_grind> sub
         #<at_x_done_point> = 0
         #<at_z_done_point> = 0
         #<at_y_done_point> = 0
+
+        ; G13 ;stop the interpreter from continuing until these are executed
 
         (p, checking Z pos at the time we want to check if it's done  #<_z>, RepeatAt #<_hal[grinder.repeat_at]>  #<_hal[grinder.z_max]>)
         o300 IF [#<_hal[grinder.enable_z]> EQ 1]
@@ -115,6 +119,3 @@ o<flat_grind> sub
 
     o101 endwhile
 o<flat_grind> endsub
-
-o<flat_grind> call
-M30

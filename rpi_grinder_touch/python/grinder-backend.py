@@ -3,7 +3,8 @@ import hal
 import linuxcnc
 import time
 import traceback
-from GrinderCommon import GrinderCommon, Axis
+from axis import Axis
+from grinderhal import GrinderHal
 from hal_glib import GStat
 from kthread import KThread
 
@@ -28,7 +29,7 @@ class GrinderMotion():
         print("GrinderMotion cleaned up")
 
     def onModeChanged(self):
-        running = bool(GrinderCommon.get_hal("is_running"))
+        running = bool(GrinderHal.get_hal("is_running"))
 
         if self.is_running != running:
             self.is_running = running
@@ -42,23 +43,21 @@ class GrinderMotion():
     def start(self, obj = None):
         if not self.GSTAT.estop_is_clear and not self.GSTAT.machine_is_on and not self.GSTAT.is_all_homed:
             if self.is_running:
-                GrinderCommon.set_hal("is_running", False)
+                GrinderHal.set_hal("is_running", False)
                 self.is_running = False
             return
         
-        self.thread = threading.Thread(target = self.main_sequence, name = "MainLoop")
-        self.thread.start()
-        #THIS THREAD CAUSES THIS TO HANG, no more gstat events come in.
-        # self.thread = Thread(target=self.main_sequence)
-        # self.thread.run()
+        # self.thread = threading.Thread(target = self.main_sequence, name = "MainLoop")
+        # self.thread.start()
+       
 
     def stop(self, obj = None):
         print("Stopping BE")
-        try:
-            if self.thread != None:
-                self.thread.terminate()
-        except threading.ThreadError:
-            print("BE thread already stopped")
+        # try:
+        #     if self.thread != None:
+        #         # self.thread.terminate()
+        # except threading.ThreadError:
+        #     print("BE thread already stopped")
         
         self.c.abort()
         # self.c.mode(linuxcnc.MODE_MANUAL)
@@ -69,7 +68,7 @@ class GrinderMotion():
         self.onModeChanged()
 
     def get_pos(self, axis):
-        return round(self.pos[axis.to_int()], GrinderCommon.get_rounding_tolerance())
+        return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
 
     def initialize_hal(self):
         self.h = hal.component("grinder")
@@ -150,14 +149,14 @@ class GrinderMotion():
         self.c.wait_complete()
 
         x_pos = self.get_pos(Axis.X)
-        x_max = float(GrinderCommon.get_hal("x_max"))
-        x_min = float(GrinderCommon.get_hal("x_min"))
+        x_max = float(GrinderHal.get_hal("x_max"))
+        x_min = float(GrinderHal.get_hal("x_min"))
         y_pos = self.get_pos(Axis.Y)
-        y_max = float(GrinderCommon.get_hal("y_max"))
-        y_min = float(GrinderCommon.get_hal("y_min"))
+        y_max = float(GrinderHal.get_hal("y_max"))
+        y_min = float(GrinderHal.get_hal("y_min"))
         z_pos = self.get_pos(Axis.Z)
-        z_max = float(GrinderCommon.get_hal("z_max"))
-        z_min = float(GrinderCommon.get_hal("z_min"))
+        z_max = float(GrinderHal.get_hal("z_max"))
+        z_min = float(GrinderHal.get_hal("z_min"))
 
         if x_pos > x_max:
             mdi = f"G0 X{x_max}"
