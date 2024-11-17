@@ -1,10 +1,11 @@
+import threading
 import hal
 import linuxcnc
 import time
 import traceback
-from GrinderCommon import GrinderCommon
+from GrinderCommon import GrinderCommon, Axis
 from hal_glib import GStat
-from threading import Thread
+from kthread import KThread
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -13,7 +14,7 @@ from gi.repository import GLib
 
 class GrinderMotion():
     def __init__(self):
-
+        self.status = linuxcnc.stat()
         self.GSTAT = GStat()
         self.thread = None
         # Initialize HAL and LinuxCNC
@@ -28,14 +29,9 @@ class GrinderMotion():
 
     def onModeChanged(self):
         running = bool(GrinderCommon.get_hal("is_running"))
-        # print(running)
-        # print(self.is_running)
+
         if self.is_running != running:
-            print(running)
-            print(self.is_running)
             self.is_running = running
-            print(running)
-            print(self.is_running)
             if running:
                 print("Start request BE")
                 self.start()
@@ -44,19 +40,28 @@ class GrinderMotion():
                 self.stop()
 
     def start(self, obj = None):
-        if not self.GSTAT.estop_is_clear and not self.GSTAT.machine_is_on:
+        if not self.GSTAT.estop_is_clear and not self.GSTAT.machine_is_on and not self.GSTAT.is_all_homed:
+            if self.is_running:
+                GrinderCommon.set_hal("is_running", False)
+                self.is_running = False
             return
         
+        self.thread = threading.Thread(target = self.main_sequence, name = "MainLoop")
+        self.thread.start()
         #THIS THREAD CAUSES THIS TO HANG, no more gstat events come in.
         # self.thread = Thread(target=self.main_sequence)
         # self.thread.run()
 
     def stop(self, obj = None):
         print("Stopping BE")
-        self.c.mode(linuxcnc.MODE_MDI)
-        self.c.wait_complete()
+        try:
+            if self.thread != None:
+                self.thread.terminate()
+        except threading.ThreadError:
+            print("BE thread already stopped")
+        
         self.c.abort()
-        self.c.mode(linuxcnc.MODE_MANUAL)
+        # self.c.mode(linuxcnc.MODE_MANUAL)
         #self.thread._stop().set()
 
     def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
@@ -64,7 +69,7 @@ class GrinderMotion():
         self.onModeChanged()
 
     def get_pos(self, axis):
-        return round(self.pos[axis.to_int()], self.get_rounding_tolerance())
+        return round(self.pos[axis.to_int()], GrinderCommon.get_rounding_tolerance())
 
     def initialize_hal(self):
         self.h = hal.component("grinder")
@@ -124,21 +129,87 @@ class GrinderMotion():
 
         hal.set_p("grinder.is_running", str(False))
     # Main logic sequence
+
+    def print_mode(self):
+        
+        self.status.poll()
+        if self.status.task_mode == linuxcnc.MODE_MANUAL:
+            print("Current mode: Manual")
+        elif self.status.task_mode == linuxcnc.MODE_AUTO:
+            print("Current mode: Auto")
+        elif self.status.task_mode == linuxcnc.MODE_MDI:
+            print("Current mode: MDI")
+
     def main_sequence(self):
         
         #self.GSTAT.emit("general",  {"ID":"GRINDER.STARTED"})
         print("Started")
         # self.is_running = True
+
+        self.c.mode(linuxcnc.MODE_MDI)
+        self.c.wait_complete()
+
+        x_pos = self.get_pos(Axis.X)
+        x_max = float(GrinderCommon.get_hal("x_max"))
+        x_min = float(GrinderCommon.get_hal("x_min"))
+        y_pos = self.get_pos(Axis.Y)
+        y_max = float(GrinderCommon.get_hal("y_max"))
+        y_min = float(GrinderCommon.get_hal("y_min"))
+        z_pos = self.get_pos(Axis.Z)
+        z_max = float(GrinderCommon.get_hal("z_max"))
+        z_min = float(GrinderCommon.get_hal("z_min"))
+
+        if x_pos > x_max:
+            mdi = f"G0 X{x_max}"
+            self.c.mdi(mdi)
+
+        if y_pos > y_max:
+            mdi = f"G0 Y{y_max}"
+            self.c.mdi(mdi)
+
+        if z_pos > z_max:
+            mdi = f"G0 Z{z_max}"
+            self.c.mdi(mdi)
+
+        if x_pos < x_min:
+            mdi = f"G0 X{x_min}"
+            self.c.mdi(mdi)
+
+        if y_pos < y_min:
+            mdi = f"G0 Y{y_min}"
+            self.c.mdi(mdi)
+
+        if z_pos < z_min:
+            mdi = f"G0 Z{z_min}"
+            self.c.mdi(mdi)
+        
+
         while True:
-            # if not self.is_running:
-            #     self.c.mode(linuxcnc.MODE_MDI)
-            #     self.c.wait_complete()
-            #     self.c.abort()
-            #     self.c.wait_complete()
-            #     print("Stopped")
-            #     return
-            
-            time.sleep(0.15)
+
+            # the thread will be terminated by the outside process, but just in case this can stop it faster:
+            if not self.is_running:
+                
+                self.c.abort()
+                self.c.wait_complete()
+                print("Stopped")
+                time.sleep(1)
+                # return
+            else:
+                print("Loop")
+                self.print_mode()
+                time.sleep(1)
+
+                self.c.mode(linuxcnc.MODE_MDI)
+                self.c.wait_complete()
+                self.print_mode()
+                self.c.mdi("o<xmove_to_max> call")
+                self.print_mode()
+                self.c.mdi("o<xmove_to_min> call")
+                self.c.wait_complete()
+
+                self.print_mode()
+                
+                time.sleep(1)
 
 # Run the main sequence
 

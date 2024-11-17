@@ -1,5 +1,6 @@
 import linuxcnc, hal
 from enum import Enum
+from hal_glib import GStat
 class Axis(Enum):
     X = 0
     Y = 1
@@ -29,8 +30,17 @@ class Axis(Enum):
     def __str__(self):
         """Override the default string representation."""
         return self.name
+    
+GSTAT = GStat()
 
 class GrinderCommon():
+
+    def get_rounding_tolerance():
+        # Check the current units
+        if GSTAT.is_metric_mode():
+            return 4
+        else:
+            return 5
 
     def set_hal(field, value):
         print("Setting hal value: "+str(value))

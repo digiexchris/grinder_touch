@@ -39,8 +39,7 @@ class GrinderWindow(QWidget):
 
         self.settings_file = "./grinder.pkl"
 
-        self.position_rounding_tolerance_in = 5
-        self.position_rounding_tolerance_mm = 4
+
 
         self.pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -88,13 +87,6 @@ class GrinderWindow(QWidget):
                 self.set_run_stop_stopped()
         self.pos = relative_pos
 
-    def get_rounding_tolerance(self):
-        # Check the current units
-        if self.GSTAT.is_metric_mode():
-            return self.position_rounding_tolerance_mm
-        else:
-            return self.position_rounding_tolerance_in
-        
     def get_converted_value(self, value, units):
         if units != "inch" and units != "mm":
             raise Exception("Get converted value called with invalid unit type")
@@ -119,7 +111,7 @@ class GrinderWindow(QWidget):
 
     def get_pos(self, axis):
 
-        return round(self.pos[axis.to_int()], self.get_rounding_tolerance())
+        return round(self.pos[axis.to_int()], GrinderCommon.get_rounding_tolerance())
     
     def on_value_changed(self, field, value, value_type):
         try:
@@ -171,18 +163,19 @@ class GrinderWindow(QWidget):
         self.run_stop_pb.clicked.connect(lambda: self.on_run_stop_clicked())
         self.run_stop_pb.setEnabled(False)
         self.run_stop_pb.setCheckable(False)
+        self.set_button_color(self.run_stop_pb,False)
 
         self.enable_x_pb = parent.findChild(QPushButton, "enable_x_pb")
         self.enable_x_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_x_pb, "M101 P0 Q"))
-        self.set_toggle_button_color(self.enable_x_pb, "enable_x")
+        self.set_button_color(self.enable_x_pb, False)
         self.enable_x_pb.setEnabled(False)
         self.enable_y_pb = parent.findChild(QPushButton, "enable_y_pb")
         self.enable_y_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_y_pb, "M101 P1 Q"))
-        self.set_toggle_button_color(self.enable_y_pb, "enable_y")
+        self.set_button_color(self.enable_y_pb, False)
         self.enable_y_pb.setEnabled(False)
         self.enable_z_pb = parent.findChild(QPushButton, "enable_z_pb")
         self.enable_z_pb.clicked.connect(lambda: self.on_toggle_clicked_mcode(self.enable_z_pb, "M101 P2 Q"))
-        self.set_toggle_button_color(self.enable_z_pb, "enable_z")
+        self.set_button_color(self.enable_z_pb, False)
         self.enable_y_pb.setEnabled(False)
 
         self.update_fields()
@@ -255,7 +248,7 @@ class GrinderWindow(QWidget):
     def on_hal_toggle_changed(self, button, hal_field):
 
         self.set_checked(button, hal_field)
-        self.set_toggle_button_color(button,hal_field)
+        self.set_button_color(button,bool(button.isChecked()))
     
     def update_fields(self):
         self.x_min_edit.setText(str(GrinderCommon.get_hal("x_min")))
@@ -273,7 +266,7 @@ class GrinderWindow(QWidget):
         self.y_downfeed_edit.setText(str(GrinderCommon.get_hal("y_downfeed")))
 
         self.stop_at_z_limit_pb.setChecked(bool(GrinderCommon.get_hal("stop_at_z_limit")))
-        self.set_toggle_button_color(self.stop_at_z_limit_pb, "stop_at_z_limit")
+        self.set_button_color(self.stop_at_z_limit_pb, bool(GrinderCommon.get_hal("stop_at_z_limit")))
         self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
 
         self.crossfeed_at_cb.setCurrentIndex(int(GrinderCommon.get_hal("crossfeed_at")))
@@ -352,15 +345,16 @@ class GrinderWindow(QWidget):
         
 
     def on_toggle_clicked_mcode(self, button, mcode, off_text = "", on_text = ""):
-        mode = self.GSTAT.get_current_mode()
+        # mode = self.GSTAT.get_current_mode()
         self.c.mode(linuxcnc.MODE_MDI)
         self.c.wait_complete() # wait until mode switch executed
         mdi = F"{mcode}{str(int(button.isChecked()))}"
         self.c.mdi(mdi)
         print(mdi)
         self.c.wait_complete()
-        self.c.mode(mode)
         # self.set_checked(button, hal_field)
+
+        self.set_button_color(button,bool(button.isChecked()))
 
         self.set_toggle_button_text(button, off_text, on_text)
 
@@ -382,10 +376,10 @@ class GrinderWindow(QWidget):
             if off_text != "":
                 button.setText(off_text)
 
-    def set_toggle_button_color(self, button, hal_field):
+    def set_button_color(self, button, on_or_off_bool):
 
         existing_styles = button.styleSheet()
-        new_background = "background-color: red;" if bool(GrinderCommon.get_hal(hal_field)) else "background-color: green;"
+        new_background = "background-color: green;" if bool(on_or_off_bool) else "background-color: red;"
         button.setStyleSheet(f"{existing_styles} {new_background}")
 
     def save_grind_clicked(self):
