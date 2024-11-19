@@ -25,19 +25,19 @@ try:
 
         print("Loop")
         print_mode()
-        time.sleep(1)
+        time.sleep(0.01)
 
         c.mode(linuxcnc.MODE_MDI)
         c.wait_complete()
         print_mode()
-        c.mdi("G1 X1 F100")
+        c.mdi("G1 X0.1 F1000")
+        c.wait_complete()
         print_mode()
-        c.mdi("G1 X2 F100")
+        c.mdi("G1 X0 F1000")
         c.wait_complete()
 
         print_mode()
-        
-        time.sleep(1)
+
 except KeyboardInterrupt:
     print("Motion controller stopped.")
     #GLib.MainLoop().stop()

@@ -24,6 +24,8 @@ class GrinderMotion():
         self.GSTAT.connect("current-position", self.update_pos)
         self.GSTAT.connect("state-estop", self.stop)
         self.GSTAT.connect("state-off", self.stop)
+        self.GSTAT.connect("command-error", self.print_mdi_error)
+        self.GSTAT.connect("error", self.print_error)
         self.is_running = False
     def __del__(self):
         print("GrinderMotion cleaned up")
@@ -47,17 +49,17 @@ class GrinderMotion():
                 self.is_running = False
             return
         
-        # self.thread = threading.Thread(target = self.main_sequence, name = "MainLoop")
-        # self.thread.start()
+        self.thread = KThread(target = self.main_sequence, name = "MainLoop")
+        self.thread.start()
        
 
     def stop(self, obj = None):
         print("Stopping BE")
-        # try:
-        #     if self.thread != None:
-        #         # self.thread.terminate()
-        # except threading.ThreadError:
-        #     print("BE thread already stopped")
+        try:
+            if self.thread != None:
+                self.thread.terminate()
+        except threading.ThreadError:
+            print("BE thread already stopped")
         
         self.c.abort()
         # self.c.mode(linuxcnc.MODE_MANUAL)
@@ -139,11 +141,34 @@ class GrinderMotion():
         elif self.status.task_mode == linuxcnc.MODE_MDI:
             print("Current mode: MDI")
 
+
+    def print_error(self, error):
+        print(f"Linuxcnc error returned: {error}")
+
+    def print_mdi_error(self, thing):
+            self.c.abort()
+            GrinderHal.set_hal("is_running", False)
+            self.c.mode(linuxcnc.MODE_MANUAL)
+            self.c.wait_complete()
+            self.status.poll()
+
+            e = linuxcnc.error_channel()
+            error = e.poll()
+
+            if error:
+                kind, text = error
+                if kind in (linuxcnc.NML_ERROR, linuxcnc.OPERATOR_ERROR):
+                    typus = "error"
+                else:
+                    typus = "info"
+                print(typus, text)
+
+
+                # print(f"MDI command failed with error: {self.status.error}")
+            
+
     def main_sequence(self):
-        
-        #self.GSTAT.emit("general",  {"ID":"GRINDER.STARTED"})
         print("Started")
-        # self.is_running = True
 
         self.c.mode(linuxcnc.MODE_MDI)
         self.c.wait_complete()
@@ -158,61 +183,56 @@ class GrinderMotion():
         z_max = float(GrinderHal.get_hal("z_max"))
         z_min = float(GrinderHal.get_hal("z_min"))
 
-        if x_pos > x_max:
+        if x_pos > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
             mdi = f"G0 X{x_max}"
             self.c.mdi(mdi)
 
-        if y_pos > y_max:
+        if y_pos > y_max + 0.00001 and bool(GrinderHal.get_hal("enable_y")):
             mdi = f"G0 Y{y_max}"
             self.c.mdi(mdi)
 
-        if z_pos > z_max:
+        if z_pos > z_max + 0.00001 and bool(GrinderHal.get_hal("enable_z")):
             mdi = f"G0 Z{z_max}"
             self.c.mdi(mdi)
 
-        if x_pos < x_min:
+        if x_pos < x_min - 0.00001 and bool(GrinderHal.get_hal("enable_x")):
             mdi = f"G0 X{x_min}"
             self.c.mdi(mdi)
 
-        if y_pos < y_min:
+        if y_pos < y_min - 0.00001 and bool(GrinderHal.get_hal("enable_y")):
             mdi = f"G0 Y{y_min}"
             self.c.mdi(mdi)
 
-        if z_pos < z_min:
+        if z_pos < z_min - 0.00001 and bool(GrinderHal.get_hal("enable_z")):
             mdi = f"G0 Z{z_min}"
             self.c.mdi(mdi)
         
-
         while True:
-
             # the thread will be terminated by the outside process, but just in case this can stop it faster:
             if not self.is_running:
                 
                 self.c.abort()
                 self.c.wait_complete()
                 print("Stopped")
-                time.sleep(1)
                 # return
             else:
                 print("Loop")
-                self.print_mode()
-                time.sleep(1)
 
                 self.c.mode(linuxcnc.MODE_MDI)
                 self.c.wait_complete()
-                self.print_mode()
-                self.c.mdi("o<xmove_to_max> call")
-                self.print_mode()
-                self.c.mdi("o<xmove_to_min> call")
+                self.c.mdi("G1 X1 F1000")
+                self.c.wait_complete()
+                self.c.mdi("G1 X0 F1000")
+                # self.c.mdi("o<xmove_to_max> call")
+                # self.c.wait_complete()
+                # self.c.mdi("o<xmove_to_min> call")
                 self.c.wait_complete()
 
-                self.print_mode()
+                print("End Loop")
                 
-                time.sleep(1)
+                time.sleep(0.01)
 
 # Run the main sequence
-
-
 try:
     grinder = GrinderMotion()
     print("GRINDER_BACKEND STARTED")

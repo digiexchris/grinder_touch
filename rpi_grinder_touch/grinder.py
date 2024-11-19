@@ -56,12 +56,14 @@ class GrinderWindow(QWidget):
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
     def start(self):
-        self.c.mode(linuxcnc.MODE_MDI)
-        self.c.wait_complete()
-        self.c.mdi("o<flat_grind> call")
+        # self.c.mode(linuxcnc.MODE_MDI)
+        # self.c.wait_complete()
+        # self.c.mdi("o<flat_grind> call")
+        GrinderHal.set_hal("is_running", True)
 
     def stop(self):
-        self.c.abort()
+        # self.c.abort()
+        GrinderHal.set_hal("is_running", False)
         # self.c.mode(linuxcnc.MODE_MDI)
         # self.c.wait_complete()
         # self.c.mdi("M102 P0")
@@ -267,6 +269,13 @@ class GrinderWindow(QWidget):
         self.z_crossfeed_edit.setText(str(GrinderHal.get_hal("z_crossfeed")))
         self.y_downfeed_edit.setText(str(GrinderHal.get_hal("y_downfeed")))
 
+        self.enable_x_pb.setChecked(bool(GrinderHal.get_hal("enable_x")))
+        self.set_button_color(self.enable_x_pb, bool(GrinderHal.get_hal("enable_x")))
+        self.enable_y_pb.setChecked(bool(GrinderHal.get_hal("enable_y")))
+        self.set_button_color(self.enable_y_pb, bool(GrinderHal.get_hal("enable_y")))
+        self.enable_z_pb.setChecked(bool(GrinderHal.get_hal("enable_z")))
+        self.set_button_color(self.enable_z_pb, bool(GrinderHal.get_hal("enable_z")))
+
         self.stop_at_z_limit_pb.setChecked(bool(GrinderHal.get_hal("stop_at_z_limit")))
         self.set_button_color(self.stop_at_z_limit_pb, bool(GrinderHal.get_hal("stop_at_z_limit")))
         self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
@@ -301,13 +310,11 @@ class GrinderWindow(QWidget):
         GrinderHal.set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))        
         GrinderHal.set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
         
-
-        # GrinderHal.set_hal("enable_x",  False)
-        # GrinderHal.set_hal("enable_y",  False)
-        # GrinderHal.set_hal("enable_z",  False)
+        GrinderHal.set_hal("enable_x",  self.settings.get('enable_x', bool(False)))
+        GrinderHal.set_hal("enable_y",  self.settings.get('enable_y', bool(False)))
+        GrinderHal.set_hal("enable_z",  self.settings.get('enable_z', bool(False)))
 
         GrinderHal.set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
-        
 
         GrinderHal.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
         GrinderHal.set_hal("repeat_at",  self.settings.get('repeat_at', 1))
@@ -341,11 +348,9 @@ class GrinderWindow(QWidget):
         #GrinderHal.set_hal(base_name, self.get_pos(axis))
         edit.setText(str(self.get_pos(axis)))
 
-        
     def set_checked(self, button, hal_field):
         button.setChecked(bool(GrinderHal.get_hal(hal_field)))
         
-
     def on_toggle_clicked_mcode(self, button, mcode, off_text = "", on_text = ""):
         # mode = self.GSTAT.get_current_mode()
         self.c.mode(linuxcnc.MODE_MDI)
@@ -390,36 +395,37 @@ class GrinderWindow(QWidget):
 
         print("Saving grind settings")
 
-        # try:
-        self.settings = {
-            'previous_linear_units': self.previous_linear_units,
-            'x_min': self.validate_and_set("x_min", self.x_min_edit.text(),"float"),
-            'x_max': self.validate_and_set("x_max", self.x_max_edit.text(),"float"),
-            'y_min': self.validate_and_set("y_min", self.y_min_edit.text(),"float"),
-            'y_max': self.validate_and_set("y_max", self.y_max_edit.text(),"float"),
-            'z_min': self.validate_and_set("x_min", self.x_min_edit.text(),"float"),
-            'z_max': self.validate_and_set("x_max", self.x_max_edit.text(),"float"),
-            'x_speed': self.validate_and_set("x_speed", self.x_speed_sb.text(),"float"),
-            'y_speed': self.validate_and_set("y_speed", self.y_speed_sb.text(),"float"),
-            'z_speed': self.validate_and_set("z_speed", self.z_speed_sb.text(),"float"),
-            'z_crossfeed': self.validate_and_set("z_crossfeed", self.z_crossfeed_edit.text(),"float"),
-            'y_downfeed': self.validate_and_set("y_downfeed", self.y_downfeed_edit.text(),"float"),
-            'stop_at_z_limit': self.validate_and_set("stop_at_z_limit", self.stop_at_z_limit_pb.isChecked(),"bool"),
-            'crossfeed_at': self.validate_and_set("crossfeed_at", self.crossfeed_at_cb.currentIndex(),"int"),
-            'repeat_at': self.validate_and_set("repeat_at", self.repeat_at_cb.currentIndex(),"int"),
-        }
+        try:
+            self.settings = {
+                'previous_linear_units': self.previous_linear_units,
+                'x_min': float(GrinderHal.get_hal("x_min")),
+                'x_max': float(GrinderHal.get_hal("x_max")),
+                'y_min': float(GrinderHal.get_hal("y_min")),
+                'y_max': float(GrinderHal.get_hal("y_max")),
+                'z_min': float(GrinderHal.get_hal("z_min")),
+                'z_max': float(GrinderHal.get_hal("z_max")),
+                'x_speed': float(GrinderHal.get_hal("x_speed")),
+                'y_speed': float(GrinderHal.get_hal("y_speed")),
+                'z_speed': float(GrinderHal.get_hal("z_speed")),
+                'enable_x': bool(GrinderHal.get_hal("enable_x")),
+                'enable_y': bool(GrinderHal.get_hal("enable_y")),
+                'enable_z': bool(GrinderHal.get_hal("enable_z")),
+                'z_crossfeed': float(GrinderHal.get_hal("z_crossfeed")),
+                'y_downfeed': float(GrinderHal.get_hal("y_downfeed")),
+                'stop_at_z_limit': bool(GrinderHal.get_hal("stop_at_z_limit")),
+                'crossfeed_at': int(GrinderHal.get_hal("crossfeed_at")),
+                'repeat_at': int(GrinderHal.get_hal("repeat_at")),
+            }
 
-        print(self.settings)
+            with open(self.settings_file, "wb") as file:
+                pickle.dump(self.settings, file)
 
-        with open(self.settings_file, "wb") as file:
-            pickle.dump(self.settings, file)
+            self.update_fields()
 
-        self.update_fields()
-
-        # except Exception:
-        #     self.stop()
-        #     #todo set a notification
-        #     self.load_settings()
+        except Exception:
+            self.stop()
+            #todo set a notification
+            self.load_settings()
 
 
     
