@@ -1,13 +1,7 @@
-import inspect
 import os
-from pprint import pprint
-from qtpy.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
-from qtpy.QtGui import QDoubleValidator
+from PyQt6.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
 
-import linuxcnc, hal
-from qtpy.QtCore import QTimer, QEventLoop, Qt
-
-
+import linuxcnc
 from hal_glib import GStat
 
 from python.axis import Axis

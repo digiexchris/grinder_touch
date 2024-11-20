@@ -220,12 +220,12 @@ class GrinderMotion():
 
                 self.c.mode(linuxcnc.MODE_MDI)
                 self.c.wait_complete()
-                self.c.mdi("G1 X1 F1000")
-                self.c.wait_complete()
-                self.c.mdi("G1 X0 F1000")
-                # self.c.mdi("o<xmove_to_max> call")
+                # self.c.mdi("G1 X1 F1000")
                 # self.c.wait_complete()
-                # self.c.mdi("o<xmove_to_min> call")
+                # self.c.mdi("G1 X0 F1000")
+                self.c.mdi("o<xmove_to_max> call")
+                self.c.wait_complete()
+                self.c.mdi("o<xmove_to_min> call")
                 self.c.wait_complete()
 
                 print("End Loop")
