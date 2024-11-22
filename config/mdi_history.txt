@@ -1,0 +1,6 @@
+G0 X[#<_hal[grinder.x_min]>]
+G0 X[#<_hal[grinder.x_max]>]
+G0 X[#<_hal[grinder.x_min]>]
+G0 X[#<_hal[grinder.x_max]>]
+G0 X[#<_hal[grinder.x_min]>]
+G0 X[#<_hal[grinder.x_max]>]

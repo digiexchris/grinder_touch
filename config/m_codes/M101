@@ -1,0 +1,26 @@
+#!/bin/bash
+# set enable_axis P0 Q1 for X set to True
+# 0 = x
+# 1 = y
+# 2 = z
+
+axis=$(printf "%.0f" "$1")
+value=$(printf "%.0f" "$2")
+
+case $axis in
+    0)
+        halcmd setp grinder.enable_x $value
+        ;;
+    1)
+        halcmd setp grinder.enable_y $value
+        ;;
+    2)
+        halcmd setp grinder.enable_z $value
+        ;;
+    *)
+        echo "\$1 is not 0, 1, or 2"
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,51 @@
+O<zmove_repeattype2> sub
+; #4 = [#<_hal[grinder.z_min]>] 
+; #5 = [#<_hal[grinder.z_max]>] 
+; #6 = [#<_hal[grinder.z_crossfeed]>] 
+; #7 = [#<_hal[grinder.z_speed]>]
+; #8 = [#<_hal[grinder.z_direction]>]
+; #11 = #<_hal[grinder.enable_z]>
+; #12 = #<_hal[grinder.enable_x]>
+
+; #<_x> X
+; #<_y> Y
+; #<_z> Z
+
+o100 IF [#<_hal[grinder.enable_z]> EQ 1]
+
+(p, Z DIRECTION IS #<_hal[grinder.z_direction]>)
+
+   o110 IF [#<_hal[grinder.z_direction]> EQ 1]
+      (Set direction towards min, always go min. Though, this routine ignores this. It's just here for if the repeat type switches back to 0)
+       o111 IF [#<_ignore_custom_mcode> NE 1]
+         M100 P0
+      o111 ELSE 
+         #<_hal[grinder.z_direction]> = 0 ; only works in the standalone interpreter, not actual hal
+      o111 ENDIF
+   o110 ENDIF
+
+   o120 IF [#<_z> LE [#<_hal[grinder.z_min]> + 0.00001]]
+      G1 Z[#<_hal[grinder.z_max]>] F[#<_hal[grinder.z_speed]>]
+      o<YDownfeed> call
+   o120 ELSE
+      #9 = [#<_z> - #<_hal[grinder.z_crossfeed]>]
+      
+      o121 IF [#9 LE [#<_hal[grinder.z_min]> + 0.00001]]
+         G1 Z[#<_hal[grinder.z_min]>] F[#<_hal[grinder.z_speed]>]
+      o121 ELSE
+         G1 Z[#9] F[#<_hal[grinder.z_speed]>]
+      o121 ENDIF
+
+      o122 IF [#<_z> LE [#<_hal[grinder.z_min]> + 0.00001]]
+         #<_z_cycles> = [#<_z_cycles> + 1]
+         o<Disable_At_Z_Limit> call
+      o122 ENDIF
+   o120 ENDIF
+o100 ELSE
+(print, this hsould never get called, because this script shouldn't be called by the x moves if Z is off)
+   ; o130 IF [#<_hal[grinder.enable_x]> EQ 0]
+   ;    G04 P0.5 (Just so the interpreter isn't spinning, because both X and Z are off)
+   ; o130 ENDIF
+o100 ENDIF
+
+O<zmove_repeattype2> endsub

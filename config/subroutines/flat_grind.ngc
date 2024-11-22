@@ -1,0 +1,121 @@
+o<flat_grind> sub
+
+    (p, if any coords are outside the bounds, move to the nearest limit)
+
+    o10 IF [[#<_x> GT #<_hal[grinder.x_max]>] AND [#<_hal[grinder.enable_x]> EQ 1]]
+        G0 X[#<_hal[grinder.x_max]>]
+    o10 ENDIF
+
+    o11 IF [[#<_y> GT #<_hal[grinder.y_max]>] AND [#<_hal[grinder.enable_y]> EQ 1]]
+        G0 Y[#<_hal[grinder.y_max]>]
+    o11 ENDIF
+
+    o12 IF [[#<_z> GT #<_hal[grinder.z_max]>] AND [#<_hal[grinder.enable_z]> EQ 1]]
+        G0 Z[#<_hal[grinder.z_max]>]
+    o12 ENDIF
+
+    o13 IF [[#<_x> LT #<_hal[grinder.x_min]>] AND [#<_hal[grinder.enable_x]> EQ 1]]
+        G0 X[#<_hal[grinder.x_min]>]
+    o13 ENDIF
+
+    o14 IF [[#<_y> LT #<_hal[grinder.y_min]>] AND [#<_hal[grinder.enable_y]> EQ 1]]
+        G0 Y[#<_hal[grinder.y_min]>]
+    o14 ENDIF
+
+    o15 IF [[#<_z> LT #<_hal[grinder.z_min]>] AND [#<_hal[grinder.enable_z]> EQ 1]]
+        G0 Z[#<_hal[grinder.z_min]>]
+    o15 ENDIF
+
+    #<continue> = 1
+    
+    #<_x_cycles> = 0
+    #<_y_cycles> = 0
+    #<_z_cycles> = 0
+
+    o101 while [#<continue>]
+
+       
+
+        (prin, =============== Positions are X#<_x> Z#<_z> Y#<_y>)
+        #1 = #<_hal[grinder.enable_x]>
+        #2 = #<_hal[grinder.enable_y]>
+        #3 = #<_hal[grinder.enable_z]>
+
+        o100 IF [[#1 EQ 0] AND [#2 EQ 0] AND [#3 EQ 0]]
+            M30
+        o100 ENDIF
+        
+        o<xmove_to_max> call
+
+        #1 = #<_hal[grinder.enable_x]>
+        #2 = #<_hal[grinder.enable_y]>
+        #3 = #<_hal[grinder.enable_z]>
+
+        ; G13 ;stop the interpreter from continuing until these are executed
+
+        o200 IF [[#1 EQ 0] AND [#2 EQ 0] AND [#3 EQ 0]]
+            M30
+        o200 ENDIF
+
+        o<xmove_to_min> call
+
+        (p, Determining if there are moves left)
+
+        #<at_x_done_point> = 0
+        #<at_z_done_point> = 0
+        #<at_y_done_point> = 0
+
+        ; G13 ;stop the interpreter from continuing until these are executed
+
+        (p, checking Z pos at the time we want to check if it's done  #<_z>, RepeatAt #<_hal[grinder.repeat_at]>  #<_hal[grinder.z_max]>)
+        o300 IF [#<_hal[grinder.enable_z]> EQ 1]
+            o310 IF [[#<_hal[grinder.repeat_at]> EQ 0] OR [#<_hal[grinder.repeat_at]> EQ 1]]
+                (p, o310 IF [[#<_z> GE #<_hal[grinder.z_max]>] AND [#<_z_cycles> GT 0]])
+                o311 IF [[#<_z> GE [#<_hal[grinder.z_max]> - 0.00001]] AND [#<_z_cycles> GT 0]]
+                    (p, o311)
+                    #<at_z_done_point> = 1
+                o311 ENDIF
+            o310 ELSE IF [#<_hal[grinder.repeat_at]> EQ 2]
+                (p, o310 ELSE IF)
+                o312 IF [[#<_z> LE [#<_hal[grinder.z_min]> + 0.00001]] AND [#<_z_cycles> GT 0]]
+                    (p, o312)
+                    #<at_z_done_point> = 1
+                o312 ENDIF
+            o310 ENDIF
+        o300 ELSE
+            #<at_z_done_point> = 1
+        o300 ENDIF
+
+        o400 IF [#<_hal[grinder.enable_x]> EQ 1]
+            (print, #<_x_cycles>)
+            o410 IF [#<_x_cycles> GT 0]
+                (print, SHOULD BE DONE)
+                #<at_x_done_point> = 1
+            o410 ENDIF
+        o400 ELSE
+            #<at_x_done_point> = 1
+        o400 ENDIF
+
+        o500 IF [#<_hal[grinder.enable_y]> EQ 1]
+            o510 IF [#<_y_cycles> GT 0]
+                o511 IF [#<_y> LE [#<_hal[grinder.y_min]> + 0.00001]]
+                    #<at_y_done_point> = 1
+                o511 ENDIF
+            o510 ENDIF
+        o500 ELSE
+            #<at_y_done_point> = 1
+        o500 ENDIF
+
+        (print, AM I DONE? X #<at_x_done_point> X CYCLES #<_x_cycles> Z#<at_z_done_point> Z CYCLES #<_z_cycles> Y#<at_y_done_point> Y CYCLES #<_y_cycles>)
+        (print, POSITION: X#<_x> Z#<_z> Y#<_y>)
+        (print, MAX_TARGETS: X#<_hal[grinder.x_max]> Z#<_hal[grinder.z_max]> Y#<_hal[grinder.y_max]>)
+        (print, MIN_TARGETS: X#<_hal[grinder.x_min]> Z#<_hal[grinder.z_min]> Y#<_hal[grinder.y_min]>)
+
+        o600 IF [[#<at_x_done_point> EQ 1] AND [#<at_y_done_point> EQ 1] AND [#<at_z_done_point> EQ 1]]
+        (print, +++++++DONE++++++++)
+        (print, POSITION: X#<_x> Z#<_z> Y#<_y>)
+            #<continue> = 0
+        o600 ENDIF
+
+    o101 endwhile
+o<flat_grind> endsub
