@@ -20,19 +20,11 @@ o100 IF [#<_hal[grinder.enable_z]> EQ 1]
    (p, crossfeed enabled, infeeding...)
    o110 IF [[#<_z> LE #<_hal[grinder.z_min]>]];flip directions if required
       (, flipped direction to 1 due to being at min limit)
-      o111 IF [#<_ignore_custom_mcode> NE 1]
          M100 P1
-      o111 ELSE 
-         #<_hal[grinder.z_direction]> = 1 ; only works in the standalone interpreter, not actual hal
-      o111 ENDIF
       o<ydownfeed> call
    o110 ELSE IF [[#<_z> GE #<_hal[grinder.z_max]>]]
       (, flipped direction to 0 due to being at max limit)
-      o112 IF [#<_ignore_custom_mcode> NE 1]
          M100 P0
-      o112 ELSE 
-         #<_hal[grinder.z_direction]> = 0; only works in the standalone interpreter, not actual hal
-      o112 ENDIF
       o<ydownfeed> call
    o110 ENDIF
 

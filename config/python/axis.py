@@ -2,8 +2,8 @@ from enum import Enum
 
 class Axis(Enum):
     X = 0
-    Z = 1
-    Y = 2
+    Y = 1
+    Z = 2
 
     @classmethod
     def from_int(cls, value):

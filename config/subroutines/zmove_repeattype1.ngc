@@ -14,16 +14,12 @@ O<zmove_repeattype1> sub
 o100 IF [#<_hal[grinder.enable_z]> EQ 1]
    o110 IF [[#<_hal[grinder.z_direction]> EQ 0]]
       (Set direction towards max, always go max. Though, this routine ignores this. It's just here for if the repeat type switches back to 0)
-       o111 IF [#<_ignore_custom_mcode> NE 1]
          M100 P1
-      o111 ELSE 
-         #<_hal[grinder.z_direction]> = 1 ; only works in the standalone interpreter, not actual hal
-      o111 ENDIF
    o110 ENDIF
 
    o120 IF [#<_z> GE [#<_hal[grinder.z_max]> - 0.00001]]
-      (p, !!!!!!! RETURNING !!!! #<_z> GE #<_hal[grinder.z_max]>)
-      G0 Z[#<_hal[grinder.z_min]>] ;F[#7]
+      (print, !!!!!!! RETURNING !!!! #<_z> GE #<_hal[grinder.z_min]>)
+      G1 Z[#<_hal[grinder.z_min]>] F[#<_hal[grinder.z_speed]>]
       o<YDownfeed> call
    o120 ELSE
       (p, o120 else)

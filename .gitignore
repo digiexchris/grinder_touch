@@ -1,4 +1,4 @@
-semiauto_sg.egg-info
+__pycache__/.
 .idea/
 *.vcp_persistent_data.pickle
 *.var.bak
