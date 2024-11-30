@@ -21,3 +21,5 @@ linuxcnc/sim.semiauto_sg/sim.log
 
 *.log
 .settings/
+linuxcnc.var
+positions.txt
