@@ -162,10 +162,26 @@ class GrinderMotion():
                 else:
                     typus = "info"
                 print(typus, text)
-
-
-                # print(f"MDI command failed with error: {self.status.error}")
             
+    def get_max_wait(self):
+        x_max = float(GrinderHal.get_hal("x_max"))
+        x_min = float(GrinderHal.get_hal("x_min"))
+        x_speed = float(GrinderHal.get_hal("x_speed"))
+        y_max = float(GrinderHal.get_hal("y_max"))
+        y_min = float(GrinderHal.get_hal("y_min"))
+        y_speed = float(GrinderHal.get_hal("y_speed"))
+        z_max = float(GrinderHal.get_hal("z_max"))
+        z_min = float(GrinderHal.get_hal("z_min"))
+        z_speed = float(GrinderHal.get_hal("z_speed"))
+
+        x_dist = abs(x_max - x_min)
+        x_time_sec = x_dist/x_speed/60
+        y_dist = abs(y_max - y_min)
+        y_time_sec = y_dist/y_speed/60
+        z_dist = abs(z_max - z_min)
+        z_time_sec = z_dist/z_speed/60
+
+        return max(x_time_sec, max(y_time_sec, z_time_sec))
 
     def main_sequence(self):
         print("Started")
@@ -186,26 +202,32 @@ class GrinderMotion():
         if x_pos > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
             mdi = f"G0 X{x_max}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
 
         if y_pos > y_max + 0.00001 and bool(GrinderHal.get_hal("enable_y")):
             mdi = f"G0 Y{y_max}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
 
         if z_pos > z_max + 0.00001 and bool(GrinderHal.get_hal("enable_z")):
             mdi = f"G0 Z{z_max}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
 
         if x_pos < x_min - 0.00001 and bool(GrinderHal.get_hal("enable_x")):
             mdi = f"G0 X{x_min}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
 
         if y_pos < y_min - 0.00001 and bool(GrinderHal.get_hal("enable_y")):
             mdi = f"G0 Y{y_min}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
 
         if z_pos < z_min - 0.00001 and bool(GrinderHal.get_hal("enable_z")):
             mdi = f"G0 Z{z_min}"
             self.c.mdi(mdi)
+            self.c.wait_complete(self.get_max_wait())
         
         while True:
             # the thread will be terminated by the outside process, but just in case this can stop it faster:
@@ -224,13 +246,13 @@ class GrinderMotion():
                 # self.c.wait_complete()
                 # self.c.mdi("G1 X0 F1000")
                 self.c.mdi("o<xmove_to_max> call")
-                self.c.wait_complete()
+                self.c.wait_complete(self.get_max_wait())
                 self.c.mdi("o<xmove_to_min> call")
-                self.c.wait_complete()
+                self.c.wait_complete(self.get_max_wait())
 
                 print("End Loop")
                 
-                time.sleep(0.01)
+                time.sleep(0.005)
 
 # Run the main sequence
 try:
