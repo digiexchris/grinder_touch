@@ -1,6 +1,0 @@
-#!/bin/bash
-# turn z_direction to 1 (towards max) M100 P1 or P0
-
-value=$(printf "%.0f" "$1")
-halcmd setp grinder.z_direction $value
-exit 0
