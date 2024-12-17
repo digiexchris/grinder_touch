@@ -181,7 +181,7 @@ class GrinderMotion():
         z_dist = abs(z_max - z_min)
         z_time_sec = z_dist/z_speed/60
 
-        return max(x_time_sec, max(y_time_sec, z_time_sec))
+        return 30 #max(x_time_sec, max(y_time_sec, z_time_sec))
 
     def main_sequence(self):
         print("Started")
