@@ -1,5 +1,9 @@
 /* ********** Regular Buttons ********** */
 
+ * {
+	font-size: 20px;
+	}
+
 QPushButton {
 	background-color: rgba(192, 192, 192, 50%);
 	min-height: 25px;
@@ -118,7 +122,7 @@ QTabBar::tab:selected {
 
 /* ********** Sliders ********** */
 
-/*QSlider::groove:horizontal {
+QSlider::groove:horizontal {
     border: 1px solid;
     height: 10px;
     margin: 0px;
@@ -131,7 +135,7 @@ QSlider::handle:horizontal {
     width: 10px;
     margin: -15px 0px;
     }
-*/
+
 /* ********** TEST COLOR FOR Edit Windows ********** */
 QPlainTextEdit#gcode_pte {
 /*	background-color: rgba(0, 192, 0, 30%); color: black; */
@@ -210,8 +214,9 @@ QPushButton#G1_XY_plus:pressed, QPushButton#G1_XY_minus:pressed {
 
 
 /* **** NOTES **** */
-/*  QMainWindow{
+ /* QMainWindow * {
 	background-color: rgba(0, 0, 192, 20%);
+	font-size: 20px;
 	} */
 	
 /* QPlainTextEdit{

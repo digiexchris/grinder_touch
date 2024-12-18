@@ -164,22 +164,22 @@ class GrinderMotion():
                 print(typus, text)
             
     def get_max_wait(self):
-        x_max = float(GrinderHal.get_hal("x_max"))
-        x_min = float(GrinderHal.get_hal("x_min"))
-        x_speed = float(GrinderHal.get_hal("x_speed"))
-        y_max = float(GrinderHal.get_hal("y_max"))
-        y_min = float(GrinderHal.get_hal("y_min"))
-        y_speed = float(GrinderHal.get_hal("y_speed"))
-        z_max = float(GrinderHal.get_hal("z_max"))
-        z_min = float(GrinderHal.get_hal("z_min"))
-        z_speed = float(GrinderHal.get_hal("z_speed"))
+        # x_max = float(GrinderHal.get_hal("x_max"))
+        # x_min = float(GrinderHal.get_hal("x_min"))
+        # x_speed = float(GrinderHal.get_hal("x_speed"))
+        # y_max = float(GrinderHal.get_hal("y_max"))
+        # y_min = float(GrinderHal.get_hal("y_min"))
+        # y_speed = float(GrinderHal.get_hal("y_speed"))
+        # z_max = float(GrinderHal.get_hal("z_max"))
+        # z_min = float(GrinderHal.get_hal("z_min"))
+        # z_speed = float(GrinderHal.get_hal("z_speed"))
 
-        x_dist = abs(x_max - x_min)
-        x_time_sec = x_dist/x_speed/60
-        y_dist = abs(y_max - y_min)
-        y_time_sec = y_dist/y_speed/60
-        z_dist = abs(z_max - z_min)
-        z_time_sec = z_dist/z_speed/60
+        # x_dist = abs(x_max - x_min)
+        # x_time_sec = x_dist/x_speed/60
+        # y_dist = abs(y_max - y_min)
+        # y_time_sec = y_dist/y_speed/60
+        # z_dist = abs(z_max - z_min)
+        # z_time_sec = z_dist/z_speed/60
 
         return 30 #max(x_time_sec, max(y_time_sec, z_time_sec))
 

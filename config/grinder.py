@@ -45,23 +45,13 @@ class GrinderWindow(QWidget):
         self.GSTAT.connect("state-estop", self.disable_controls)
         self.GSTAT.connect("state-off", self.disable_controls)
 
-        # self.GSTAT.connect("m-code-changed", self.on_mcodes_changed)
-
-        # Initialize LinuxCNC command, status, and HAL component
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
     def start(self):
-        # self.c.mode(linuxcnc.MODE_MDI)
-        # self.c.wait_complete()
-        # self.c.mdi("o<flat_grind> call")
         GrinderHal.set_hal("is_running", True)
 
     def stop(self):
-        # self.c.abort()
         GrinderHal.set_hal("is_running", False)
-        # self.c.mode(linuxcnc.MODE_MDI)
-        # self.c.wait_complete()
-        # self.c.mdi("M102 P0")
 
     def enable_controls(self, value):
         if self.GSTAT.estop_is_clear() and self.GSTAT.machine_is_on():
@@ -89,18 +79,17 @@ class GrinderWindow(QWidget):
     def get_converted_value(self, value, units):
         if units != "inch" and units != "mm":
             raise Exception("Get converted value called with invalid unit type")
-        
+
         if self.GSTAT.is_metric_mode():
-            if self.s.linear_units == 1.0:
+            if units == "mm":
                 return value
-            elif self.s.linear_units == 25.4:
-                return value/25.4
-            
-        elif units == "inch":
-            if self.s.linear_units == 1.0:
+            else:
                 return value*25.4
-            elif self.s.linear_units == 25.4:
+        else:
+            if units == "inch":
                 return value
+            else:
+                return value/25.4
             
         
             
@@ -298,6 +287,9 @@ class GrinderWindow(QWidget):
         
 
         GrinderHal.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
+        print("X_SPEED:")
+        print(GrinderHal.get_hal("x_speed"))
+        print(self.get_converted_value(500, "inch"))
         GrinderHal.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
         GrinderHal.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
         
