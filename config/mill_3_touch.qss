@@ -87,7 +87,7 @@ QTabBar::tab:selected {
 /* ********** Sliders ********** */
 QSlider::groove:horizontal {
     border: 1px solid;
-    height: 10px;
+    height: 15px;
     margin: 0px;
     }
     
@@ -95,8 +95,8 @@ QSlider::handle:horizontal {
 	background-color: rgba(0, 0, 192, 60%);
 /*	background-color: rgba(192, 192, 192, 80%); */
     border: 1px solid;
-    height: 15px;
-    width: 10px;
+    height: 25px;
+    width: 25px;
     margin: -15px 0px;
     }
 

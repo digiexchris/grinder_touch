@@ -144,7 +144,7 @@ class GrinderWindow(QWidget):
         self.repeat_at_cb = parent.findChild(QComboBox, "repeat_at_cb")
 
         self.stop_at_z_limit_pb = parent.findChild(QPushButton, "stop_at_z_limit_pb")
-        self.stop_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_at_z_limit_pb, "stop_at_z_limit", "OFF", "ON"))
+        self.stop_at_z_limit_pb.clicked.connect(lambda: self.on_toggle_clicked(self.stop_at_z_limit_pb, "stop_at_z_limit"))
 
         # Run/Stop Button
         self.run_stop_pb = parent.findChild(QPushButton, "run_stop_pb")
@@ -262,7 +262,7 @@ class GrinderWindow(QWidget):
 
         self.stop_at_z_limit_pb.setChecked(bool(GrinderHal.get_hal("stop_at_z_limit")))
         self.set_button_color(self.stop_at_z_limit_pb, bool(GrinderHal.get_hal("stop_at_z_limit")))
-        self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
+        #self.set_toggle_button_text(self.stop_at_z_limit_pb,"OFF", "ON")
 
         self.crossfeed_at_cb.setCurrentIndex(int(GrinderHal.get_hal("crossfeed_at")))
         self.repeat_at_cb.setCurrentIndex(int(GrinderHal.get_hal("repeat_at")))

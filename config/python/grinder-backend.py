@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import threading
 import hal
 import linuxcnc
@@ -10,7 +12,6 @@ from kthread import KThread
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import GObject
 from gi.repository import GLib
 
 class GrinderMotion():
@@ -25,10 +26,15 @@ class GrinderMotion():
         self.GSTAT.connect("state-estop", self.stop)
         self.GSTAT.connect("state-off", self.stop)
         self.GSTAT.connect("command-error", self.print_mdi_error)
+        self.GSTAT.connect("shutdown", self.shutdown)
         self.GSTAT.connect("error", self.print_error)
         self.is_running = False
     def __del__(self):
         print("GrinderMotion cleaned up")
+
+    def shutdown(self):
+        print("Shutdown signal recvd")
+        quit()
 
     def onModeChanged(self):
         running = bool(GrinderHal.get_hal("is_running"))
@@ -255,14 +261,12 @@ class GrinderMotion():
                 time.sleep(0.005)
 
 # Run the main sequence
-try:
-    grinder = GrinderMotion()
-    print("GRINDER_BACKEND STARTED")
-    GLib.MainLoop().run()
-except KeyboardInterrupt:
-    print("Motion controller stopped.")
-    #GLib.MainLoop().stop()
-    raise SystemExit
-except Exception:
-    print(traceback.format_exc())
+#try:
+grinderBackend = GrinderMotion()
+print("GRINDER_BACKEND STARTED")
+GLib.MainLoop().run()
+# except KeyboardInterrupt:
+#     print("Motion controller stopped.")
+#     # GLib.MainLoop().stop()
+#     raise SystemExit
 
