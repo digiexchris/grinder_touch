@@ -1,0 +1,21 @@
+CompileFlags:
+  Add: [-I/usr/include/linuxcnc]
+  Compiler: clang++-19
+
+Index:
+  Background: Build
+
+Diagnostics:
+  UnusedIncludes: Strict
+  ClangTidy:
+    Add: [modernize*, performance*, readability*]
+    Remove: [modernize-use-trailing-return-type, readability-magic-numbers]
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+
+Style:
+  ColumnLimit: 0
+  

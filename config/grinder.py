@@ -12,8 +12,8 @@ from python.grinderhal import GrinderHal
 import pickle
 
 def startup(parent):
-    parent.setFixedSize(1024, 600)
-    parent.showFullScreen()
+    parent.setFixedSize(1920, 600)
+    # parent.showFullScreen()
     parent.grinder_window = GrinderWindow(parent)
     # parent.grinder_window.initialize_hal()
     parent.grinder_window.load_settings()
