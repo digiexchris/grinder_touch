@@ -40,7 +40,7 @@ set_target_properties(hal_lib PROPERTIES
     IMPORTED_LOCATION "${HAL_MODULE}"
 )
 
-add_executable(grinder_backend grinder-backend.cpp)
+add_executable(grinder_backend grinder-backend.cpp shcom.cc)
 
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})

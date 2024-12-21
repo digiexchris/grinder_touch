@@ -1,4 +1,5 @@
 import os
+import sys
 from PyQt6.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
 
 import linuxcnc
@@ -14,7 +15,12 @@ import pickle
 def startup(parent):
     parent.setFixedSize(1920, 600)
     # parent.showFullScreen()
-    parent.grinder_window = GrinderWindow(parent)
+    try:
+        parent.grinder_window = GrinderWindow(parent)
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+        return
     # parent.grinder_window.initialize_hal()
     parent.grinder_window.load_settings()
     parent.grinder_window.initialize_controls(parent)
@@ -35,7 +41,8 @@ class GrinderWindow(QWidget):
 
         self.settings_file = "./grinder.pkl"
 
-
+        if not GrinderHal.waitForComponentReady(20):
+            raise Exception("Grinder component not ready")
 
         self.pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -276,6 +283,8 @@ class GrinderWindow(QWidget):
         else:
             self.settings = {}
             print("Empty settings loaded")
+
+
 
         self.previous_linear_units = self.settings.get('previous_linear_units',1)
         GrinderHal.set_hal("x_min", self.settings.get('x_min',0))

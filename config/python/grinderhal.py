@@ -1,6 +1,7 @@
 import hal
 
 from hal_glib import GStat
+import time
     
 GSTAT = GStat()
 
@@ -19,3 +20,14 @@ class GrinderHal():
             
     def get_hal(field):
         return hal.get_value("grinder."+field)
+    
+    def waitForComponentReady(timeoutInSeconds):
+        start_time = time.time()
+        while True:
+            if time.time() - start_time > timeoutInSeconds:
+                return False
+            try:
+                if hal.component_exists("grinder"):
+                    return True
+            except:
+                pass
