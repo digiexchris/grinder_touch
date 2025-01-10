@@ -140,7 +140,7 @@ extern int sendSetOptionalStop(bool state);
 extern int sendProgramStep();
 extern int sendMdiCmd(const char *mdi);
 extern int sendLoadToolTable(const char *file);
-extern int sendToolSetOffset(int tool, double length, double diameter);
+extern int sendToolSetOffset(int toolno, double zoffset, double diameter);
 extern int sendJointSetBacklash(int jnum, double backlash);
 extern int sendJointLoadComp(int joint, const char *file, int type);
 extern int sendSetTeleopEnable(int enable);

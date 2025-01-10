@@ -14,6 +14,7 @@
  * Last change:
  ********************************************************************/
 
+#include <algorithm>
 #include <iostream>
 // #include <optional>
 #define __STDC_FORMAT_MACROS
@@ -73,49 +74,36 @@ EMC_STAT *emcStatusGet()
 	return emcStatus;
 }
 
+const char *const nml_file = "/usr/share/linuxcnc/linuxcnc.nml";
+// const char *nml_file = "./grinder.nml";
+
 void strupr(char *s)
 {
 	int i;
 
 	for (i = 0; i < (int)strlen(s); i++)
+	{
 		if (s[i] > 96 && s[i] <= 'z')
+		{
 			s[i] -= 32;
+		}
+	}
 }
 
 int emcTaskNmlGet()
 {
 	int retval = 0;
-	const char *nml_file = "./grinder.nml";
 
 	// try to connect to EMC cmd
-	if (emcCommandBuffer == 0)
+	if (emcCommandBuffer == nullptr)
 	{
-		emcCommandBuffer =
-			new RCS_CMD_CHANNEL(emcFormat, "emcCommand", "grinder",
-								nml_file);
-		if (!emcCommandBuffer->valid())
+		emcCommandBuffer = new RCS_CMD_CHANNEL(emcFormat, "emcCommand", "xemc", nml_file);
+
+		if (emcCommandBuffer->valid() == 0)
 		{
 			delete emcCommandBuffer;
 			emcCommandBuffer = 0;
 			return -1;
-		}
-	}
-	// try to connect to EMC status
-	if (emcStatusBuffer == 0)
-	{
-		emcStatusBuffer =
-			new RCS_STAT_CHANNEL(emcFormat, "emcStatus", "grinder",
-								 nml_file);
-		if (!emcStatusBuffer->valid() || EMC_STAT_TYPE != emcStatusBuffer->peek())
-		{
-			delete emcStatusBuffer;
-			emcStatusBuffer = 0;
-			emcStatus = 0;
-			return -2;
-		}
-		else
-		{
-			emcStatus = (EMC_STAT *)emcStatusBuffer->get_address();
 		}
 	}
 
@@ -128,9 +116,9 @@ int emcErrorNmlGet()
 
 	if (emcErrorBuffer == 0)
 	{
-		emcErrorBuffer =
-			new NML(nmlErrorFormat, "emcError", "xemc", emc_nmlfile);
-		if (!emcErrorBuffer->valid())
+		emcErrorBuffer = new NML(nmlErrorFormat, "emcError", "xemc", emc_nmlfile);
+
+		if (emcErrorBuffer->valid() == 0)
 		{
 			delete emcErrorBuffer;
 			emcErrorBuffer = 0;
@@ -189,9 +177,24 @@ int updateStatus()
 {
 	NMLTYPE type;
 
-	if (0 == emcStatus || 0 == emcStatusBuffer || !emcStatusBuffer->valid())
+	if (nullptr == emcStatus || nullptr == emcStatusBuffer || (emcStatusBuffer->valid() == 0))
 	{
-		return -1;
+		// try to connect to EMC status
+		if (emcStatusBuffer == nullptr)
+		{
+			emcStatusBuffer =
+				new RCS_STAT_CHANNEL(emcFormat, "emcStatus", "xemc",
+									 nml_file);
+			if ((emcStatusBuffer->valid() == 0) || EMC_STAT_TYPE != emcStatusBuffer->peek())
+			{
+				delete emcStatusBuffer;
+				emcStatusBuffer = nullptr;
+				emcStatus = nullptr;
+				return -2;
+			}
+
+			emcStatus = (EMC_STAT *)emcStatusBuffer->get_address();
+		}
 	}
 
 	switch (type = emcStatusBuffer->peek())
@@ -204,10 +207,11 @@ int updateStatus()
 	case 0:				// no new data
 	case EMC_STAT_TYPE: // new data
 		// new data
+		return 1;
 		break;
 
 	default:
-		return -1;
+		return 0;
 		break;
 	}
 
@@ -222,9 +226,13 @@ int updateError()
 {
 	NMLTYPE type;
 
-	if (0 == emcErrorBuffer || !emcErrorBuffer->valid())
+	if (nullptr == emcErrorBuffer || (emcErrorBuffer->valid() == 0))
 	{
-		return -1;
+		auto ret = emcErrorNmlGet();
+		if (ret < 0)
+		{
+			return -2;
+		}
 	}
 
 	switch (type = emcErrorBuffer->read())
@@ -345,7 +353,7 @@ int emcCommandWaitReceived()
 int emcCommandSend(RCS_CMD_MSG &cmd)
 {
 	// write command
-	if (emcCommandBuffer->write(&cmd))
+	if (emcCommandBuffer->write(&cmd) != 0)
 	{
 		return -1;
 	}
@@ -584,17 +592,18 @@ int sendMdi()
 	return 0;
 }
 
-int sendOverrideLimits(int joint)
+int sendOverrideLimits(int jnum)
 {
 	EMC_JOINT_OVERRIDE_LIMITS lim_msg;
 
-	lim_msg.joint = joint; // neg means off, else on for all
+	lim_msg.joint = jnum; // neg means off, else on for all
 	emcCommandSend(lim_msg);
 	if (emcWaitType == EMC_WAIT_RECEIVED)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -602,7 +611,7 @@ int sendOverrideLimits(int joint)
 	return 0;
 }
 
-int sendJogStop(int ja, int jjogmode)
+int sendJogStop(int jnum, int jjogmode)
 {
 	EMC_JOG_STOP emc_jog_stop_msg;
 
@@ -611,24 +620,24 @@ int sendJogStop(int ja, int jjogmode)
 		return -1;
 	}
 
-	if (jjogmode && (ja < 0 || ja >= num_joints))
+	if ((jjogmode != 0) && (jnum < 0 || jnum >= num_joints))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_1 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_1 %d\n", jnum);
 		return -1;
 	}
-	if (!jjogmode && (ja < 0))
+	if ((jjogmode == 0) && (jnum < 0))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_2 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_2 %d\n", jnum);
 		return -1;
 	}
 
 	emc_jog_stop_msg.jjogmode = jjogmode;
-	emc_jog_stop_msg.joint_or_axis = ja;
+	emc_jog_stop_msg.joint_or_axis = jnum;
 	emcCommandSend(emc_jog_stop_msg);
 	return 0;
 }
 
-int sendJogCont(int ja, int jjogmode, double speed)
+int sendJogCont(int jnum, int jjogmode, double speed)
 {
 	EMC_JOG_CONT emc_jog_cont_msg;
 
@@ -641,19 +650,19 @@ int sendJogCont(int ja, int jjogmode, double speed)
 		return -1;
 	}
 
-	if (jjogmode && (ja < 0 || ja >= num_joints))
+	if ((jjogmode != 0) && (jnum < 0 || jnum >= num_joints))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_3 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_3 %d\n", jnum);
 		return -1;
 	}
-	if (!jjogmode && (ja < 0))
+	if ((jjogmode == 0) && (jnum < 0))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_4 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_4 %d\n", jnum);
 		return -1;
 	}
 
 	emc_jog_cont_msg.jjogmode = jjogmode;
-	emc_jog_cont_msg.joint_or_axis = ja;
+	emc_jog_cont_msg.joint_or_axis = jnum;
 	emc_jog_cont_msg.vel = speed / 60.0;
 
 	emcCommandSend(emc_jog_cont_msg);
@@ -661,7 +670,7 @@ int sendJogCont(int ja, int jjogmode, double speed)
 	return 0;
 }
 
-int sendJogIncr(int ja, int jjogmode, double speed, double incr)
+int sendJogIncr(int jnum, int jjogmode, double speed, double incr)
 {
 	EMC_JOG_INCR emc_jog_incr_msg;
 
@@ -674,19 +683,19 @@ int sendJogIncr(int ja, int jjogmode, double speed, double incr)
 		return -1;
 	}
 
-	if (jjogmode && (ja < 0 || ja >= num_joints))
+	if ((jjogmode != 0) && (jnum < 0 || jnum >= num_joints))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_5 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_5 %d\n", jnum);
 		return -1;
 	}
-	if (!jjogmode && (ja < 0))
+	if ((jjogmode == 0) && (jnum < 0))
 	{
-		fprintf(stderr, "shcom.cc: unexpected_6 %d\n", ja);
+		fprintf(stderr, "shcom.cc: unexpected_6 %d\n", jnum);
 		return -1;
 	}
 
 	emc_jog_incr_msg.jjogmode = jjogmode;
-	emc_jog_incr_msg.joint_or_axis = ja;
+	emc_jog_incr_msg.joint_or_axis = jnum;
 	emc_jog_incr_msg.vel = speed / 60.0;
 	emc_jog_incr_msg.incr = incr;
 
@@ -704,7 +713,8 @@ int sendMistOn()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -721,7 +731,8 @@ int sendMistOff()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -738,7 +749,8 @@ int sendFloodOn()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -755,7 +767,8 @@ int sendFloodOff()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -780,7 +793,8 @@ int sendSpindleForward(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -806,7 +820,8 @@ int sendSpindleReverse(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -823,7 +838,8 @@ int sendSpindleOff(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -840,7 +856,8 @@ int sendSpindleIncrease(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -857,7 +874,8 @@ int sendSpindleDecrease(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -874,7 +892,8 @@ int sendSpindleConstant(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -892,7 +911,8 @@ int sendBrakeEngage(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -910,7 +930,8 @@ int sendBrakeRelease(int spindle)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -927,7 +948,8 @@ int sendAbort()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -945,7 +967,8 @@ int sendHome(int joint)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -963,7 +986,8 @@ int sendUnHome(int joint)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -975,10 +999,7 @@ int sendFeedOverride(double override)
 {
 	EMC_TRAJ_SET_SCALE emc_traj_set_scale_msg;
 
-	if (override < 0.0)
-	{
-		override = 0.0;
-	}
+	override = std::max(override, 0.0);
 
 	emc_traj_set_scale_msg.scale = override;
 	emcCommandSend(emc_traj_set_scale_msg);
@@ -986,7 +1007,8 @@ int sendFeedOverride(double override)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -998,15 +1020,9 @@ int sendRapidOverride(double override)
 {
 	EMC_TRAJ_SET_RAPID_SCALE emc_traj_set_scale_msg;
 
-	if (override < 0.0)
-	{
-		override = 0.0;
-	}
+	override = std::max(override, 0.0);
 
-	if (override > 1.0)
-	{
-		override = 1.0;
-	}
+	override = std::min(override, 1.0);
 
 	emc_traj_set_scale_msg.scale = override;
 	emcCommandSend(emc_traj_set_scale_msg);
@@ -1014,7 +1030,8 @@ int sendRapidOverride(double override)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1026,10 +1043,7 @@ int sendSpindleOverride(int spindle, double override)
 {
 	EMC_TRAJ_SET_SPINDLE_SCALE emc_traj_set_spindle_scale_msg;
 
-	if (override < 0.0)
-	{
-		override = 0.0;
-	}
+	override = std::max(override, 0.0);
 
 	emc_traj_set_spindle_scale_msg.spindle = spindle;
 	emc_traj_set_spindle_scale_msg.scale = override;
@@ -1038,7 +1052,8 @@ int sendSpindleOverride(int spindle, double override)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1055,7 +1070,8 @@ int sendTaskPlanInit()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1066,7 +1082,7 @@ int sendTaskPlanInit()
 // saved value of last program opened
 static char lastProgramFile[LINELEN] = "";
 
-int sendProgramOpen(char *program)
+int sendProgramOpen(char * /*program*/)
 {
 	// int res = 0;
 	// EMC_TASK_PLAN_OPEN msg;
@@ -1174,7 +1190,8 @@ int sendProgramRun(int line)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1191,7 +1208,8 @@ int sendProgramPause()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1208,7 +1226,8 @@ int sendProgramResume()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1226,7 +1245,8 @@ int sendSetOptionalStop(bool state)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1246,7 +1266,8 @@ int sendProgramStep()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1264,7 +1285,8 @@ int sendMdiCmd(const char *mdi)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1282,7 +1304,8 @@ int sendLoadToolTable(const char *file)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1304,7 +1327,8 @@ int sendToolSetOffset(int toolno, double zoffset, double diameter)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1331,7 +1355,8 @@ int sendToolSetOffset(int toolno, double zoffset, double xoffset,
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1339,18 +1364,19 @@ int sendToolSetOffset(int toolno, double zoffset, double xoffset,
 	return 0;
 }
 
-int sendJointSetBacklash(int joint, double backlash)
+int sendJointSetBacklash(int jnum, double backlash)
 {
 	EMC_JOINT_SET_BACKLASH emc_joint_set_backlash_msg;
 
-	emc_joint_set_backlash_msg.joint = joint;
+	emc_joint_set_backlash_msg.joint = jnum;
 	emc_joint_set_backlash_msg.backlash = backlash;
 	emcCommandSend(emc_joint_set_backlash_msg);
 	if (emcWaitType == EMC_WAIT_RECEIVED)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1369,7 +1395,8 @@ int sendJointLoadComp(int /*joint*/, const char *file, int type)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1387,7 +1414,8 @@ int sendSetTeleopEnable(int enable)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1405,7 +1433,8 @@ int sendClearProbeTrippedFlag()
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1426,7 +1455,8 @@ int sendProbe(double x, double y, double z)
 	{
 		return emcCommandWaitReceived();
 	}
-	else if (emcWaitType == EMC_WAIT_DONE)
+
+	if (emcWaitType == EMC_WAIT_DONE)
 	{
 		return emcCommandWaitDone();
 	}
@@ -1629,7 +1659,9 @@ int iniLoad(const char * /*filename*/)
 
 int checkStatus()
 {
-	if (emcStatus)
+	if (emcStatus != nullptr)
+	{
 		return 1;
+	}
 	return 0;
 }

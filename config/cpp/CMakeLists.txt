@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# find_package(Libunwind REQUIRED)
+
 # Define ULAPI for userspace program
 add_definitions(-DULAPI)
 
@@ -45,13 +49,24 @@ add_executable(grinder_backend grinder-backend.cpp shcom.cc)
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
 
+include_directories(
+    /usr/include/linuxcnc
+    /usr/lib/llvm-19/include  # Add libunwind include path
+)
+
 target_link_libraries(grinder_backend 
     ${HAL_LIB}
     ${LINUXCNC_LIB}
     ${NML_LIB}
     pthread
     dl
+    unwind
 )
+
+# if(LIBUNWIND_FOUND)
+#     target_include_directories(${PROJECT_NAME} PRIVATE ${LIBUNWIND_INCLUDE_DIR})
+#     target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBUNWIND_LIBRARIES})
+# endif()
 
 # Set RPATH to include LinuxCNC directories
 set_target_properties(grinder_backend PROPERTIES

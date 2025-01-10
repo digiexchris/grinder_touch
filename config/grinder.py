@@ -13,8 +13,9 @@ from python.grinderhal import GrinderHal
 import pickle
 
 def startup(parent):
-    parent.setFixedSize(1920, 600)
-    # parent.showFullScreen()
+    #parent.setFixedSize(1920, 1200)
+    parent.setFixedSize(1920, 1000)
+    #parent.showFullScreen()
     try:
         parent.grinder_window = GrinderWindow(parent)
     except Exception as e:

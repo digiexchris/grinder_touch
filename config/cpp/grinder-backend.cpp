@@ -22,6 +22,9 @@
 
 #include "shcom.hh"
 
+#include <cxxabi.h>
+#include <libunwind.h>
+
 // Define missing constants if not provided by headers
 #ifndef EMC2_DEFAULT_INIFILE
 #define EMC2_DEFAULT_INIFILE "/usr/share/linuxcnc/linuxcnc.ini"
@@ -68,18 +71,35 @@ private:
 
 	void monitorStateImpl()
 	{
-		if (emcStatus == nullptr)
-		{
-			std::cerr << "EMC status is null! This should not happen!\n";
-			cleanup();
-			exit(1);
-			return;
-		}
+		// if (emcStatus == nullptr)
+		// {
+		// 	std::cerr << "EMC status is null! This should not happen!\n";
+		// 	cleanup();
+		// 	exit(1);
+		// 	return;
+		// }
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 		std::cout << "Monitoring state\n";
 		while (grinder_should_monitor)
 		{
-			updateStatus();
-			updateError();
+			auto updated = updateStatus();
+			if (updated < 0)
+			{
+				std::cerr << "Error updating status: " << " \n";
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				continue;
+			}
+
+			updated = updateError();
+
+			if (updated < 0)
+			{
+				std::cerr << "Error updating error: " << " \n";
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				continue;
+			}
 
 			bool was_ok = machine_ok.load();
 			bool is_ok = !(emcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
@@ -142,9 +162,9 @@ private:
 			}
 
 			// std::cout << "Grinder is running: " << *(grinder_pins->is_running) << '\n';
-			std::cout << "EMC Status: " << emcStatus->motion.status << '\n';
+			// std::cout << "EMC Status: " << emcStatus->motion.status << '\n';
 			// Print current mode
-			std::cout << "Current mode: ";
+			// std::cout << "Current mode: ";
 			switch (emcStatus->task.mode)
 			{
 			case EMC_TASK_MODE_MANUAL:
@@ -163,7 +183,7 @@ private:
 
 			// std::cout << "Sleeping for 1 second\n";
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 
 		std::cout << "State monitoring thread exiting\n";
@@ -321,23 +341,32 @@ public:
 		// }
 		// iniLoad(ini_filename);
 
-		auto ret = emcTaskNmlGet();
+		// auto ret = emcCommandNmlConnect();
 
-		if (ret < 0)
-		{
-			std::cout << "Failed to initialize EMC task NML: " << ret << "\n";
-			cleanup();
-			exit(1);
-		}
+		// if (ret < 0)
+		// {
+		// 	std::cout << "Failed to initialize EMC Command Connection: " << ret << "\n";
+		// 	cleanup();
+		// 	exit(1);
+		// }
 
-		emcStatus = emcStatusGet();
+		// ret = emcStatusNmlConnect();
 
-		if (emcStatus == nullptr)
-		{
-			std::cout << "Failed to get EMC status\n";
-			cleanup();
-			exit(1);
-		}
+		// if (ret < 0)
+		// {
+		// 	std::cout << "Failed to initialize EMC Status Connection: " << ret << "\n";
+		// 	cleanup();
+		// 	exit(1);
+		// }
+
+		// emcStatus = emcStatusGet();
+
+		// if (emcStatus == nullptr)
+		// {
+		// 	std::cout << "Failed to get EMC status\n";
+		// 	cleanup();
+		// 	exit(1);
+		// }
 	}
 
 	void initializeNML()
@@ -642,6 +671,45 @@ public:
 
 static GrinderMotion *grinder = nullptr;
 
+void print_stacktrace(void)
+{
+	unw_cursor_t cursor;
+	unw_context_t context;
+
+	unw_getcontext(&context);
+	unw_init_local(&cursor, &context);
+
+	std::cerr << "Stack trace:\n";
+
+	while (unw_step(&cursor) > 0)
+	{
+		unw_word_t offset, pc;
+		char sym[256];
+
+		unw_get_reg(&cursor, UNW_REG_IP, &pc);
+		if (pc == 0)
+			break;
+
+		if (unw_get_proc_name(&cursor, sym, sizeof(sym), &offset) == 0)
+		{
+			int status;
+			char *demangled = abi::__cxa_demangle(sym, nullptr, nullptr, &status);
+			std::cerr << std::hex << pc << ": "
+					  << (demangled ? demangled : sym)
+					  << "+0x" << offset << std::endl;
+			free(demangled);
+		}
+	}
+}
+
+void crash_handler(int sig)
+{
+	std::cerr << "Caught signal " << sig << " (" << strsignal(sig) << ")\n";
+	print_stacktrace();
+	signal(sig, SIG_DFL);
+	raise(sig);
+}
+
 void signal_handler(int sig)
 {
 	std::cout << "Signal received: " << sig << "\n";
@@ -655,18 +723,18 @@ void signal_handler(int sig)
 }
 
 // Add stack trace handler
-void crash_handler(int sig)
-{
-	void *array[10];
-	size_t size;
-	size = backtrace(array, 10);
+// void crash_handler(int sig)
+// {
+// 	void *array[10];
+// 	size_t size;
+// 	size = backtrace(array, 10);
 
-	std::cerr << "Error: signal " << sig << " (" << strsignal(sig) << ")\n";
-	backtrace_symbols_fd(array, size, STDERR_FILENO);
+// 	std::cerr << "Error: signal " << sig << " (" << strsignal(sig) << ")\n";
+// 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 
-	signal(sig, SIG_DFL);
-	raise(sig);
-}
+// 	signal(sig, SIG_DFL);
+// 	raise(sig);
+// }
 
 int main(int argc, char **argv)
 {
