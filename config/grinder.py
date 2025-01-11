@@ -8,21 +8,19 @@ from hal_glib import GStat
 from python.axis import Axis
 from python.grinderhal import GrinderHal
 
-# from qtpyvcp.hal import QPin
-
 import pickle
 
 def startup(parent):
     #parent.setFixedSize(1920, 1200)
-    parent.setFixedSize(1920, 1000)
-    #parent.showFullScreen()
+    #parent.setFixedSize(1920, 1000)
+    parent.showFullScreen()
     try:
         parent.grinder_window = GrinderWindow(parent)
     except Exception as e:
         print(e)
         sys.exit(1)
         return
-    # parent.grinder_window.initialize_hal()
+
     parent.grinder_window.load_settings()
     parent.grinder_window.initialize_controls(parent)
     
@@ -55,6 +53,7 @@ class GrinderWindow(QWidget):
 
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
+    
     def start(self):
         GrinderHal.set_hal("is_running", True)
 
@@ -67,12 +66,14 @@ class GrinderWindow(QWidget):
             self.enable_x_pb.setEnabled(True)
             self.enable_y_pb.setEnabled(True)
             self.enable_z_pb.setEnabled(True)
+            self.downfeed_now_pb.setEnabled(True)
 
     def disable_controls(self, value):
             self.run_stop_pb.setEnabled(False)
             self.enable_x_pb.setEnabled(False)
             self.enable_y_pb.setEnabled(False)
             self.enable_z_pb.setEnabled(False)
+            self.downfeed_now_pb.setEnabled(False)
 
     def update_pos(self, obj, absolute_pos, relative_pos, dist_to_go, joint_pos):
         running = bool(GrinderHal.get_hal("is_running"))
@@ -83,6 +84,15 @@ class GrinderWindow(QWidget):
             else:
                 self.set_run_stop_stopped()
         self.pos = relative_pos
+
+        self.x_min = float(GrinderHal.get_hal("x_min"))
+        self.x_max = float(GrinderHal.get_hal("x_max"))
+        self.y_min = float(GrinderHal.get_hal("y_min"))
+        self.y_max = float(GrinderHal.get_hal("y_max"))
+        self.z_min = float(GrinderHal.get_hal("z_min"))
+        self.z_max = float(GrinderHal.get_hal("z_max"))
+
+        self.update_fields()
 
     def get_converted_value(self, value, units):
         if units != "inch" and units != "mm":
@@ -98,12 +108,9 @@ class GrinderWindow(QWidget):
                 return value
             else:
                 return value/25.4
-            
-        
-            
+    
     def is_on(parent):
         return parent.status.task_state == linuxcnc.STATE_ON
-# if parent.status.task_state == emc.STATE_ESTOP:
 
     def get_pos(self, axis):
 
@@ -174,6 +181,10 @@ class GrinderWindow(QWidget):
         self.set_button_color(self.enable_z_pb, False)
         self.enable_y_pb.setEnabled(False)
 
+        self.downfeed_now_pb = parent.findChild(QPushButton, "downfeed_now_pb")
+        self.downfeed_now_pb.clicked.connect(lambda: GrinderHal.set_hal("downfeed_now", True))
+        self.downfeed_now_pb.setEnabled(False)
+
         self.update_fields()
 
         self.x_max_edit.textChanged.connect(lambda value: self.on_value_changed("x_max", value, "float"))
@@ -202,13 +213,13 @@ class GrinderWindow(QWidget):
         self.run_stop_pb.setText("STOP")
         self.run_stop_pb.setChecked(True)
         self.set_run_stop_style()
-        print("Run Stop started UI")
+        print("Starting Grinder")
 
     def set_run_stop_stopped(self):
         self.run_stop_pb.setText("START")
         self.run_stop_pb.setChecked(False)
         self.set_run_stop_style()
-        print("Run Stop stopped UI")
+        print("Stopping Grinder")
 
     def on_run_stop_clicked(self):
         if self.is_running:
@@ -279,7 +290,7 @@ class GrinderWindow(QWidget):
         if os.path.exists(self.settings_file):
             with open(self.settings_file, "rb") as file:
                 self.settings = pickle.load(file)
-                print(self.settings)
+                # print(self.settings)
                 print("Grinder settings loaded")
         else:
             self.settings = {}
@@ -297,9 +308,9 @@ class GrinderWindow(QWidget):
         
 
         GrinderHal.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
-        print("X_SPEED:")
-        print(GrinderHal.get_hal("x_speed"))
-        print(self.get_converted_value(500, "inch"))
+        # print("X_SPEED:")
+        # print(GrinderHal.get_hal("x_speed"))
+        # print(self.get_converted_value(500, "inch"))
         GrinderHal.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
         GrinderHal.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
         
@@ -342,35 +353,27 @@ class GrinderWindow(QWidget):
         axis_name = base_name.removesuffix("_min")
         axis_name = axis_name.removesuffix("_max")
         axis = Axis.from_str(axis_name)
-        #GrinderHal.set_hal(base_name, self.get_pos(axis))
         edit.setText(str(self.get_pos(axis)))
 
     def set_checked(self, button, hal_field):
         button.setChecked(bool(GrinderHal.get_hal(hal_field)))
         
     def on_toggle_clicked_mcode(self, button, mcode, off_text = "", on_text = ""):
-        # mode = self.GSTAT.get_current_mode()
         self.c.mode(linuxcnc.MODE_MDI)
         self.c.wait_complete() # wait until mode switch executed
         mdi = F"{mcode}{str(int(button.isChecked()))}"
         self.c.mdi(mdi)
         print(mdi)
         self.c.wait_complete()
-        # self.set_checked(button, hal_field)
-
         self.set_button_color(button,bool(button.isChecked()))
-
         self.set_toggle_button_text(button, off_text, on_text)
 
     def on_toggle_clicked(self, button, hal_field, off_text = "", on_text = ""):
         checked = not bool(GrinderHal.get_hal(hal_field))
         GrinderHal.set_hal(hal_field, checked)
         self.set_checked(button, hal_field)
-
         self.set_toggle_button_text(button, off_text, on_text)
-
         self.save_grind_clicked()
-
         self.set_button_color(button,checked)
 
     def set_toggle_button_text(self, button, off_text = "", on_text = ""):
@@ -390,7 +393,7 @@ class GrinderWindow(QWidget):
     def save_grind_clicked(self):
         """Stop movement, wait for idle, then save the traverse limits and 3D stepover values."""
 
-        print("Saving grind settings")
+        # print("Saving grind settings")
 
         try:
             self.settings = {

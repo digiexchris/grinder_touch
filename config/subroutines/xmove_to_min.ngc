@@ -6,7 +6,7 @@ O<xmove_to_min> sub
 ; #6 = #<_hal[grinder.enable_y]>
 ; #7 = #<_hal[grinder.crossfeed_at]>
 
-(print, X_min called)
+;(print, X_min called)
 
 o100 IF [#<_hal[grinder.enable_x]> EQ 1]
 G1 X[#<_hal[grinder.x_min]>] F[#<_hal[grinder.x_speed]>]            (Move to x_min)
@@ -15,7 +15,7 @@ o100 ENDIF
 o110 IF [#<_hal[grinder.enable_z]> EQ 0]
     o111 IF [#<_hal[grinder.enable_y]> EQ 1]
         o211 IF [[#<_hal[grinder.crossfeed_at]> EQ 0] OR [#<_hal[grinder.crossfeed_at]> EQ 1]]
-            (print, downfeeding with Z off)
+            ;(print, downfeeding with Z off)
             o<YDownfeed> call (If Z is off, it won't trigger a downfeed. If Z is off but Y is still on, like in a plunge, downfeed.)
         o211 ENDIF
     o111 ELSE

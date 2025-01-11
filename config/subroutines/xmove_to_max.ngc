@@ -14,7 +14,7 @@ o100 ENDIF
 o200 IF [#<_hal[grinder.enable_z]> EQ 0]
     o210 IF [#<_hal[grinder.enable_y]> EQ 1]
         o211 IF [[#<_hal[grinder.crossfeed_at]> EQ 0] OR [#<_hal[grinder.crossfeed_at]> EQ 2]]
-        (print, downfeeding with Z off)
+        ;(print, downfeeding with Z off)
         o<YDownfeed> call (If Z is off, it won't trigger a downfeed. If Z is off but Y is still on, like in a plunge, downfeed.)
         o211 ENDIF
     o210 ELSE

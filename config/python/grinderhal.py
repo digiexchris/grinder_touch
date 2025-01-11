@@ -15,7 +15,7 @@ class GrinderHal():
             return 5
 
     def set_hal(field, value):
-        print("Setting hal value: "+str(value))
+        # print("Setting hal value: "+str(value))
         hal.set_p("grinder."+field, str(value))
             
     def get_hal(field):

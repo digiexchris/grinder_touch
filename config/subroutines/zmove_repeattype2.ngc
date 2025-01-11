@@ -13,7 +13,7 @@ O<zmove_repeattype2> sub
 
 o100 IF [#<_hal[grinder.enable_z]> EQ 1]
 
-(p, Z DIRECTION IS #<_hal[grinder.z_direction]>)
+;(p, Z DIRECTION IS #<_hal[grinder.z_direction]>)
 
    o110 IF [#<_hal[grinder.z_direction]> EQ 1]
       (Set direction towards min, always go min. Though, this routine ignores this. It's just here for if the repeat type switches back to 0)

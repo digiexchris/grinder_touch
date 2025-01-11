@@ -1502,7 +1502,7 @@ QTabBar::tab * {
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
@@ -1568,7 +1568,7 @@ QTabBar::tab * {
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
@@ -1604,7 +1604,7 @@ QTabBar::tab * {
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
@@ -1682,7 +1682,7 @@ QTabBar::tab * {
               <string>mdi</string>
              </property>
              <property name="command" stdset="0">
-              <string>G0 Y[#&lt;_hal[grinder.z_min]&gt;]</string>
+              <string>G0 Y[#&lt;_hal[grinder.y_min]&gt;]</string>
              </property>
             </widget>
            </item>
@@ -1697,7 +1697,7 @@ QTabBar::tab * {
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
@@ -1718,10 +1718,16 @@ QTabBar::tab * {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>90</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
@@ -1742,10 +1748,16 @@ QTabBar::tab * {
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>90</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>120</height>
+               <height>100</height>
               </size>
              </property>
              <property name="font">
