@@ -13,10 +13,11 @@ QMenu, QLabel, QPlainTextEdit#gcode_pte {
 	}
 QPlainTextEdit#gcode_pte {
     border: 1px solid white;
+	background-color: rgba(160, 160, 160, 50%);
    	}
 
 QPlainTextEdit#errors_pte {
-	background-color: rgba(192, 0, 0, 40%); color: white; 
+	background-color: rgba(160, 160, 160, 50%);
 	/*background-color: #121212; color: #ffffff; */
     border: 1px solid white;
 	}
@@ -41,7 +42,7 @@ QTabWidget, QTabBar, QMainWindow {
 
 QMenu {
     border: 1px solid white;
-	font-size: 20px;
+	font-size: 26px;
 	}
 
 QMenu::separator {
@@ -56,7 +57,7 @@ QMenu::item{
 }
 
 QMenu::item:selected{
-	background-color: rgba(192, 192, 192, 90%);
+	background-color: rgba(160, 160, 160, 90%);
 	color: black;
 	}
 	
@@ -97,7 +98,7 @@ QListWidget {
 	}
 	
 QCheckBox {
-	background-color: rgba(192, 192, 192, 50%);
+	background-color: rgba(160, 160, 160, 50%);
     border: 1px solid white;
 	color: black;
 	}
@@ -106,7 +107,7 @@ QCheckBox:hover {
 	}
 
 QGroupBox {
-    border: 1px solid gray;
+    border: 0px solid gray;
     /* border-radius: 3px; */
 	color: white
 	/* color: darkgrey */
@@ -115,6 +116,8 @@ QGroupBox {
 QLineEdit{
     border: 1px solid gray;
     border-radius: 3px;
+	Width: 300px;
+	height: 80px;
 	}
 
 QMenuBar {
@@ -135,7 +138,7 @@ QStatusBar {
 	}
 
 QPushButton {
-	background-color: rgba(192, 192, 192, 50%);
+	background-color: rgba(160, 160, 160, 50%);
 /*	min-height: 50px; */
 /*	min-width: 50px; */
 	min-height: 35px;
@@ -150,7 +153,7 @@ QPushButton {
 	}
 
 QTabBar::tab {
-	background-color: rgba(192, 192, 192, 50%);
+	background-color: rgba(160, 160, 160, 50%);
     border-bottom-color: #C2C7CB; /* same as the pane color */
 	border: 2px solid rgba(128, 128, 128, 100%);
 	border-top-left-radius: 10px;
@@ -171,16 +174,14 @@ QToolButton { /* all types of tool button */
 /* ********** Spin Box ********** */
 QSpinBox, QAbstractSpinBox {
 	min-height: 80px;
+		Width: 300px;
+		background-color: rgba(160, 160, 160, 50%);
 	}
 
-QSpinBox::up-button, QAbstractSpinBox::up-button, QSpinBox::plus-button, QAbstractSpinBox::plus-button {
-	min-width: 40px;
-	min-height: 40px;
-	}
-
-QSpinBox::down-button, QAbstractSpinBox::minus-button, QSpinBox::minus-button {
-	min-width: 40px;
-	min-height: 40px;
+QSpinBox::up-button, QSpinBox::up-arrow, QDoubleSpinBox::up-botton, QAbstractSpinBox::up-button, QSpinBox::plus-button, QAbstractSpinBox::plus-button,
+QSpinBox::down-button, QSpinBox:down-arrow, QDoubleSpinBox::down-arrow, QDoubleSpinBox::down-botton, QAbstractSpinBox::down-button, QSpinBox::minus-button, QAbstractSpinBox::minus-button {
+	min-width: 80px;
+	min-height: 20px;
 	}
 
 /* ********** General Buttons ********** */
@@ -238,7 +239,7 @@ QSlider::groove:horizontal {
     
 QSlider::handle:horizontal {
 	background-color: rgba(0, 200, 0, 60%);
-	/*	background-color: rgba(192, 192, 192, 80%); */
+	/*	background-color: rgba(160, 160, 160, 80%); */
     border: 1px solid;
     height: 35px;
     width: 45px;
@@ -300,7 +301,7 @@ QPushButton#G1_XY_plus:pressed, QPushButton#G1_XY_minus:pressed {
 /* ********** Tool Change, Jog Modes Combo Box ********** */
 
 QComboBox#tool_change_cb::item:selected, QComboBox#jog_modes_cb::item:selected {
-	background-color: rgba(192, 192, 192, 90%);
+	background-color: rgba(160, 160, 160, 90%);
 	color: black;
 	}
 	
@@ -314,7 +315,7 @@ QComboBox#tool_change_cb::item:!selected, QComboBox#jog_modes_cb::item:!selected
 	background-color: rgba(0, 0, 192, 20%);
 	} */
 /* QPlainTextEdit{
-	background-color: rgba(192, 192, 192, 40%); color: black;
+	background-color: rgba(160, 160, 160, 40%); color: black;
 	} */
 /* Widget names for actions...
 flex_Open

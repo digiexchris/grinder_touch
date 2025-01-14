@@ -205,7 +205,7 @@ class GrinderMotion():
                 if self.is_running:
                     self.stop();
                 self.is_ready = False;
-                grinderHal.set_hal("is_running", False)
+                GrinderHal.set_hal("is_running", False)
 
         if ((not self.is_estop) and (self.is_on)):
             # print("Machine is ready")
@@ -334,6 +334,12 @@ class GrinderMotion():
             z_max = float(GrinderHal.get_hal("z_max"))
             z_min = float(GrinderHal.get_hal("z_min"))
 
+#check if limits make sense
+            # if x_min > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
+                
+
+
+#move into limits
             if x_pos > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
                 mdi = f"G0 X{x_max}"
                 self.c.mdi(mdi)
