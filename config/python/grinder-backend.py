@@ -275,6 +275,10 @@ class GrinderMotion():
         self.updateLinearUnits()
         self.updateErrors()
 
+        if not self.is_running:
+            if GrinderHal.get_hal("downfeed_now"):
+                self.downfeed_now()
+
     def main_loop(self) :
         exit = True
         while(exit):
@@ -283,7 +287,7 @@ class GrinderMotion():
                 self.update();
 
                 # print("UPDATE COMPLETE")
-                time.sleep(0.005)
+                time.sleep(0.055)
                 # time.sleep(1)
             except linuxcnc.error as detail:
                 print("error", detail)
@@ -410,7 +414,7 @@ class GrinderMotion():
 
                     # print("End Loop")
                     
-                    time.sleep(0.005)
+                    time.sleep(0.025)
         except linuxcnc.error as detail:
             print("error", detail)
             self.stop()
