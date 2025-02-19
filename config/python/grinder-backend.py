@@ -85,63 +85,7 @@ class GrinderMotion():
     def get_pos(self, axis):
         return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
 
-    def initialize_hal(self):
-        self.h = hal.component("grinder")
-        self.c = linuxcnc.command()
-
-        self.h.newpin("x_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("x_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("x_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_direction", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("z_crossfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_downfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("downfeed_now", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("stop_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
-        self.h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
-        self.h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
-        self.h.newpin("is_running", hal.HAL_BIT, hal.HAL_IO)
-        
-        self.h.ready()
-
-        print("Grinder hal ready")
-
-        hal.set_p("grinder.z_direction", str(1))
-
-        hal.set_p("grinder.x_min", str(0.0))
-        hal.set_p("grinder.x_max", str(0.0))
-        hal.set_p("grinder.y_min", str(0.0))
-        hal.set_p("grinder.y_max", str(0.0))
-        hal.set_p("grinder.z_min", str(0.0))
-        hal.set_p("grinder.z_max", str(0.0))
-
-        hal.set_p("grinder.x_speed", str(0.0))
-        hal.set_p("grinder.y_speed", str(0.0))
-        hal.set_p("grinder.z_speed", str(0.0))
-
-        hal.set_p("grinder.z_crossfeed", str(0.0))
-        hal.set_p("grinder.y_downfeed", str(0.0))
-        hal.set_p("grinder.downfeed_now", str(False))
-
-        # Enable and control signals
-        hal.set_p("grinder.enable_x", str(False))
-        hal.set_p("grinder.enable_y", str(False))
-        hal.set_p("grinder.enable_z", str(False))
-        hal.set_p("grinder.stop_at_z_limit", str(False))
-
-        # Crossfeed and repeat settings
-        hal.set_p("grinder.crossfeed_at", str(0))
-        hal.set_p("grinder.repeat_at", str(0))
-
-        hal.set_p("grinder.is_running", str(False))
+    
 
         self.status.poll()
 
@@ -283,11 +227,12 @@ class GrinderMotion():
         exit = True
         while(exit):
             # print("START UPDATE")
+            time.sleep(0.1)
             try:
                 self.update();
 
                 # print("UPDATE COMPLETE")
-                time.sleep(0.055)
+                
                 # time.sleep(1)
             except linuxcnc.error as detail:
                 print("error", detail)
@@ -414,7 +359,7 @@ class GrinderMotion():
 
                     # print("End Loop")
                     
-                    time.sleep(0.025)
+                    time.sleep(0.055)
         except linuxcnc.error as detail:
             print("error", detail)
             self.stop()
