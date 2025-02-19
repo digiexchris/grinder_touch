@@ -75,6 +75,9 @@ class GrinderMotion():
 
     def get_pos(self, axis):
         return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
+
+    
+
         self.status.poll()
 
         self.units = self.status.linear_units
