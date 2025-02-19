@@ -75,6 +75,9 @@ class GrinderMotion():
 
     def get_pos(self, axis):
         return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
+
+    
+
         self.status.poll()
 
         self.units = self.status.linear_units
@@ -214,12 +217,12 @@ class GrinderMotion():
         exit = True
         while(exit):
             # print("START UPDATE")
-            time.sleep(0.05)
+            time.sleep(0.1)
             try:
                 self.update();
 
                 # print("UPDATE COMPLETE")
-                time.sleep(0.1)
+                
                 # time.sleep(1)
             except linuxcnc.error as detail:
                 print("error", detail)
@@ -300,7 +303,7 @@ class GrinderMotion():
 
                     # print("End Loop")
                     
-                    time.sleep(0.08)
+                    time.sleep(0.025)
         except linuxcnc.error as detail:
             print("error", detail)
             self.stop()
