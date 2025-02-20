@@ -47,7 +47,9 @@
     {
       "name": "clang-debug",
       "configurePreset": "clang-debug",
-      "targets": ["grinder_backend"]
+      "targets": [
+        "grinder_backend"
+      ]
     },
     {
       "name": "clang-release",

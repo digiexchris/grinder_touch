@@ -226,6 +226,9 @@ class GrinderWindow(QWidget):
         self.z_crossfeed_edit.textChanged.connect(lambda value: self.on_value_changed("z_crossfeed", value, "float"))
         self.y_downfeed_edit.textChanged.connect(lambda value: self.on_value_changed("y_downfeed", value, "float"))
 
+    def downfeed_now(self):
+        GrinderHal.set_hal("downfeed_now", True)
+
     def set_run_stop_style(self):
         existing_styles = self.run_stop_pb.styleSheet()
         new_background = "background-color: green;" if self.is_running else "background-color: red;"

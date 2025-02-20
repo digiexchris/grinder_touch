@@ -252,77 +252,155 @@ class GrinderHal():
 
         print("Grinder hal ready")
 
-        self.z_direction.set(str(1))
+        # hal.set_p("grinder.z_direction",str(1))
 
-        hal.set_p("grinder.x_min", str(0.0))
-        hal.set_p("grinder.x_max", str(0.0))
-        hal.set_p("grinder.y_min", str(0.0))
-        hal.set_p("grinder.y_max", str(0.0))
-        hal.set_p("grinder.z_min", str(0.0))
-        hal.set_p("grinder.z_max", str(0.0))
+        # # hal.set_p("grinder.x_min", str(0.0))
+        # # hal.set_p("grinder.x_max", str(0.0))
+        # # hal.set_p("grinder.y_min", str(0.0))
+        # # hal.set_p("grinder.y_max", str(0.0))
+        # # hal.set_p("grinder.z_min", str(0.0))
+        # # hal.set_p("grinder.z_max", str(0.0))
 
-        hal.set_p("grinder.x_speed", str(0.0))
-        hal.set_p("grinder.y_speed", str(0.0))
-        hal.set_p("grinder.z_speed", str(0.0))
+        # # hal.set_p("grinder.x_speed", str(0.0))
+        # # hal.set_p("grinder.y_speed", str(0.0))
+        # # hal.set_p("grinder.z_speed", str(0.0))
 
-        hal.set_p("grinder.z_crossfeed", str(0.0))
-        hal.set_p("grinder.y_downfeed", str(0.0))
-        hal.set_p("grinder.downfeed_now", str(False))
+        # # hal.set_p("grinder.z_crossfeed", str(0.0))
+        # # hal.set_p("grinder.y_downfeed", str(0.0))
+        # # hal.set_p("grinder.downfeed_now", str(False))
 
-        # Enable and control signals
-        hal.set_p("grinder.enable_x", str(False))
-        hal.set_p("grinder.enable_y", str(False))
-        hal.set_p("grinder.enable_z", str(False))
-        hal.set_p("grinder.stop_at_z_limit", str(False))
+        # # # Enable and control signals
+        # # hal.set_p("grinder.enable_x", str(False))
+        # # hal.set_p("grinder.enable_y", str(False))
+        # # hal.set_p("grinder.enable_z", str(False))
+        # # hal.set_p("grinder.stop_at_z_limit", str(False))
 
-        # Crossfeed and repeat settings
-        hal.set_p("grinder.crossfeed_at", str(0))
-        hal.set_p("grinder.repeat_at", str(0))
+        # # # Crossfeed and repeat settings
+        # # hal.set_p("grinder.crossfeed_at", str(0))
+        # # hal.set_p("grinder.repeat_at", str(0))
 
-        hal.set_p("grinder.is_running", str(False))
+        # hal.set_p("grinder.is_running", str(False))
+
+        # print(hal.get_value("grinder.x_max"))
+        # print("Created pins")
 
     def load_settings():
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, "rb") as file:
-                self.settings = pickle.load(file)
-                # print(self.settings)
+        if os.path.exists(settings_file):
+            with open(settings_file, "rb") as file:
+                settings = pickle.load(file)
+                print(settings)
                 print("Grinder settings loaded")
         else:
-            self.settings = {}
+            settings = {}
             print("Empty settings loaded")
-
-
-
-        self.previous_linear_units = self.settings.get('previous_linear_units',1)
-        set_hal("x_min", self.settings.get('x_min',0))
-        set_hal("x_max", self.settings.get('x_max', self.get_converted_value(1, "inch")))
-        set_hal("y_min", self.settings.get('y_min',0))
-        set_hal("y_max", self.settings.get('y_max', self.get_converted_value(1, "inch")))
-        set_hal("z_min",  self.settings.get('z_min',0))
-        set_hal("z_max",  self.settings.get('z_max', self.get_converted_value(1, "inch")))
+        
+        previous_linear_units = settings.get('previous_linear_units',1)
+        GrinderHal.set_hal("x_min", settings.get('x_min',0))
+        GrinderHal.set_hal("x_max", settings.get('x_max', GrinderHal.get_converted_value(1, "inch")))
+        GrinderHal.set_hal("y_min", settings.get('y_min',0))
+        GrinderHal.set_hal("y_max", settings.get('y_max', GrinderHal.get_converted_value(1, "inch")))
+        GrinderHal.set_hal("z_min",  settings.get('z_min',0))
+        GrinderHal.set_hal("z_max",  settings.get('z_max', GrinderHal.get_converted_value(1, "inch")))
         
 
-        set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
+        GrinderHal.set_hal("x_speed",  settings.get('x_speed', GrinderHal.get_converted_value(500, "inch")))
         # print("X_SPEED:")
-        # print(get_hal("x_speed"))
-        # print(self.get_converted_value(500, "inch"))
-        set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
-        set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
+        # print(GrinderHal.get_hal("x_speed"))
+        # print(GrinderHal.get_converted_value(500, "inch"))
+        GrinderHal.set_hal("y_speed",  settings.get('y_speed', GrinderHal.get_converted_value(200, "inch")))
+        GrinderHal.set_hal("z_speed",  settings.get('z_speed', GrinderHal.get_converted_value(200, "inch")))
         
 
-        set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))        
-        set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
+        GrinderHal.set_hal("z_crossfeed",  settings.get('z_crossfeed', GrinderHal.get_converted_value(0.005, "inch")))        
+        GrinderHal.set_hal("y_downfeed",  settings.get('y_downfeed', GrinderHal.get_converted_value(0.0005, "inch")))
         
-        set_hal("enable_x",  self.settings.get('enable_x', bool(False)))
-        set_hal("enable_y",  self.settings.get('enable_y', bool(False)))
-        set_hal("enable_z",  self.settings.get('enable_z', bool(False)))
+        GrinderHal.set_hal("enable_x",  settings.get('enable_x', bool(False)))
+        GrinderHal.set_hal("enable_y",  settings.get('enable_y', bool(False)))
+        GrinderHal.set_hal("enable_z",  settings.get('enable_z', bool(False)))
 
-        set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
+        GrinderHal.set_hal("stop_at_z_limit",  settings.get('stop_at_z_limit', 0))
 
-        set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
-        set_hal("repeat_at",  self.settings.get('repeat_at', 1))
+        GrinderHal.set_hal("crossfeed_at",  settings.get('crossfeed_at', 2))
+        GrinderHal.set_hal("repeat_at",  settings.get('repeat_at', 1))
 
         ############## DRESS PARAMS ################
+
+        GrinderHal.set_hal("dress_start_x", settings.get('dress_start_x', 0.0))
+        GrinderHal.set_hal("dress_start_y", settings.get('dress_start_y', 0.0))
+        GrinderHal.set_hal("dress_start_z", settings.get('dress_start_z', 0.0))
+        GrinderHal.set_hal("dress_end_x", settings.get('dress_end_x', 0.0))
+        GrinderHal.set_hal("dress_end_y", settings.get('dress_end_y', 0.0))
+        GrinderHal.set_hal("dress_end_z", settings.get('dress_end_z', 0.0))
+        GrinderHal.set_hal("dress_stepover_x", settings.get('dress_stepover_x', 0.0))
+        GrinderHal.set_hal("dress_stepover_y", settings.get('dress_stepover_y', 0.0))
+        GrinderHal.set_hal("dress_stepover_z", settings.get('dress_stepover_z', 0.0))
+        GrinderHal.set_hal("dress_wheel_rpm", settings.get('dress_wheel_rpm', 0.0))
+        GrinderHal.set_hal("dress_wheel_dia", settings.get('dress_wheel_dia', 0.0))
+        GrinderHal.set_hal("dress_point_dia", settings.get('dress_point_dia', 0.0))
+        GrinderHal.set_hal("dress_overlap_ratio", settings.get('dress_overlap_ratio', 0.0))
+        GrinderHal.set_hal("dress_safe_y", settings.get('dress_safe_y', 0.0))
+        GrinderHal.set_hal("dress_offset_gcode", settings.get('dress_offset_gcode', "G92 Y0"))
+        
+
+        print(settings.get('x_min',0))
+        print(GrinderHal.get_hal("x_min"))
+        print(GrinderHal.get_hal("x_max"))
+        print(hal.get_value("grinder.x_max"))
+        print(settings.get("x_max"))
+
+        print("Settings finished loading")
+
+        
+
+    def save_settings():
+
+        print(GrinderHal.get_hal("x_min"))
+        print(GrinderHal.get_hal("x_max"))
+        # try:
+        settings = {
+            'previous_linear_units': previous_linear_units,
+            'x_min': float(GrinderHal.get_hal("x_min")),
+            'x_max': float(GrinderHal.get_hal("x_max")),
+            'y_min': float(GrinderHal.get_hal("y_min")),
+            'y_max': float(GrinderHal.get_hal("y_max")),
+            'z_min': float(GrinderHal.get_hal("z_min")),
+            'z_max': float(GrinderHal.get_hal("z_max")),
+            'x_speed': float(GrinderHal.get_hal("x_speed")),
+            'y_speed': float(GrinderHal.get_hal("y_speed")),
+            'z_speed': float(GrinderHal.get_hal("z_speed")),
+            'enable_x': bool(GrinderHal.get_hal("enable_x")),
+            'enable_y': bool(GrinderHal.get_hal("enable_y")),
+            'enable_z': bool(GrinderHal.get_hal("enable_z")),
+            'z_crossfeed': float(GrinderHal.get_hal("z_crossfeed")),
+            'y_downfeed': float(GrinderHal.get_hal("y_downfeed")),
+            'stop_at_z_limit': bool(GrinderHal.get_hal("stop_at_z_limit")),
+            'crossfeed_at': int(GrinderHal.get_hal("crossfeed_at")),
+            'repeat_at': int(GrinderHal.get_hal("repeat_at")),
+            'dress_start_x': float(GrinderHal.get_hal("dress_start_x")),
+            'dress_start_y': float(GrinderHal.get_hal("dress_start_y")),
+            'dress_start_z': float(GrinderHal.get_hal("dress_start_z")),
+            'dress_end_x': float(GrinderHal.get_hal("dress_end_x")),
+            'dress_end_y': float(GrinderHal.get_hal("dress_end_y")),
+            'dress_end_z': float(GrinderHal.get_hal("dress_end_z")),
+            'dress_stepover_x': float(GrinderHal.get_hal("dress_stepover_x")),
+            'dress_stepover_y': float(GrinderHal.get_hal("dress_stepover_y")),
+            'dress_stepover_z': float(GrinderHal.get_hal("dress_stepover_z")),
+            'dress_wheel_rpm': float(GrinderHal.get_hal("dress_wheel_rpm")),
+            'dress_wheel_dia': float(GrinderHal.get_hal("dress_wheel_dia")),
+            'dress_point_dia': float(GrinderHal.get_hal("dress_point_dia")),
+            'dress_overlap_ratio': float(GrinderHal.get_hal("dress_overlap_ratio")),
+            'dress_safe_y': float(GrinderHal.get_hal("dress_safe_y")),
+            'dress_offset_gcode': GrinderHal.get_hal("dress_offset_gcode")
+        }
+
+        with open(settings_file, "wb") as file:
+            pickle.dump(settings, file)
+
+        print("Settings saved")
+        # except Exception:
+        #     #todo set a notification
+        #     print(f"")
+        #     load_settings()
 
     def get_rounding_tolerance():
         # Check the current units

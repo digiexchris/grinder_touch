@@ -50,18 +50,6 @@ add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cx
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
 
-include(FetchContent)
-
-FetchContent_Declare(
-    rapidjson
-    GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-    GIT_TAG master
-)
-
-FetchContent_MakeAvailable(rapidjson)
-
-target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
-
 include_directories(
     /usr/include/linuxcnc
     /usr/lib/llvm-19/include  # Add libunwind include path
