@@ -29,7 +29,7 @@
       "name": "arm64-debug",
       "displayName": "arm64 clang Debug",
       "binaryDir": "${sourceDir}/build/clang-debug-arm64",
-      "inherits":[
+      "inherits": [
         "clang-debug"
       ],
       "cacheVariables": {
