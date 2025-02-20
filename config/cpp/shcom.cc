@@ -56,7 +56,7 @@ RCS_CMD_CHANNEL *emcCommandBuffer;
 RCS_STAT_CHANNEL *emcStatusBuffer;
 EMC_STAT *emcStatus;
 
-// the NML channel for errors
+// the NML channel for errors7
 NML *emcErrorBuffer;
 char error_string[NML_ERROR_LEN];
 char operator_text_string[NML_TEXT_LEN];

@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 3.10)
 project(grinder_backend)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(RAPIDJSON_BUILD_TESTS OFF)
-
-# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# find_package(Libunwind REQUIRED)
+# Add RapidJSON using FetchContent
+include(FetchContent)
+FetchContent_Declare(
+    rapidjson
+    GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
+    GIT_TAG v1.1.0
+)
+FetchContent_MakeAvailable(rapidjson)
 
 # Define ULAPI for userspace program
 add_definitions(-DULAPI)
@@ -18,6 +21,7 @@ add_definitions(-DULAPI)
 # Add LinuxCNC include directories
 include_directories(
     /usr/include/linuxcnc
+    ${rapidjson_SOURCE_DIR}/include
 )
 
 # Define module directory
@@ -40,6 +44,7 @@ message(STATUS "Using LINUXCNC_LIB: ${LINUXCNC_LIB}")
 message(STATUS "Using NML_LIB: ${NML_LIB}")
 message(STATUS "Using HAL_LIB: ${HAL_LIB}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Import libraries
 add_library(hal_lib SHARED IMPORTED)
 set_target_properties(hal_lib PROPERTIES
@@ -50,18 +55,6 @@ add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cx
 
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
-
-include(FetchContent)
-
-FetchContent_Declare(
-    rapidjson
-    GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
-    GIT_TAG master
-)
-
-FetchContent_MakeAvailable(rapidjson)
-
-target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
 
 include_directories(
     /usr/include/linuxcnc
@@ -76,11 +69,6 @@ target_link_libraries(grinder_backend
     dl
     unwind
 )
-
-# if(LIBUNWIND_FOUND)
-#     target_include_directories(${PROJECT_NAME} PRIVATE ${LIBUNWIND_INCLUDE_DIR})
-#     target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBUNWIND_LIBRARIES})
-# endif()
 
 # Set RPATH to include LinuxCNC directories
 set_target_properties(grinder_backend PROPERTIES

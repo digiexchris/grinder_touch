@@ -1,56 +1,51 @@
 #include <array>
 #include <atomic>
+#include <cassert>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <execinfo.h>
 #include <iostream>
-#include <sstream> // Add this with the other includes at the top
+#include <sstream>
 #include <thread>
-
-// LinuxCNC includes
-// #include "inifile.hh"
+#define UNW_LOCAL_ONLY
 #include "linuxcnc/emc.hh"
-// #include "linuxcnc/emc/usr_intf/shcomm.hh"
 #include "linuxcnc/emc_nml.hh"
 #include "linuxcnc/hal.h"
 #include "linuxcnc/nml.hh"
-#include "linuxcnc/rcs.hh" // For NML buffer types
+#include "linuxcnc/rcs.hh"
 #include "linuxcnc/stat_msg.hh"
 #include "nmlmsg.hh"
-
 #include "shcom.hh"
-
 #include <cxxabi.h>
 #include <libunwind.h>
 
-// Define missing constants if not provided by headers
 #ifndef EMC2_DEFAULT_INIFILE
 #define EMC2_DEFAULT_INIFILE "/usr/share/linuxcnc/linuxcnc.ini"
 #endif
-
-// Define NML config file path
-// const char *const DEFAULT_NMLFILE = "/usr/share/linuxcnc/linuxcnc.nml";
 
 #define UNUSED(x) (void)(x)
 
 struct GrinderPins
 {
-	// Change all members to pointers
 	hal_float_t *x_min, *x_max, *y_min, *y_max, *z_min, *z_max;
 	hal_float_t *x_speed, *y_speed, *z_speed;
-	hal_bit_t *z_direction, *enable_x, *enable_y, *enable_z;
+	hal_bit_t *z_direction, *enable_x, *enable_y, *enable_z, *downfeed_now;
 	hal_bit_t *stop_at_z_limit, *is_running;
 	hal_float_t *z_crossfeed, *y_downfeed;
 	hal_s32_t *crossfeed_at, *repeat_at;
+	hal_float_t *dress_start_x, *dress_start_y, *dress_start_z;
+	hal_float_t *dress_end_x, *dress_end_y, *dress_end_z;
+	hal_float_t *dress_stepover_x, *dress_stepover_y, *dress_stepover_z;
+	hal_float_t *dress_wheel_rpm, *dress_wheel_dia, *dress_point_dia;
 };
 
 class GrinderMotion
 {
 private:
 	RCS_STAT_CHANNEL *stat_channel;
-	EMC_STAT *emcStatus;
+	EMC_STAT *myEmcStatus;
 	NML *error_channel;
 	NML *command_channel;
 	std::atomic<bool> is_running;
@@ -64,20 +59,17 @@ private:
 
 	std::array<double, 9> current_pos;
 
-	static void monitorState(GrinderMotion *self)
-	{
-		self->monitorStateImpl();
-	}
-
 	void monitorStateImpl()
 	{
-		// if (emcStatus == nullptr)
-		// {
-		// 	std::cerr << "EMC status is null! This should not happen!\n";
-		// 	cleanup();
-		// 	exit(1);
-		// 	return;
-		// }
+		updateStatus();
+		myEmcStatus = emcStatusGet();
+		if (myEmcStatus == nullptr)
+		{
+			std::cerr << "EMC status is null! This should not happen!\n";
+			cleanup();
+			exit(1);
+			return;
+		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -101,24 +93,18 @@ private:
 				continue;
 			}
 
-			bool was_ok = machine_ok.load();
-			bool is_ok = !(emcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
-						 emcStatus->task.state == EMC_TASK_STATE_ON &&
-						 emcStatus->motion.traj.enabled;
+			updateStatus();
 
-			// std::cout << "Task state: " << emcStatus->task.state << '\n';
-			// std::cout << "Motion enabled: " << emcStatus->motion.traj.enabled << '\n';
-			// std::cout << "Machine OK: " << is_ok << '\n';
+			bool was_ok = machine_ok.load();
+			bool is_ok = !(myEmcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
+						 myEmcStatus->task.state == EMC_TASK_STATE_ON &&
+						 myEmcStatus->motion.traj.enabled;
 
 			// Update position
 
-			current_pos[0] = emcStatus->motion.traj.position.tran.x;
-			current_pos[1] = emcStatus->motion.traj.position.tran.y;
-			current_pos[2] = emcStatus->motion.traj.position.tran.z;
-
-			// std::cout << "Current position: " << current_pos[0] << ", " << current_pos[1] << ", " << current_pos[2] << '\n';
-
-			// Check for state changes
+			current_pos[0] = myEmcStatus->motion.traj.position.tran.x;
+			current_pos[1] = myEmcStatus->motion.traj.position.tran.y;
+			current_pos[2] = myEmcStatus->motion.traj.position.tran.z;
 
 			if (was_ok != is_ok)
 			{
@@ -161,28 +147,6 @@ private:
 				}
 			}
 
-			// std::cout << "Grinder is running: " << *(grinder_pins->is_running) << '\n';
-			// std::cout << "EMC Status: " << emcStatus->motion.status << '\n';
-			// Print current mode
-			// std::cout << "Current mode: ";
-			switch (emcStatus->task.mode)
-			{
-			case EMC_TASK_MODE_MANUAL:
-				std::cout << "MANUAL";
-				break;
-			case EMC_TASK_MODE_AUTO:
-				std::cout << "AUTO";
-				break;
-			case EMC_TASK_MODE_MDI:
-				std::cout << "MDI";
-				break;
-			default:
-				std::cout << "UNKNOWN";
-			}
-			std::cout << '\n';
-
-			// std::cout << "Sleeping for 1 second\n";
-
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 
@@ -192,37 +156,6 @@ private:
 	// Add this new method
 	void waitForMotionComplete()
 	{
-		// if (emcStatus->task.queuedMDIcommands > 0)
-		// {
-		// 	std::cout << "MDI command queued, waiting...\n";
-
-		// 	while (is_running && machine_ok.load())
-		// 	{
-		// 		stat_channel->peek();
-
-		// 		if (command_channel->get_queue_length() == 0)
-		// 		{
-		// 			std::cout << "Motion complete\n";
-		// 			return;
-		// 		}
-
-		// 		// if (emcStatus->motion.status == RCS_DONE)
-		// 		// {
-		// 		// 	std::cout << "Motion complete\n";
-		// 		// 	return;
-		// 		// }
-
-		// 		// if (emcStatus->motion.status == RCS_ERROR)
-		// 		// {
-		// 		// 	std::cerr << "Motion error detected\n";
-		// 		// 	stop();
-		// 		// 	return;
-		// 		// }
-
-		// 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		// 	}
-		// }
-
 		emcCommandWaitDone();
 		std::cout << "Motion complete\n";
 	}
@@ -257,32 +190,6 @@ private:
 	// Add MDI mode checking and proper command execution waiting
 	bool setMDIMode()
 	{
-		// Only set MDI mode if we're not already in MDI mode
-		// if (emcStatus->task.mode != EMC_TASK_MODE_MDI)
-		// {
-
-		// 	if (command_channel->valid() == 0)
-		// 	{
-		// 		std::cerr << "Command channel is not valid\n";
-		// 		throw std::runtime_error("Command channel is not valid");
-		// 	}
-
-		// 	EMC_TASK_SET_MODE modeMsg;
-		// 	modeMsg.mode = EMC_TASK_MODE_MDI;
-
-		// 	if (!sendCommand(modeMsg))
-		// 	{
-		// 		std::cout << "Error occurred while setting MDI mode\n";
-		// 		return false;
-		// 	}
-
-		// 	// Wait for mode to actually be set
-		// 	while (emcStatus->task.mode != EMC_TASK_MODE_MDI)
-		// 	{
-		// 		stat_channel->peek();
-		// 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		// 	}
-		// }
 
 		sendMdi();
 
@@ -292,17 +199,24 @@ private:
 public:
 	GrinderMotion() : is_running(false), machine_ok(false)
 	{
+	}
+
+	void monitorState()
+	{
+		monitorStateImpl();
+	}
+
+	void Start()
+	{
 		try
 		{
 			// Initialize HAL first but don't mark ready
 			initializeHAL();
 
-			initializeShcomm();
-
 			// Initialize NML
-			// initializeNML();
+			initializeNML();
 
-			std::cout << "NML initialized\n";
+			// std::cout << "NML initialized\n";
 
 			// Only mark HAL ready after all initialization is complete
 			if (hal_ready(hal_comp_id) != 0)
@@ -311,11 +225,6 @@ public:
 			}
 
 			std::cout << "HAL component ready\n";
-
-			// Start state monitoring thread
-			monitor_thread = std::thread(GrinderMotion::monitorState, this);
-
-			std::cout << "State monitoring thread started\n";
 		}
 		catch (const std::exception &e)
 		{
@@ -334,77 +243,17 @@ public:
 
 	void initializeShcomm()
 	{
-		// const char *ini_filename = getenv("INI_FILE_NAME");
-		// if (!ini_filename || *ini_filename == '\0')
-		// {
-		// 	ini_filename = EMC2_DEFAULT_INIFILE;
-		// }
-		// iniLoad(ini_filename);
-
-		// auto ret = emcCommandNmlConnect();
-
-		// if (ret < 0)
-		// {
-		// 	std::cout << "Failed to initialize EMC Command Connection: " << ret << "\n";
-		// 	cleanup();
-		// 	exit(1);
-		// }
-
-		// ret = emcStatusNmlConnect();
-
-		// if (ret < 0)
-		// {
-		// 	std::cout << "Failed to initialize EMC Status Connection: " << ret << "\n";
-		// 	cleanup();
-		// 	exit(1);
-		// }
-
-		// emcStatus = emcStatusGet();
-
-		// if (emcStatus == nullptr)
-		// {
-		// 	std::cout << "Failed to get EMC status\n";
-		// 	cleanup();
-		// 	exit(1);
-		// }
 	}
 
 	void initializeNML()
 	{
-		// // Create NML channels directly
-		// command_channel = new NML(0, "grinderCmd", "xemc", DEFAULT_NMLFILE);
-		// if ((command_channel == nullptr) || (command_channel->valid() == 0))
-		// {
-		// 	throw std::runtime_error("Can't open command channel");
-		// }
 
-		// std::cout << "Command channel opened\n";
+		assert(tryNml(10, 2) >= 0);
+		updateStatus();
+		std::cout << "EMC status address: " << myEmcStatus << '\n';
 
-		// stat_channel =
-		// 	new RCS_STAT_CHANNEL(0, "emcStatus", "xemc", DEFAULT_NMLFILE);
-		// if ((stat_channel == nullptr) || (stat_channel->valid() == 0))
-		// {
-		// 	throw std::runtime_error("Can't open status channel");
-		// }
-
-		// std::cout << "Status channel opened\n";
-
-		// error_channel = new NML(0, "emcError", "xemc", DEFAULT_NMLFILE);
-		// if ((error_channel == nullptr) || (error_channel->valid() == 0))
-		// {
-		// 	throw std::runtime_error("Can't open error channel");
-		// }
-
-		// std::cout << "Error channel opened\n";
-
-		// emcStatus = static_cast<EMC_STAT *>(stat_channel->get_address());
-
-		// std::cout << "EMC status address: " << emcStatus << '\n';
-
-		// // Set initial mode to manual
-		// setMDIMode();
-
-		// std::cout << "NML channels initialized\n";
+		// Set initial mode to manual
+		setMDIMode();
 	}
 
 	void initializeHAL()
@@ -450,6 +299,18 @@ public:
 		hal_pin_s32_new((prefix + "crossfeed_at").c_str(), HAL_IN, &(grinder_pins->crossfeed_at), hal_comp_id);
 		hal_pin_s32_new((prefix + "repeat_at").c_str(), HAL_IN, &(grinder_pins->repeat_at), hal_comp_id);
 		hal_pin_bit_new((prefix + "is_running").c_str(), HAL_IO, &(grinder_pins->is_running), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_start_x").c_str(), HAL_IO, &(grinder_pins->dress_start_x), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_start_y").c_str(), HAL_IO, &(grinder_pins->dress_start_y), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_start_z").c_str(), HAL_IO, &(grinder_pins->dress_start_z), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_end_x").c_str(), HAL_IO, &(grinder_pins->dress_end_x), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_end_y").c_str(), HAL_IO, &(grinder_pins->dress_end_y), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_end_z").c_str(), HAL_IO, &(grinder_pins->dress_end_z), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_stepover_x").c_str(), HAL_IO, &(grinder_pins->dress_stepover_x), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_stepover_y").c_str(), HAL_IO, &(grinder_pins->dress_stepover_y), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_stepover_z").c_str(), HAL_IO, &(grinder_pins->dress_stepover_z), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_wheel_rpm").c_str(), HAL_IO, &(grinder_pins->dress_wheel_rpm), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_wheel_dia").c_str(), HAL_IO, &(grinder_pins->dress_wheel_dia), hal_comp_id);
+		hal_pin_float_new((prefix + "dress_point_dia").c_str(), HAL_IO, &(grinder_pins->dress_point_dia), hal_comp_id);
 
 		std::cout << "HAL pins initialized\n";
 
@@ -462,37 +323,14 @@ public:
 	{
 		std::cout << "Sending MDI command: " << command << '\n';
 		sendMdiCmd(command);
-		// setMDIMode();
-
-		// stat_channel->peek();
-		// if (emcStatus->motion.traj.queueFull)
-		// {
-		// 	std::cout << "Command queue full, waiting...\n";
-		// }
-
-		// while (emcStatus->motion.traj.queueFull)
-		// {
-		// 	if (!is_running || !machine_ok.load())
-		// 	{
-		// 		return;
-		// 	}
-
-		// 	stat_channel->peek();
-		// 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		// }
-
-		// EMC_TASK_PLAN_EXECUTE msg;
-		// msg.command[0] = 0;
-		// strncpy(msg.command, command, sizeof(msg.command) - 1);
-		// command_channel->write(msg);
 	}
 
 	bool canStart()
 	{
 		updateStatus();
-		auto stateEstop = (emcStatus->task.state == EMC_TASK_STATE_ESTOP);
-		auto powerOff = (emcStatus->task.state == EMC_TASK_STATE_OFF);
-		auto motion_enabled = emcStatus->motion.traj.enabled;
+		auto stateEstop = (myEmcStatus->task.state == EMC_TASK_STATE_ESTOP);
+		auto powerOff = (myEmcStatus->task.state == EMC_TASK_STATE_OFF);
+		auto motion_enabled = myEmcStatus->motion.traj.enabled;
 
 		return (!stateEstop && !powerOff && motion_enabled);
 	}
@@ -585,6 +423,26 @@ public:
 		waitForMotionComplete();
 	}
 
+	void downfeed()
+	{
+		std::cout << "Downfeed\n";
+		std::stringstream ss;
+		// Get current Y position
+		double y_pos = current_pos[2];
+		double y_max = *(grinder_pins->y_max);
+		double y_min = *(grinder_pins->y_min);
+		double y_downfeed = *(grinder_pins->y_downfeed);
+		double new_y_pos = y_pos - y_downfeed;
+		if (new_y_pos < y_min)
+		{
+			*(grinder_pins->y_min) = new_y_pos;
+		}
+		ss << "G1 Z" << *(grinder_pins->z_min) << " F" << *(grinder_pins->z_speed);
+		sendMDICommand(ss.str().c_str());
+		waitForMotionComplete();
+		*(grinder_pins->downfeed_now) = false;
+	}
+
 	void mainSequence()
 	{
 		// Ensure MDI mode is set before starting the sequence
@@ -600,6 +458,12 @@ public:
 		{
 			updateStatus();
 
+			if (*(grinder_pins->downfeed_now))
+			{
+				std::cout << "Downfeed now\n";
+				downfeed();
+			}
+
 			// Update is_running pin based on external changes
 			if (!(*(grinder_pins->is_running)))
 			{
@@ -610,6 +474,8 @@ public:
 			moveInsideLimits();
 
 			std::cout << "o<xmove_to_max> call\n";
+			sendMDICommand("o<xmove_to_max> call");
+			waitForMotionComplete();
 			sendMDICommand("o<xmove_to_max> call");
 			waitForMotionComplete();
 
@@ -679,8 +545,6 @@ void print_stacktrace(void)
 	unw_getcontext(&context);
 	unw_init_local(&cursor, &context);
 
-	std::cerr << "Stack trace:\n";
-
 	while (unw_step(&cursor) > 0)
 	{
 		unw_word_t offset, pc;
@@ -688,16 +552,28 @@ void print_stacktrace(void)
 
 		unw_get_reg(&cursor, UNW_REG_IP, &pc);
 		if (pc == 0)
+		{
 			break;
+		}
 
+		char *name = sym;
 		if (unw_get_proc_name(&cursor, sym, sizeof(sym), &offset) == 0)
 		{
 			int status;
 			char *demangled = abi::__cxa_demangle(sym, nullptr, nullptr, &status);
-			std::cerr << std::hex << pc << ": "
-					  << (demangled ? demangled : sym)
-					  << "+0x" << offset << std::endl;
-			free(demangled);
+			if (demangled)
+			{
+				name = demangled;
+			}
+			std::cerr << "0x" << std::hex << pc << ": " << name << "+0x" << std::hex << offset << std::dec << "\n";
+			if (demangled)
+			{
+				free(demangled);
+			}
+		}
+		else
+		{
+			std::cerr << "0x" << std::hex << pc << ": -- symbol not found --\n";
 		}
 	}
 }
@@ -755,13 +631,11 @@ int main(int argc, char **argv)
 	try
 	{
 		grinder = new GrinderMotion();
+		grinder->Start();
 
 		// Main loop with shorter sleep time for better responsiveness
-		while (true)
-		{
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		}
+		grinder->monitorState();
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 	catch (const std::exception &e)
 	{
