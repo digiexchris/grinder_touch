@@ -14,6 +14,8 @@ debian/files
 debian/python3-grinder-touch.*.debhelper
 debian/*.debhelper
 dist/
+config/cpp/build
+config/build
 
 linuxcnc/sim.semiauto_sg/halshow.preferences
 

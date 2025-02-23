@@ -13,8 +13,8 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/clang-debug",
       "environment": {
-        "CC": "/usr/bin/clang",
-        "CXX": "/usr/bin/clang++",
+        "CC": "ccache /usr/bin/clang",
+        "CXX": "ccache /usr/bin/clang++",
         "LDFLAGS": "-fuse-ld=lld"
       },
       "cacheVariables": {
@@ -46,7 +46,8 @@
   "buildPresets": [
     {
       "name": "clang-debug",
-      "configurePreset": "clang-debug"
+      "configurePreset": "clang-debug",
+      "targets": ["grinder_backend"]
     },
     {
       "name": "clang-release",
