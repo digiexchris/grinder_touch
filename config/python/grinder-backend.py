@@ -287,7 +287,7 @@ class GrinderMotion():
                 self.update();
 
                 # print("UPDATE COMPLETE")
-                time.sleep(0.055)
+                time.sleep(0.1)
                 # time.sleep(1)
             except linuxcnc.error as detail:
                 print("error", detail)
@@ -414,7 +414,7 @@ class GrinderMotion():
 
                     # print("End Loop")
                     
-                    time.sleep(0.025)
+                    time.sleep(0.08)
         except linuxcnc.error as detail:
             print("error", detail)
             self.stop()
