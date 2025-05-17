@@ -1,5 +1,5 @@
 # Load the Python script and wait for it to initialize
-loadusr -Wn grinder ./python/grinder-backend.py
+#loadusr -Wn grinder ./python/grinder-backend.py
 
 # loadusr python3 process.py
 
@@ -7,5 +7,5 @@ loadusr -Wn grinder ./python/grinder-backend.py
 
 
 #current c++ version
-#loadusr -Wn grinder ./grinder_backend
+loadusr -Wn grinder ./grinder_backend
 #loadusr ./grinder_backend
