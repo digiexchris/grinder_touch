@@ -22,9 +22,14 @@
 
 #define UNUSED(x) (void)(x)
 
-GrinderMotion::GrinderMotion(Settings *aSettings)
-	: is_running(false), machine_ok(false), grinder_should_monitor(true)
+GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager)
+	: is_running(false), machine_ok(false), grinder_should_monitor(true), mySettingsManager(aSettingsManager)
 {
+	if (aSettingsManager == nullptr)
+	{
+		std::cerr << "SettingsManager is null!\n";
+		exit(1);
+	}
 }
 
 void GrinderMotion::monitorState()
@@ -388,7 +393,7 @@ void GrinderMotion::downfeed()
 	std::stringstream ss;
 	// Get current Y position
 	double y_pos = current_pos[2];
-	double y_max = *(grinder_pins->y_max);
+	// double y_max = *(grinder_pins->y_max);
 	double y_min = *(grinder_pins->y_min);
 	double y_downfeed = *(grinder_pins->y_downfeed);
 	double new_y_pos = y_pos - y_downfeed;

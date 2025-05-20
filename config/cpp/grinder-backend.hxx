@@ -41,7 +41,7 @@ private:
 	bool grinder_should_monitor;
 	bool is_first_run = false;
 	std::array<double, 9> current_pos;
-	Settings *mySettings;
+	SettingsManager *mySettingsManager;
 
 	void monitorStateImpl();
 	void waitForMotionComplete();
@@ -53,7 +53,7 @@ private:
 	void downfeed();
 
 public:
-	GrinderMotion(Settings *aSettings);
+	GrinderMotion(SettingsManager *aSettingsManager);
 	~GrinderMotion();
 
 	void Start();

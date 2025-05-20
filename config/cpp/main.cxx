@@ -71,7 +71,7 @@ void signal_handler(int sig)
 	exit(sig);
 }
 
-Settings *settings = nullptr;
+SettingsManager *settings = nullptr;
 
 int main(int argc, char **argv)
 {
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
 	try
 	{
-		settings = new Settings("grinder_settings.json");
+		settings = new SettingsManager("./grinder_settings.json");
 
 		grinder = new GrinderMotion(settings);
 		grinder->Start();

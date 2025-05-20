@@ -50,6 +50,17 @@ add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cx
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
 
+include(FetchContent)
+# # Ensure timestamp preservation during extraction
+# set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
+# set(FETCHCONTENT_UPDATES_DISCONNECTED OFF)
+# set(FETCHCONTENT_QUIET OFF)
+set(DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
+target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
+
 include_directories(
     /usr/include/linuxcnc
     /usr/lib/llvm-19/include  # Add libunwind include path
@@ -62,6 +73,7 @@ target_link_libraries(grinder_backend
     pthread
     dl
     unwind
+    nlohmann_json::nlohmann_json
 )
 
 # if(LIBUNWIND_FOUND)

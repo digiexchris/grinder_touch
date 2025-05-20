@@ -7,5 +7,5 @@
 
 
 #current c++ version
-#loadusr -Wn grinder ./grinder_backend
+loadusr -Wn grinder ./grinder_backend
 #loadusr ./grinder_backend
