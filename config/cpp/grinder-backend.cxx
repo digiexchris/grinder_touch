@@ -34,18 +34,26 @@ GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager)
 
 void GrinderMotion::monitorState()
 {
-
-	updateStatus();
-	myEmcStatus = emcStatusGet();
-	if (myEmcStatus == nullptr)
-	{
-		std::cerr << "EMC status is null! This should not happen!\n";
-		cleanup();
-		exit(1);
-		return;
-	}
-
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	for (int i = 0; i < 10; ++i)
+	{
+		updateStatus();
+		myEmcStatus = emcStatusGet();
+		if (myEmcStatus == nullptr)
+		{
+			std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
+			// cleanup();
+			// exit(1);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			continue;
+		}
+		else
+		{
+			std::cout << "EMC is online!\n";
+			break;
+		}
+	}
 
 	std::cout << "Monitoring state\n";
 	while (grinder_should_monitor)
@@ -111,6 +119,13 @@ void GrinderMotion::monitorStateImpl()
 		std::cerr << "Error updating error: " << " \n";
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		return;
+	}
+
+	if (*grinder_pins->requires_save)
+	{
+		std::cout << "GUI requested settings to be saved, saving...\n";
+		mySettingsManager->Save();
+		*(grinder_pins->requires_save) = false;
 	}
 
 	updateStatus();
@@ -270,11 +285,45 @@ void GrinderMotion::initializeHAL()
 	hal_pin_float_new((prefix + "dress_wheel_dia").c_str(), HAL_IO, &(grinder_pins->dress_wheel_dia), hal_comp_id);
 	hal_pin_float_new((prefix + "dress_point_dia").c_str(), HAL_IO, &(grinder_pins->dress_point_dia), hal_comp_id);
 	hal_pin_s32_new((prefix + "dress_offset_gcode").c_str(), HAL_IO, &(grinder_pins->dress_offset_gcode), hal_comp_id);
+	hal_pin_bit_new((prefix + "downfeed_now").c_str(), HAL_IO, &(grinder_pins->downfeed_now), hal_comp_id);
+	hal_pin_bit_new((prefix + "requires_save").c_str(), HAL_IO, &(grinder_pins->requires_save), hal_comp_id);
 	std::cout << "HAL pins initialized\n";
 
 	// Initialize default values - note the dereferencing
 	*(grinder_pins->z_direction) = true;
+	*(grinder_pins->downfeed_now) = false;
 	*(grinder_pins->is_running) = false;
+	*(grinder_pins->requires_save) = false;
+
+	auto settings = mySettingsManager->Get();
+	*(grinder_pins->x_min) = settings->x_min;
+	*(grinder_pins->x_max) = settings->x_max;
+	*(grinder_pins->y_min) = settings->y_min;
+	*(grinder_pins->y_max) = settings->y_max;
+	*(grinder_pins->z_min) = settings->z_min;
+	*(grinder_pins->z_max) = settings->z_max;
+	*(grinder_pins->x_speed) = settings->x_speed;
+	*(grinder_pins->y_speed) = settings->y_speed;
+	*(grinder_pins->z_speed) = settings->z_speed;
+	*(grinder_pins->z_crossfeed) = settings->z_crossfeed;
+	*(grinder_pins->y_downfeed) = settings->y_downfeed;
+	*(grinder_pins->enable_x) = settings->enable_x;
+	*(grinder_pins->enable_y) = settings->enable_y;
+	*(grinder_pins->enable_z) = settings->enable_z;
+	*(grinder_pins->stop_at_z_limit) = settings->stop_at_z_limit;
+	*(grinder_pins->crossfeed_at) = settings->crossfeed_at;
+	*(grinder_pins->repeat_at) = settings->repeat_at;
+	*(grinder_pins->dress_start_x) = settings->dress_start_x;
+	*(grinder_pins->dress_start_y) = settings->dress_start_y;
+	*(grinder_pins->dress_start_z) = settings->dress_start_z;
+	*(grinder_pins->dress_end_x) = settings->dress_end_x;
+	*(grinder_pins->dress_end_y) = settings->dress_end_y;
+	*(grinder_pins->dress_end_z) = settings->dress_end_z;
+	*(grinder_pins->dress_stepover_x) = settings->dress_stepover_x;
+	*(grinder_pins->dress_stepover_y) = settings->dress_stepover_y;
+	*(grinder_pins->dress_stepover_z) = settings->dress_stepover_z;
+	*(grinder_pins->dress_wheel_rpm) = settings->dress_wheel_rpm;
+	*(grinder_pins->dress_wheel_dia) = settings->dress_wheel_dia;
 }
 
 void GrinderMotion::sendMDICommand(const char *command)
@@ -301,7 +350,7 @@ void GrinderMotion::start()
 		std::cout << "Starting grinder thread\n";
 		is_running = true;
 		*(grinder_pins->is_running) = true;
-		main_thread = std::thread(&GrinderMotion::mainSequence, this);
+		// main_thread = std::thread(&GrinderMotion::mainSequence, this);
 	}
 	else
 	{
@@ -316,15 +365,15 @@ void GrinderMotion::stop()
 	{
 		is_running = false;
 		*(grinder_pins->is_running) = false;
-		if (main_thread.joinable())
-		{
-			std::cout << "Joining main thread\n";
-			main_thread.join();
-			std::cout << "Main thread joined\n";
-		}
+		// if (main_thread.joinable())
+		// {
+		// 	std::cout << "Joining main thread\n";
+		// 	main_thread.join();
+		// 	std::cout << "Main thread joined\n";
+		// }
 
-		EMC_TASK_ABORT abortMsg;
-		command_channel->write(abortMsg);
+		// EMC_TASK_ABORT abortMsg;
+		// command_channel->write(abortMsg);
 	}
 }
 
@@ -480,7 +529,7 @@ void GrinderMotion::mainSequence()
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	if (*(grinder_pins->is_running))
+	if (!*(grinder_pins->is_running))
 	{
 		stop();
 	}
@@ -500,15 +549,15 @@ void GrinderMotion::cleanup()
 
 	is_running = false;
 	grinder_should_monitor = false;
-	if (main_thread.joinable())
-	{
-		main_thread.join();
-	}
+	// if (main_thread.joinable())
+	// {
+	// 	main_thread.join();
+	// }
 
-	if (monitor_thread.joinable())
-	{
-		monitor_thread.join();
-	}
+	// if (monitor_thread.joinable())
+	// {
+	// 	monitor_thread.join();
+	// }
 
 	if (hal_comp_id > 0)
 	{
@@ -517,7 +566,7 @@ void GrinderMotion::cleanup()
 		hal_exit(hal_comp_id);
 	}
 
-	delete command_channel;
-	delete error_channel;
-	delete stat_channel;
+	// delete command_channel;
+	// delete error_channel;
+	// delete stat_channel;
 }

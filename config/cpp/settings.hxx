@@ -41,7 +41,7 @@ struct Settings
 	std::string dress_offset_gcode;
 
 	nlohmann::json to_json() const;
-	static Settings from_json(const nlohmann::json &j);
+	void from_json(const nlohmann::json &j);
 };
 
 class SettingsManager

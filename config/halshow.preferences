@@ -1,0 +1,49 @@
+# Halshow settings
+# This file is generated automatically.
+wm geometry . 1183x683+494+290
+placeFrames 0.3
+set ::ratio 0.3
+set ::old_w_leftf 160
+set ::watchlist {
+    pin+grinder.crossfeed_at
+    pin+grinder.downfeed_now
+    pin+grinder.dress_end_x
+    pin+grinder.dress_end_y
+    pin+grinder.dress_end_z
+    pin+grinder.dress_offset_gcode
+    pin+grinder.dress_point_dia
+    pin+grinder.dress_start_x
+    pin+grinder.dress_start_y
+    pin+grinder.dress_start_z
+    pin+grinder.dress_stepover_x
+    pin+grinder.dress_stepover_y
+    pin+grinder.dress_stepover_z
+    pin+grinder.dress_wheel_dia
+    pin+grinder.dress_wheel_rpm
+    pin+grinder.enable_x
+    pin+grinder.enable_y
+    pin+grinder.enable_z
+    pin+grinder.is_running
+    pin+grinder.repeat_at
+    pin+grinder.requires_save
+    pin+grinder.stop_at_z_limit
+    pin+grinder.x_max
+    pin+grinder.x_min
+    pin+grinder.x_speed
+    pin+grinder.y_downfeed
+    pin+grinder.y_max
+    pin+grinder.y_min
+    pin+grinder.y_speed
+    pin+grinder.z_crossfeed
+    pin+grinder.z_direction
+    pin+grinder.z_max
+    pin+grinder.z_min
+    pin+grinder.z_speed
+}
+set ::workmode watchhal
+set ::watchInterval 100
+set ::col1_width 100
+set ::ffmts 
+set ::ifmts 
+set ::alwaysOnTop 0
+set ::autoSaveWatchlist 1

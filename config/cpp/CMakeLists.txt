@@ -41,7 +41,7 @@ set_target_properties(hal_lib PROPERTIES
     IMPORTED_LOCATION "${HAL_MODULE}"
 )
 
-add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx)
+add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx backward.cpp)
 
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
@@ -55,6 +55,21 @@ set(DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
+# FetchContent_Declare(
+#     backward
+#     SYSTEM
+#     GIT_REPOSITORY https://github.com/bombela/backward-cpp.git
+#     GIT_TAG master # or whatever version/tag you prefer
+    
+# )
+# FetchContent_MakeAvailable(backward)
+
+# add_definitions(
+#     -BACKWARD_SHARED=0
+# )
+
+set(BACKWARD_SHARED OFF)
+
 target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
 
 include_directories(
@@ -62,14 +77,16 @@ include_directories(
     /usr/lib/llvm-19/include  # Add libunwind include path
 )
 
-target_link_libraries(grinder_backend 
+target_link_libraries(grinder_backend PUBLIC 
     ${HAL_LIB}
     ${LINUXCNC_LIB}
     ${NML_LIB}
     pthread
     dl
-    unwind
     nlohmann_json::nlohmann_json
+    dw
+    unwind
+    # Backward
 )
 
 # if(LIBUNWIND_FOUND)

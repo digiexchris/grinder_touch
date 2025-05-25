@@ -48,42 +48,40 @@ std::shared_ptr<Settings> SettingsManager::Get()
 	return mySettings;
 }
 
-Settings Settings::from_json(const nlohmann::json &j)
+void Settings::from_json(const nlohmann::json &j)
 {
-	Settings settings;
-	settings.x_min = j["x_min"].get<double>();
-	settings.x_max = j["x_max"].get<double>();
-	settings.y_min = j["y_min"].get<double>();
-	settings.y_max = j["y_max"].get<double>();
-	settings.z_min = j["z_min"].get<double>();
-	settings.z_max = j["z_max"].get<double>();
-	settings.x_speed = j["x_speed"].get<uint32_t>();
-	settings.y_speed = j["y_speed"].get<uint32_t>();
-	settings.z_speed = j["z_speed"].get<uint32_t>();
-	settings.z_direction = j["z_direction"].get<bool>();
-	settings.z_crossfeed = j["z_crossfeed"].get<double>();
-	settings.y_downfeed = j["y_downfeed"].get<double>();
-	settings.enable_x = j["enable_x"].get<bool>();
-	settings.enable_y = j["enable_y"].get<bool>();
-	settings.enable_z = j["enable_z"].get<bool>();
-	settings.stop_at_z_limit = j["stop_at_z_limit"].get<bool>();
-	settings.crossfeed_at = j["crossfeed_at"].get<int32_t>();
-	settings.repeat_at = j["repeat_at"].get<int32_t>();
-	settings.is_running = j["is_running"].get<bool>();
-	settings.dress_start_x = j["dress_start_x"].get<double>();
-	settings.dress_start_y = j["dress_start_y"].get<double>();
-	settings.dress_start_z = j["dress_start_z"].get<double>();
-	settings.dress_end_x = j["dress_end_x"].get<double>();
-	settings.dress_end_y = j["dress_end_y"].get<double>();
-	settings.dress_end_z = j["dress_end_z"].get<double>();
-	settings.dress_stepover_x = j["dress_stepover_x"].get<double>();
-	settings.dress_stepover_y = j["dress_stepover_y"].get<double>();
-	settings.dress_stepover_z = j["dress_stepover_z"].get<double>();
-	settings.dress_wheel_rpm = j["dress_wheel_rpm"].get<double>();
-	settings.dress_wheel_dia = j["dress_wheel_dia"].get<double>();
-	settings.dress_point_dia = j["dress_point_dia"].get<double>();
-	settings.dress_offset_gcode = j["dress_offset_gcode"].get<std::string>();
-	return settings;
+	x_min = j["x_min"].get<double>();
+	x_max = j["x_max"].get<double>();
+	y_min = j["y_min"].get<double>();
+	y_max = j["y_max"].get<double>();
+	z_min = j["z_min"].get<double>();
+	z_max = j["z_max"].get<double>();
+	x_speed = j["x_speed"].get<uint32_t>();
+	y_speed = j["y_speed"].get<uint32_t>();
+	z_speed = j["z_speed"].get<uint32_t>();
+	z_direction = j["z_direction"].get<bool>();
+	z_crossfeed = j["z_crossfeed"].get<double>();
+	y_downfeed = j["y_downfeed"].get<double>();
+	enable_x = j["enable_x"].get<bool>();
+	enable_y = j["enable_y"].get<bool>();
+	enable_z = j["enable_z"].get<bool>();
+	stop_at_z_limit = j["stop_at_z_limit"].get<bool>();
+	crossfeed_at = j["crossfeed_at"].get<int32_t>();
+	repeat_at = j["repeat_at"].get<int32_t>();
+	is_running = j["is_running"].get<bool>();
+	dress_start_x = j["dress_start_x"].get<double>();
+	dress_start_y = j["dress_start_y"].get<double>();
+	dress_start_z = j["dress_start_z"].get<double>();
+	dress_end_x = j["dress_end_x"].get<double>();
+	dress_end_y = j["dress_end_y"].get<double>();
+	dress_end_z = j["dress_end_z"].get<double>();
+	dress_stepover_x = j["dress_stepover_x"].get<double>();
+	dress_stepover_y = j["dress_stepover_y"].get<double>();
+	dress_stepover_z = j["dress_stepover_z"].get<double>();
+	dress_wheel_rpm = j["dress_wheel_rpm"].get<double>();
+	dress_wheel_dia = j["dress_wheel_dia"].get<double>();
+	dress_point_dia = j["dress_point_dia"].get<double>();
+	dress_offset_gcode = j["dress_offset_gcode"].get<std::string>();
 }
 
 nlohmann::json

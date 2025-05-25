@@ -23,12 +23,13 @@ struct GrinderPins
 	hal_float_t *dress_wheel_dia;
 	hal_float_t *dress_point_dia;
 	hal_s32_t *dress_offset_gcode;
+	hal_bit_t *requires_save;
 };
 
 class GrinderMotion
 {
 private:
-	RCS_STAT_CHANNEL *stat_channel;
+	// RCS_STAT_CHANNEL *stat_channel;
 	EMC_STAT *myEmcStatus;
 	NML *error_channel;
 	NML *command_channel;
