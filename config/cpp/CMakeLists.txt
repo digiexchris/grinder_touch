@@ -68,7 +68,7 @@ FetchContent_MakeAvailable(json)
 #     -BACKWARD_SHARED=0
 # )
 
-set(BACKWARD_SHARED OFF)
+# set(BACKWARD_SHARED OFF)
 
 target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
 

@@ -13,7 +13,6 @@
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <iostream>
-#include <libunwind.h>
 #include <sstream>
 
 #ifndef EMC2_DEFAULT_INIFILE
@@ -35,25 +34,6 @@ GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager)
 void GrinderMotion::monitorState()
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-	for (int i = 0; i < 10; ++i)
-	{
-		updateStatus();
-		myEmcStatus = emcStatusGet();
-		if (myEmcStatus == nullptr)
-		{
-			std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
-			// cleanup();
-			// exit(1);
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			continue;
-		}
-		else
-		{
-			std::cout << "EMC is online!\n";
-			break;
-		}
-	}
 
 	std::cout << "Monitoring state\n";
 	while (grinder_should_monitor)
@@ -187,6 +167,26 @@ void GrinderMotion::Start()
 {
 	try
 	{
+
+		for (int i = 0; i < 10; ++i)
+		{
+			updateStatus();
+			myEmcStatus = emcStatusGet();
+			if (myEmcStatus == nullptr)
+			{
+				std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
+				// cleanup();
+				// exit(1);
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				continue;
+			}
+			else
+			{
+				std::cout << "EMC is online!\n";
+				break;
+			}
+		}
+
 		// Initialize HAL first but don't mark ready
 		initializeHAL();
 

@@ -33,11 +33,15 @@
 // - g++/clang++ -lunwind
 #define BACKWARD_HAS_LIBUNWIND 1
 
+// #define BACKWARD_HAS_UNWIND 1
+
+#define BACKWARD_SYSTEM_LINUX
+
 #include "backward.hpp"
 
 namespace backward
 {
 
-	// backward::SignalHandling sh;
+	backward::SignalHandling sh;
 
 } // namespace backward

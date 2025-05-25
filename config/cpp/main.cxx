@@ -1,90 +1,17 @@
 #include "grinder-backend.hxx"
 #define UNW_LOCAL_ONLY
+#include "backward.hpp"
 #include "settings.hxx"
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
 #include <cxxabi.h>
 #include <iostream>
-// #include <libunwind.h>
-#include "backward.hpp"
 
 // backward::SignalHandling sh({SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS});
 
 static GrinderMotion *grinder = nullptr;
 
-// void print_stacktrace(void)
-// {
-// 	unw_cursor_t cursor;
-// 	unw_context_t context;
-
-// 	unw_getcontext(&context);
-// 	unw_init_local(&cursor, &context);
-
-// 	while (unw_step(&cursor) > 0)
-// 	{
-// 		unw_word_t offset, pc;
-// 		char sym[256];
-
-// 		unw_get_reg(&cursor, UNW_REG_IP, &pc);
-// 		if (pc == 0)
-// 		{
-// 			break;
-// 		}
-
-// 		char *name = sym;
-// 		if (unw_get_proc_name(&cursor, sym, sizeof(sym), &offset) == 0)
-// 		{
-// 			int status;
-// 			char *demangled = abi::__cxa_demangle(sym, nullptr, nullptr, &status);
-// 			if (demangled)
-// 			{
-// 				name = demangled;
-// 			}
-// 			std::cerr << "0x" << std::hex << pc << ": " << name << "+0x" << std::hex << offset << std::dec << "\n";
-// 			if (demangled)
-// 			{
-// 				free(demangled);
-// 			}
-// 		}
-// 		else
-// 		{
-// 			std::cerr << "0x" << std::hex << pc << ": -- symbol not found --\n";
-// 		}
-// 	}
-// }
-
-// void crash_handler(int sig)
-// {
-// 	std::cerr << "Caught signal " << sig << " (" << strsignal(sig) << ")\n";
-// 	print_stacktrace();
-// 	signal(sig, SIG_DFL);
-// 	raise(sig);
-// }
-
-backward::StackTrace st;
-backward::Printer printer;
-
-void error_sig_handler(int sig)
-{
-	std::cerr << "Error signal received: " << sig << "\n";
-
-	st.load_here();
-	printer.print(st, std::cout);
-
-	if (grinder != nullptr)
-	{
-		delete grinder;
-		grinder = nullptr;
-	}
-	exit(sig);
-}
-
-void uncaught_handler()
-{
-	std::cout << "Uncaught exception\n";
-	error_sig_handler(SIGABRT);
-}
 void signal_handler(int sig)
 {
 	std::cout << "Signal received: " << sig << "\n";
@@ -122,8 +49,15 @@ int main(int argc, char **argv)
 	// signal(SIGILL, error_sig_handler);
 	// signal(SIGBUS, error_sig_handler);
 
-	int *ptr = nullptr;
-	*ptr = 42; // This will crash with SIGSEGV
+	// std::cout << "Testing backward address resolution:\n";
+	// backward::StackTrace st;
+	// backward::Printer printer;
+	// st.load_here(5);
+	// printer.print(st, std::cout);
+	// std::cout << "End of test\n";
+
+	// int *ptr = nullptr;
+	// *ptr = 42; // This will crash with SIGSEGV
 
 	try
 	{
