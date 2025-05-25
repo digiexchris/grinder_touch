@@ -111,6 +111,11 @@ void GrinderMotion::monitorStateImpl()
 	updateStatus();
 
 	bool was_ok = machine_ok.load();
+	if (myEmcStatus == nullptr)
+	{
+		std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
+		return;
+	}
 	bool is_ok = !(myEmcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
 				 myEmcStatus->task.state == EMC_TASK_STATE_ON &&
 				 myEmcStatus->motion.traj.enabled;
@@ -137,83 +142,65 @@ void GrinderMotion::monitorStateImpl()
 		start();
 	}
 
-	// Check for errors
-	if (error_channel != nullptr)
-	{
-		NMLTYPE type = error_channel->read();
-		if (type != 0)
-		{
-			std::cerr << "Error type: " << type << " - ";
-			switch (type)
-			{
-			case EMC_OPERATOR_ERROR_TYPE:
-				std::cerr << "Operator Error";
-				break;
-			case EMC_OPERATOR_TEXT_TYPE:
-				std::cerr << "Operator Info";
-				break;
-			case EMC_OPERATOR_DISPLAY_TYPE:
-				std::cerr << "Operator Display";
-				break;
-			default:
-				std::cerr << "Unknown";
-			}
-			std::cerr << '\n';
-		}
-	}
+	// // Check for errors
+	// if (error_channel != nullptr)
+	// {
+	// 	NMLTYPE type = error_channel->read();
+	// 	if (type != 0)
+	// 	{
+	// 		std::cerr << "Error type: " << type << " - ";
+	// 		switch (type)
+	// 		{
+	// 		case EMC_OPERATOR_ERROR_TYPE:
+	// 			std::cerr << "Operator Error";
+	// 			break;
+	// 		case EMC_OPERATOR_TEXT_TYPE:
+	// 			std::cerr << "Operator Info";
+	// 			break;
+	// 		case EMC_OPERATOR_DISPLAY_TYPE:
+	// 			std::cerr << "Operator Display";
+	// 			break;
+	// 		default:
+	// 			std::cerr << "Unknown";
+	// 		}
+	// 		std::cerr << '\n';
+	// 	}
+	// }
 }
 
 void GrinderMotion::Start()
 {
-	try
+
+	initializeHAL();
+
+	if (hal_ready(hal_comp_id) != 0)
 	{
-
-		for (int i = 0; i < 10; ++i)
-		{
-			updateStatus();
-			myEmcStatus = emcStatusGet();
-			if (myEmcStatus == nullptr)
-			{
-				std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
-				// cleanup();
-				// exit(1);
-				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-				continue;
-			}
-			else
-			{
-				std::cout << "EMC is online!\n";
-				break;
-			}
-		}
-
-		// Initialize HAL first but don't mark ready
-		initializeHAL();
-
-		// Initialize NML
-		initializeNML();
-
-		// std::cout << "NML initialized\n";
-
-		// Only mark HAL ready after all initialization is complete
-		if (hal_ready(hal_comp_id) != 0)
-		{
-			throw std::runtime_error("Failed to mark HAL component as ready");
-		}
-
-		std::cout << "HAL component ready\n";
+		throw std::runtime_error("Failed to mark HAL component as ready");
 	}
-	catch (const std::exception &e)
+
+	std::cout << "HAL component ready\n";
+
+	for (int i = 0; i < 10; ++i)
 	{
-		std::cerr << "Initialization error: " << e.what() << '\n';
-		std::cout << "Initialization error: " << e.what() << '\n';
-		if (hal_comp_id > 0)
+		updateStatus();
+		myEmcStatus = emcStatusGet();
+		if (myEmcStatus == nullptr)
 		{
-			hal_exit(hal_comp_id);
-			exit(1);
+			std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
+			// cleanup();
+			// exit(1);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			continue;
 		}
-		throw;
+		else
+		{
+			std::cout << "EMC is online!\n";
+			break;
+		}
 	}
+
+	// Initialize NML
+	initializeNML();
 }
 
 GrinderMotion::~GrinderMotion() { cleanup(); }

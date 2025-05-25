@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		setenv("INI_FILE_NAME", argv[1], 1);
 	}
 
-	// std::cerr.setf(std::ios::unitbuf);
+	std::cerr.setf(std::ios::unitbuf);
 	// // signal(SIGINT, signal_handler);
 	// signal(SIGTERM, signal_handler);
 	// std::set_terminate(uncaught_handler); // uncaught c++ exceptions
@@ -59,25 +59,25 @@ int main(int argc, char **argv)
 	// int *ptr = nullptr;
 	// *ptr = 42; // This will crash with SIGSEGV
 
-	try
-	{
-		settings = new SettingsManager("./grinder_settings.json");
+	// try
+	// {
+	settings = new SettingsManager("./grinder_settings.json");
 
-		grinder = new GrinderMotion(settings);
-		grinder->Start();
-		grinder->monitorState();
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-	catch (const std::exception &e)
-	{
-		std::cerr << "Error: " << e.what() << '\n';
-		if (grinder != nullptr)
-		{
-			grinder->cleanup();
-			delete grinder;
-		}
-		return 1;
-	}
+	grinder = new GrinderMotion(settings);
+	grinder->Start();
+	grinder->monitorState();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	// }
+	// catch (const std::exception &e)
+	// {
+	// 	std::cerr << "Error: " << e.what() << '\n';
+	// 	if (grinder != nullptr)
+	// 	{
+	// 		grinder->cleanup();
+	// 		delete grinder;
+	// 	}
+	// 	return 1;
+	// }
 
 	return 0;
 }
