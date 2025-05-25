@@ -6,10 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(RAPIDJSON_BUILD_TESTS OFF)
-
-set(RAPIDJSON_BUILD_EXAMPLES OFF)
-set(RAPIDJSON_BUILD_TESTS OFF)
 
 # Define ULAPI for userspace program
 add_definitions(-DULAPI)
@@ -87,10 +83,12 @@ set_target_properties(grinder_backend PROPERTIES
     INSTALL_RPATH "${LINUXCNC_MODULE_DIR}:${LINUXCNC_LIB_DIR}"
 )
 
+message(STATUS "BINARY_POSTFIX is: '${BINARY_POSTFIX}'")
+
 # Add post-build command to copy binary to config directory
 add_custom_command(TARGET grinder_backend POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:grinder_backend>
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_backend${BINARY_POSTFIX}
     COMMENT "Copying binary to config directory"
 )
