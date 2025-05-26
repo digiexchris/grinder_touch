@@ -1,5 +1,5 @@
 # Load the Python script and wait for it to initialize
-# loadusr -Wn grinder ./python/grinder-backend.py
+loadusr -Wn grinder ./python/grinder-backend.py
 
 # loadusr python3 process.py
 

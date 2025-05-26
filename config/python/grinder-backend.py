@@ -27,7 +27,6 @@ class GrinderMotion():
         self.is_running = False # set to true if we weren't running before and this is the first time through the movement loop
         self.units = linear_units_inch
         self.last_units = linear_units_inch
-        
         GrinderHal.initialize_hal()
         time.sleep(0.05)
         GrinderHal.load_settings()
