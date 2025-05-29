@@ -28,12 +28,47 @@
     },
     {
       "name": "arm64-debug",
-      "displayName": "arm64 clang Debug",
+      "displayName": "ARM64 Clang Debug",
+      "description": "Debug build for ARM64 using Clang cross-compiler with schroot sysroot",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/clang-debug-arm64",
-      "inherits": [
-        "clang-debug"
-      ],
+      "toolchainFile": "${sourceDir}/arm64-toolchain.cmake",
+      "environment": {
+        "CC": "ccache clang-19",
+        "CXX": "ccache clang++-19",
+        "LDFLAGS": "-fuse-ld=lld-19",
+        "PKG_CONFIG_PATH": "/srv/chroot/arm64-bookworm/usr/lib/aarch64-linux-gnu/pkgconfig:/srv/chroot/arm64-bookworm/usr/lib/pkgconfig",
+        "PKG_CONFIG_SYSROOT_DIR": "/srv/chroot/arm64-bookworm"
+      },
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -fdiagnostics-color=always -g3 -fno-omit-frame-pointer -funwind-tables",
+        "CMAKE_C_FLAGS": "-Wall -Wextra -Wpedantic -fdiagnostics-color=always -g3 -fno-omit-frame-pointer -funwind-tables",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld-19 -rdynamic",
+        "BINARY_POSTFIX": "-arm64"
+      }
+    },
+    {
+      "name": "arm64-release",
+      "displayName": "ARM64 Clang Release",
+      "description": "Release build for ARM64 using Clang cross-compiler with schroot sysroot",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/clang-release-arm64",
+      "toolchainFile": "${sourceDir}/arm64-toolchain.cmake",
+      "environment": {
+        "CC": "clang-19",
+        "CXX": "clang++-19",
+        "LDFLAGS": "-fuse-ld=lld-19",
+        "PKG_CONFIG_PATH": "/srv/chroot/arm64-bookworm/usr/lib/aarch64-linux-gnu/pkgconfig:/srv/chroot/arm64-bookworm/usr/lib/pkgconfig",
+        "PKG_CONFIG_SYSROOT_DIR": "/srv/chroot/arm64-bookworm"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
+        "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld-19",
         "BINARY_POSTFIX": "-arm64"
       }
     },
@@ -67,7 +102,24 @@
     },
     {
       "name": "clang-release",
-      "configurePreset": "clang-release"
+      "configurePreset": "clang-release",
+      "targets": [
+        "grinder_backend"
+      ]
+    },
+    {
+      "name": "arm64-debug",
+      "configurePreset": "arm64-debug",
+      "targets": [
+        "grinder_backend"
+      ]
+    },
+    {
+      "name": "arm64-release",
+      "configurePreset": "arm64-release",
+      "targets": [
+        "grinder_backend"
+      ]
     }
   ]
 }

@@ -10,14 +10,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Define ULAPI for userspace program
 add_definitions(-DULAPI)
 
-# Add LinuxCNC include directories
-include_directories(
-    /usr/include/linuxcnc
-)
+# Handle cross-compilation paths
+if(CMAKE_CROSSCOMPILING)
+    # For cross-compilation, use the sysroot paths
+    set(LINUXCNC_INCLUDE_DIR ${CMAKE_SYSROOT}/usr/include/linuxcnc)
+    set(LINUXCNC_MODULE_DIR ${CMAKE_SYSROOT}/usr/lib/linuxcnc/modules)
+    set(LINUXCNC_LIB_DIR ${CMAKE_SYSROOT}/usr/lib/)
+else()
+    # For native compilation, use system paths
+    set(LINUXCNC_INCLUDE_DIR /usr/include/linuxcnc)
+    set(LINUXCNC_MODULE_DIR /usr/lib/linuxcnc/modules)
+    set(LINUXCNC_LIB_DIR /usr/lib/)
+endif()
 
-# Define module directory
-set(LINUXCNC_MODULE_DIR /usr/lib/linuxcnc/modules)
-set(LINUXCNC_LIB_DIR /usr/lib/)
+# Add LinuxCNC include directories
+include_directories(${LINUXCNC_INCLUDE_DIR})
 
 # Find system libraries
 find_library(LINUXCNC_LIB NAMES linuxcnc PATHS ${LINUXCNC_LIB_DIR})
@@ -73,9 +80,22 @@ FetchContent_MakeAvailable(json)
 target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
 
 include_directories(
-    /usr/include/linuxcnc
-    /usr/lib/llvm-19/include  # Add libunwind include path
+    ${LINUXCNC_INCLUDE_DIR}
 )
+
+# Handle libunwind include path for cross-compilation
+if(CMAKE_CROSSCOMPILING)
+    # For cross-compilation, try to find libunwind in the sysroot
+    find_path(LIBUNWIND_INCLUDE_DIR libunwind.h 
+        PATHS ${CMAKE_SYSROOT}/usr/include
+        NO_DEFAULT_PATH)
+    if(LIBUNWIND_INCLUDE_DIR)
+        include_directories(${LIBUNWIND_INCLUDE_DIR})
+    endif()
+else()
+    # For native compilation, use system paths
+    include_directories(/usr/lib/llvm-19/include)
+endif()
 
 target_link_libraries(grinder_backend PUBLIC 
     ${HAL_LIB}
