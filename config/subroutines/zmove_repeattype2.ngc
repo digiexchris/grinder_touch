@@ -1,16 +1,4 @@
 O<zmove_repeattype2> sub
-; #4 = [#<_hal[grinder.z_min]>] 
-; #5 = [#<_hal[grinder.z_max]>] 
-; #6 = [#<_hal[grinder.z_crossfeed]>] 
-; #7 = [#<_hal[grinder.z_speed]>]
-; #8 = [#<_hal[grinder.z_direction]>]
-; #11 = #<_hal[grinder.enable_z]>
-; #12 = #<_hal[grinder.enable_x]>
-
-; #<_x> X
-; #<_y> Y
-; #<_z> Z
-
 o100 IF [#<_hal[grinder.enable_z]> EQ 1]
 
 ;(p, Z DIRECTION IS #<_hal[grinder.z_direction]>)

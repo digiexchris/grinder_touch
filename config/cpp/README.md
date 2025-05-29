@@ -1,1 +1,1 @@
-sudo apt install binutils-dev libdw-dev
+sudo apt install binutils-dev libdw-dev libboost1.81* libboost1.81-all-dev libunwind libunwind-dev libunwind-19-dev libunwind-19

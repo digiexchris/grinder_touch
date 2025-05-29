@@ -1,14 +1,10 @@
 #!/usr/bin/python3
-
-import threading
 import hal
 import linuxcnc
 import time
-import traceback
 from axis import Axis
 from grinderhal import GrinderHal
 from hal_glib import GStat
-from kthread import KThread
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -21,16 +17,21 @@ class GrinderMotion():
     def __init__(self):
         self.status = linuxcnc.stat()
         self.error_chan = linuxcnc.error_channel()
-        self.thread = None
+        self.c = linuxcnc.command()
         # Initialize HAL and LinuxCNC
-        self.initialize_hal()
+        
         self.pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.is_running = False
         self.is_on = False
         self.is_estop = True
         self.is_ready = False
+        self.is_running = False # set to true if we weren't running before and this is the first time through the movement loop
         self.units = linear_units_inch
         self.last_units = linear_units_inch
+        
+        GrinderHal.initialize_hal()
+        time.sleep(0.05)
+        GrinderHal.load_settings()
+        time.sleep(0.05)
 
     def __del__(self):
         print("GrinderMotion cleaned up")
@@ -38,6 +39,7 @@ class GrinderMotion():
     def shutdown(self):
         print("Shutdown signal recvd")
         quit()
+
 
     def onModeChanged(self):
         running = bool(GrinderHal.get_hal("is_running"))
@@ -58,22 +60,11 @@ class GrinderMotion():
                 GrinderHal.set_hal("is_running", False)
                 self.is_running = False
             return
-        
-        self.thread = KThread(target = self.main_sequence, name = "MainLoop")
-        self.thread.start()
-
-    def stopThread(self):
-        try:
-            if self.thread != None:
-                self.thread.terminate()
-        except threading.ThreadError:
-            print("BE thread already stopped")
 
     def stop(self, obj = None):
         print("Stopping Grinder Backend")
         
         self.c.abort()
-        self.stopThread()
 
     def update_pos(self):
         pos = self.status.position
@@ -84,71 +75,10 @@ class GrinderMotion():
 
     def get_pos(self, axis):
         return round(self.pos[axis.to_int()], GrinderHal.get_rounding_tolerance())
-
-    def initialize_hal(self):
-        self.h = hal.component("grinder")
-        self.c = linuxcnc.command()
-
-        self.h.newpin("x_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("x_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_min", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_max", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("x_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_speed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("z_direction", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("z_crossfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("y_downfeed", hal.HAL_FLOAT, hal.HAL_IN)
-        self.h.newpin("downfeed_now", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_x", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_y", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("enable_z", hal.HAL_BIT, hal.HAL_IO)
-        self.h.newpin("stop_at_z_limit", hal.HAL_BIT, hal.HAL_IN)
-        self.h.newpin("crossfeed_at", hal.HAL_S32, hal.HAL_IN)
-        self.h.newpin("repeat_at", hal.HAL_S32, hal.HAL_IN)
-        self.h.newpin("is_running", hal.HAL_BIT, hal.HAL_IO)
-        
-        self.h.ready()
-
-        print("Grinder hal ready")
-
-        hal.set_p("grinder.z_direction", str(1))
-
-        hal.set_p("grinder.x_min", str(0.0))
-        hal.set_p("grinder.x_max", str(0.0))
-        hal.set_p("grinder.y_min", str(0.0))
-        hal.set_p("grinder.y_max", str(0.0))
-        hal.set_p("grinder.z_min", str(0.0))
-        hal.set_p("grinder.z_max", str(0.0))
-
-        hal.set_p("grinder.x_speed", str(0.0))
-        hal.set_p("grinder.y_speed", str(0.0))
-        hal.set_p("grinder.z_speed", str(0.0))
-
-        hal.set_p("grinder.z_crossfeed", str(0.0))
-        hal.set_p("grinder.y_downfeed", str(0.0))
-        hal.set_p("grinder.downfeed_now", str(False))
-
-        # Enable and control signals
-        hal.set_p("grinder.enable_x", str(False))
-        hal.set_p("grinder.enable_y", str(False))
-        hal.set_p("grinder.enable_z", str(False))
-        hal.set_p("grinder.stop_at_z_limit", str(False))
-
-        # Crossfeed and repeat settings
-        hal.set_p("grinder.crossfeed_at", str(0))
-        hal.set_p("grinder.repeat_at", str(0))
-
-        hal.set_p("grinder.is_running", str(False))
-
         self.status.poll()
 
         self.units = self.status.linear_units
         # print("Initial units", self.units)
-
-    # Main logic sequence
 
     def print_mode(self):
         
@@ -159,7 +89,6 @@ class GrinderMotion():
             print("Current mode: Auto")
         elif self.status.task_mode == linuxcnc.MODE_MDI:
             print("Current mode: MDI")
-
 
     def print_error(self, error):
         print(f"Linuxcnc error returned: {error}")
@@ -275,6 +204,8 @@ class GrinderMotion():
         self.updateLinearUnits()
         self.updateErrors()
 
+        print(GrinderHal.get_hal("x_max"))
+
         if not self.is_running:
             if GrinderHal.get_hal("downfeed_now"):
                 self.downfeed_now()
@@ -283,6 +214,7 @@ class GrinderMotion():
         exit = True
         while(exit):
             # print("START UPDATE")
+            time.sleep(0.05)
             try:
                 self.update();
 
@@ -293,6 +225,7 @@ class GrinderMotion():
                 print("error", detail)
                 self.stop()
                 return
+        
 
     def reset_downfeed_trigger(self):
         GrinderHal.set_hal("downfeed_now", False)
@@ -317,66 +250,19 @@ class GrinderMotion():
         self.reset_downfeed_trigger()
 
     def main_sequence(self):
-        print("Started Grind Sequence")  
 
         try:
             self.status.poll() # an early test to see if linuxcnc is still running      
 
-            if bool(GrinderHal.get_hal("downfeed_now")):
-                self.reset_downfeed_trigger()
-
-            self.c.mode(linuxcnc.MODE_MDI)
-            self.c.wait_complete()
-
-            x_pos = self.get_pos(Axis.X)
-            x_max = float(GrinderHal.get_hal("x_max"))
-            x_min = float(GrinderHal.get_hal("x_min"))
-            y_pos = self.get_pos(Axis.Y)
-            y_max = float(GrinderHal.get_hal("y_max"))
-            y_min = float(GrinderHal.get_hal("y_min"))
-            z_pos = self.get_pos(Axis.Z)
-            z_max = float(GrinderHal.get_hal("z_max"))
-            z_min = float(GrinderHal.get_hal("z_min"))
-
-#check if limits make sense
-            # if x_min > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
-                
-
-
-#move into limits
-            if x_pos > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
-                mdi = f"G0 X{x_max}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
-
-            if y_pos > y_max + 0.00001 and bool(GrinderHal.get_hal("enable_y")):
-                mdi = f"G0 Y{y_max}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
-
-            if z_pos > z_max + 0.00001 and bool(GrinderHal.get_hal("enable_z")):
-                mdi = f"G0 Z{z_max}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
-
-            if x_pos < x_min - 0.00001 and bool(GrinderHal.get_hal("enable_x")):
-                mdi = f"G0 X{x_min}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
-
-            if y_pos < y_min - 0.00001 and bool(GrinderHal.get_hal("enable_y")):
-                mdi = f"G0 Y{y_min}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
-
-            if z_pos < z_min - 0.00001 and bool(GrinderHal.get_hal("enable_z")):
-                mdi = f"G0 Z{z_min}"
-                self.c.mdi(mdi)
-                self.c.wait_complete(self.get_max_wait())
             
-            while True:
+
+            if not self.is_running:
+                if bool(GrinderHal.get_hal("downfeed_now")):
+                    self.downfeed_now()
+                return
+            
+            if self.is_running:
                 self.status.poll() # an early test to see if linuxcnc is still running
-                
                 if not self.is_running:
                     
                     self.c.abort()
@@ -427,16 +313,12 @@ class GrinderMotion():
         except:
             print("Error while sending abort command, Linuxcnc is probably stopped. Ignoring")
 
-        try:
-            self.stopThread()
-        except:
-            print("Error while stopping main sequence thread, Linuxcnc is probably stopped. Ignoring")
-
 # Run the main sequence
 try:
     grinderBackend = GrinderMotion()
     
     print("GRINDER_BACKEND STARTED")
+
     grinderBackend.main_loop()
     print("GRINDER_BACKEND MAIN LOOP EXITED")
 # GLib.MainLoop().run()

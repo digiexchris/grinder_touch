@@ -1,4 +1,3 @@
-import os
 import sys
 from PyQt6.QtWidgets import QLineEdit, QPushButton, QComboBox, QDoubleSpinBox, QSpinBox, QCheckBox, QWidget
 
@@ -7,8 +6,6 @@ from hal_glib import GStat
 
 from python.axis import Axis
 from python.grinderhal import GrinderHal
-
-import pickle
 
 def startup(parent):
     #parent.setFixedSize(1920, 1200)
@@ -21,8 +18,9 @@ def startup(parent):
         sys.exit(1)
         return
 
-    parent.grinder_window.load_settings()
-    parent.grinder_window.initialize_controls(parent)
+    # parent.grinder_window.load_settings()
+    # parent.grinder_window.initialize_controls(parent)
+    # parent.grinder_window.update_pos()
     
     
 
@@ -36,13 +34,11 @@ class GrinderWindow(QWidget):
         self.parent = parent
         
         
-        self.is_running = False
-
-        self.settings_file = "./grinder.pkl"
 
         if not GrinderHal.waitForComponentReady(20):
             raise Exception("Grinder component not ready")
-
+        
+        self.is_running = GrinderHal.get_hal("is_running")
         self.pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.GSTAT.connect("current-position", self.update_pos)
@@ -53,8 +49,56 @@ class GrinderWindow(QWidget):
 
         self.c = linuxcnc.command()
         self.s = linuxcnc.stat()
+        self.initialize_controls(parent)
+        self.update_fields()
     
     def start(self):
+        if not GrinderHal.get_hal("is_running"):
+
+            if bool(GrinderHal.get_hal("downfeed_now")):
+                GrinderHal.set_hal("downfeed_now", False) # just make sure we don't have an unintended pending downfeed
+
+            #move within limits
+            x_pos = self.get_pos(Axis.X)
+            x_max = float(GrinderHal.get_hal("x_max"))
+            x_min = float(GrinderHal.get_hal("x_min"))
+            y_pos = self.get_pos(Axis.Y)
+            y_max = float(GrinderHal.get_hal("y_max"))
+            y_min = float(GrinderHal.get_hal("y_min"))
+            z_pos = self.get_pos(Axis.Z)
+            z_max = float(GrinderHal.get_hal("z_max"))
+            z_min = float(GrinderHal.get_hal("z_min"))
+
+            if x_pos > x_max + 0.00001 and bool(GrinderHal.get_hal("enable_x")):
+                mdi = f"G0 X{x_max}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+
+            if y_pos > y_max + 0.00001 and bool(GrinderHal.get_hal("enable_y")):
+                mdi = f"G0 Y{y_max}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+
+            if z_pos > z_max + 0.00001 and bool(GrinderHal.get_hal("enable_z")):
+                mdi = f"G0 Z{z_max}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+
+            if x_pos < x_min - 0.00001 and bool(GrinderHal.get_hal("enable_x")):
+                mdi = f"G0 X{x_min}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+
+            if y_pos < y_min - 0.00001 and bool(GrinderHal.get_hal("enable_y")):
+                mdi = f"G0 Y{y_min}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+
+            if z_pos < z_min - 0.00001 and bool(GrinderHal.get_hal("enable_z")):
+                mdi = f"G0 Z{z_min}"
+                self.c.mdi(mdi)
+                self.c.wait_complete(30)
+        #start the backend
         GrinderHal.set_hal("is_running", True)
 
     def stop(self):
@@ -85,29 +129,7 @@ class GrinderWindow(QWidget):
                 self.set_run_stop_stopped()
         self.pos = relative_pos
 
-        self.x_min = float(GrinderHal.get_hal("x_min"))
-        self.x_max = float(GrinderHal.get_hal("x_max"))
-        self.y_min = float(GrinderHal.get_hal("y_min"))
-        self.y_max = float(GrinderHal.get_hal("y_max"))
-        self.z_min = float(GrinderHal.get_hal("z_min"))
-        self.z_max = float(GrinderHal.get_hal("z_max"))
-
         self.update_fields()
-
-    def get_converted_value(self, value, units):
-        if units != "inch" and units != "mm":
-            raise Exception("Get converted value called with invalid unit type")
-
-        if self.GSTAT.is_metric_mode():
-            if units == "mm":
-                return value
-            else:
-                return value*25.4
-        else:
-            if units == "inch":
-                return value
-            else:
-                return value/25.4
     
     def is_on(parent):
         return parent.status.task_state == linuxcnc.STATE_ON
@@ -286,47 +308,6 @@ class GrinderWindow(QWidget):
         self.crossfeed_at_cb.setCurrentIndex(int(GrinderHal.get_hal("crossfeed_at")))
         self.repeat_at_cb.setCurrentIndex(int(GrinderHal.get_hal("repeat_at")))
 
-    def load_settings(self):
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, "rb") as file:
-                self.settings = pickle.load(file)
-                # print(self.settings)
-                print("Grinder settings loaded")
-        else:
-            self.settings = {}
-            print("Empty settings loaded")
-
-
-
-        self.previous_linear_units = self.settings.get('previous_linear_units',1)
-        GrinderHal.set_hal("x_min", self.settings.get('x_min',0))
-        GrinderHal.set_hal("x_max", self.settings.get('x_max', self.get_converted_value(1, "inch")))
-        GrinderHal.set_hal("y_min", self.settings.get('y_min',0))
-        GrinderHal.set_hal("y_max", self.settings.get('y_max', self.get_converted_value(1, "inch")))
-        GrinderHal.set_hal("z_min",  self.settings.get('z_min',0))
-        GrinderHal.set_hal("z_max",  self.settings.get('z_max', self.get_converted_value(1, "inch")))
-        
-
-        GrinderHal.set_hal("x_speed",  self.settings.get('x_speed', self.get_converted_value(500, "inch")))
-        # print("X_SPEED:")
-        # print(GrinderHal.get_hal("x_speed"))
-        # print(self.get_converted_value(500, "inch"))
-        GrinderHal.set_hal("y_speed",  self.settings.get('y_speed', self.get_converted_value(200, "inch")))
-        GrinderHal.set_hal("z_speed",  self.settings.get('z_speed', self.get_converted_value(200, "inch")))
-        
-
-        GrinderHal.set_hal("z_crossfeed",  self.settings.get('z_crossfeed', self.get_converted_value(0.005, "inch")))        
-        GrinderHal.set_hal("y_downfeed",  self.settings.get('y_downfeed', self.get_converted_value(0.0005, "inch")))
-        
-        GrinderHal.set_hal("enable_x",  self.settings.get('enable_x', bool(False)))
-        GrinderHal.set_hal("enable_y",  self.settings.get('enable_y', bool(False)))
-        GrinderHal.set_hal("enable_z",  self.settings.get('enable_z', bool(False)))
-
-        GrinderHal.set_hal("stop_at_z_limit",  self.settings.get('stop_at_z_limit', 0))
-
-        GrinderHal.set_hal("crossfeed_at",  self.settings.get('crossfeed_at', 2))
-        GrinderHal.set_hal("repeat_at",  self.settings.get('repeat_at', 1))
-
     def validate_and_set(self, field_name, value, value_type):
         if value_type == "float":
             try:
@@ -391,41 +372,8 @@ class GrinderWindow(QWidget):
         button.setStyleSheet(f"{existing_styles} {new_background}")
 
     def save_grind_clicked(self):
-        """Stop movement, wait for idle, then save the traverse limits and 3D stepover values."""
-
-        # print("Saving grind settings")
-
-        try:
-            self.settings = {
-                'previous_linear_units': self.previous_linear_units,
-                'x_min': float(GrinderHal.get_hal("x_min")),
-                'x_max': float(GrinderHal.get_hal("x_max")),
-                'y_min': float(GrinderHal.get_hal("y_min")),
-                'y_max': float(GrinderHal.get_hal("y_max")),
-                'z_min': float(GrinderHal.get_hal("z_min")),
-                'z_max': float(GrinderHal.get_hal("z_max")),
-                'x_speed': float(GrinderHal.get_hal("x_speed")),
-                'y_speed': float(GrinderHal.get_hal("y_speed")),
-                'z_speed': float(GrinderHal.get_hal("z_speed")),
-                'enable_x': bool(GrinderHal.get_hal("enable_x")),
-                'enable_y': bool(GrinderHal.get_hal("enable_y")),
-                'enable_z': bool(GrinderHal.get_hal("enable_z")),
-                'z_crossfeed': float(GrinderHal.get_hal("z_crossfeed")),
-                'y_downfeed': float(GrinderHal.get_hal("y_downfeed")),
-                'stop_at_z_limit': bool(GrinderHal.get_hal("stop_at_z_limit")),
-                'crossfeed_at': int(GrinderHal.get_hal("crossfeed_at")),
-                'repeat_at': int(GrinderHal.get_hal("repeat_at")),
-            }
-
-            with open(self.settings_file, "wb") as file:
-                pickle.dump(self.settings, file)
-
-            self.update_fields()
-
-        except Exception:
-            self.stop()
-            #todo set a notification
-            self.load_settings()
+        GrinderHal.save_settings()
+        self.update_fields()
 
 
     

@@ -1,11 +1,31 @@
 import hal
-
 from hal_glib import GStat
 import time
     
 GSTAT = GStat()
 
+previous_linear_units = 1
+
 class GrinderHal():
+    def get_converted_value(value, units):
+        if units != "inch" and units != "mm":
+            raise Exception("Get converted value called with invalid unit type")
+
+        if GSTAT.is_metric_mode():
+            if units == "mm":
+                return value
+            else:
+                return value*25.4
+        else:
+            if units == "inch":
+                return value
+            else:
+                return value/25.4
+        
+    def save_settings():
+
+        GrinderHal.set_hal("requires_save", True)
+        print("Settings saved")
 
     def get_rounding_tolerance():
         # Check the current units
