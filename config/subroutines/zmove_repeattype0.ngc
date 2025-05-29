@@ -1,17 +1,5 @@
 O<zmove_repeattype0> sub
-; #4 = [#<_hal[grinder.z_min]>] 
-; #5 = [#<_hal[grinder.z_max]>] 
-; #6 = [#<_hal[grinder.z_crossfeed]>] 
-; #7 = [#<_hal[grinder.z_speed]>]
-; #8 = [#<_hal[grinder.z_direction]>]
-; #9 = [#<_hal[grinder.enable_z]>]
-; #10 = [#<_hal[grinder.enable_x]>]
-
 ;(, starting repeattype0 with Z direction of #8)
-
-; #<_x> X
-; #<_y> Y
-; #<_z> Z
 
 ( M65 P0 is setting z_direction to false, towards min )
 ( M64 P0 is setting z_direction to true, towards max )
@@ -30,11 +18,8 @@ o100 IF [#<_hal[grinder.enable_z]> EQ 1]
 
    #8 = [#<_hal[grinder.z_direction]>]
 
-   ;(, Z direction is #8, crossfeed is #6, current pos is #<_z>)
-
    o120 IF [#<_hal[grinder.z_direction]> EQ 1]
       #9 = [#<_z> + #<_hal[grinder.z_crossfeed]>]
-      ;(, Z target is #9)
       o121 IF [#9 GT #<_hal[grinder.z_max]>]
          G1 Z[#<_hal[grinder.z_max]>] F[#<_hal[grinder.z_speed]>]
       o121 ELSE
@@ -42,13 +27,12 @@ o100 IF [#<_hal[grinder.enable_z]> EQ 1]
       o121 ENDIF
 
       o122 IF [#<_z> GE #<_hal[grinder.z_max]>]
-         #<_z_cycles> = [#<_z_cycles> + 1]
          o<Disable_At_Z_Limit> call
       o122 ENDIF
    o120 ELSE
       #10 = [#<_z> - #<_hal[grinder.z_crossfeed]>]
       o123 IF [#10 LT #<_hal[grinder.z_min]>]
-         G1 Z[#4] F[#<_hal[grinder.z_speed]>]
+         G1 Z[#<_hal[grinder.z_min]>] F[#<_hal[grinder.z_speed]>]
       o123 ELSE
          G1 Z[#10] F[#<_hal[grinder.z_speed]>]
       o123 ENDIF

@@ -529,8 +529,6 @@ void GrinderMotion::mainSequence()
 	std::cout << "o<xmove_to_max> call\n";
 	sendMDICommand("o<xmove_to_max> call");
 	waitForMotionComplete();
-	sendMDICommand("o<xmove_to_max> call");
-	waitForMotionComplete();
 
 	if (!machine_ok.load())
 	{

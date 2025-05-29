@@ -34,7 +34,6 @@ o100 IF [#<_hal[grinder.enable_z]> EQ 1]
 
       o122 IF [#<_z> GE [#<_hal[grinder.z_max]> - 0.00001]]
          ;(p, Running Disable)
-         #<_z_cycles> = [#<_z_cycles> + 1]
          o<Disable_At_Z_Limit> call
       o122 ENDIF
    o120 ENDIF

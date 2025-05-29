@@ -21,7 +21,6 @@ o100 IF [#<_hal[grinder.enable_z]> EQ 1]
       o121 ENDIF
 
       o122 IF [#<_z> LE [#<_hal[grinder.z_min]> + 0.00001]]
-         #<_z_cycles> = [#<_z_cycles> + 1]
          o<Disable_At_Z_Limit> call
       o122 ENDIF
    o120 ENDIF
