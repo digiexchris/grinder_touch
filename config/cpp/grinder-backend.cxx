@@ -351,7 +351,6 @@ void GrinderMotion::initializeHAL()
 void GrinderMotion::sendMDICommand(const char *command)
 {
 	std::cout << "Sending MDI command: " << command << '\n';
-	setMDIMode();
 	sendMdiCmd(command);
 }
 
@@ -387,6 +386,11 @@ void GrinderMotion::stop()
 	{
 		is_running = false;
 		*(grinder_pins->is_running) = false;
+	}
+
+	if (!is_first_run)
+	{
+		is_first_run = true;
 	}
 }
 

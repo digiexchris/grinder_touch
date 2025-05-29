@@ -40,7 +40,7 @@ private:
 	int hal_comp_id;
 	GrinderPins *grinder_pins;
 	bool grinder_should_monitor;
-	bool is_first_run = false;
+	bool is_first_run = true;
 	std::array<double, 9> current_pos;
 	SettingsManager *mySettingsManager;
 
