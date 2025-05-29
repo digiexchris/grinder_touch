@@ -8,20 +8,15 @@ from python.axis import Axis
 from python.grinderhal import GrinderHal
 
 def startup(parent):
-    #parent.setFixedSize(1920, 1200)
-    parent.setFixedSize(1920, 1000)
-    #parent.showFullScreen()
+    # parent.setFixedSize(1920, 1200)
+    # parent.setFixedSize(1920, 1000)
+    parent.showFullScreen()
     try:
         parent.grinder_window = GrinderWindow(parent)
     except Exception as e:
         print(e)
         sys.exit(1)
         return
-
-    # parent.grinder_window.load_settings()
-    # parent.grinder_window.initialize_controls(parent)
-    # parent.grinder_window.update_pos()
-    
     
 
 class GrinderWindow(QWidget):
@@ -33,8 +28,6 @@ class GrinderWindow(QWidget):
         self.GSTAT = GStat()
         self.parent = parent
         
-        
-
         if not GrinderHal.waitForComponentReady(20):
             raise Exception("Grinder component not ready")
         
@@ -147,8 +140,6 @@ class GrinderWindow(QWidget):
 
     def initialize_controls(self, parent):
         """Initialize custom controls and connect UI elements."""
-
-        # GSTAT.connect("state-estop",lambda w: self.update_estate_label('ESTOP'))
 
         self.x_max_edit = parent.findChild(QLineEdit, "x_max_edit")
         self.x_min_edit = parent.findChild(QLineEdit, "x_min_edit")

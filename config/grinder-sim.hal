@@ -98,4 +98,4 @@ net estop-out => iocontrol.0.emc-enable-in
 #net tool-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
 #net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
 
-source grinder.hal
+#source grinder.hal

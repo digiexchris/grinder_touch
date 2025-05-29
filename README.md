@@ -1,63 +1,90 @@
 
-# SG CNC for linuxcnc
+# Surface Grinder controls for linuxcnc
 
-#### Surface Grinder CNC
 Semi-automatic surface grinder interface similar to hydraulic grinders, but with extra functionality
 
-Traverse, Infeed, and Downfeed axis are arbitrary so it's easy to make it move in a weird way.
-
-A fork of https://github.com/turboss/sg_cnc.git
-
+![Surface Grinder Touch Interface](grinder_touch.png)
 
 ## Quick install
 
-install linuxcnc 2.9pre using the debian 11
+install linuxcnc 2.9 using the debian 12
 
-http://www.linuxcnc.org/
+<http://www.linuxcnc.org/>
 
-install python3-qtpy
-
-qtpyvcp packages can be found here 
-https://repository.qtpyvcp.com/apt/pool/main/stable/
-
-
-https://www.qtpyvcp.com/install/prerequisites.html
-
-install the .deb from this repo
+install flexgui: <https://github.com/jethornton/flexgui>
 
 ### Dependencies
 
 ```
-$ sudo apt install python3-pyqt5 python3-pyqt5.qtquick python3-dbus.mainloop.pyqt5 python3-pyqt5.qtopengl python3-pyqt5.qsci python3-pyqt5.qtmultimedia qml-module-qtquick-controls gstreamer1.0-plugins-bad libqt5multimedia5-plugins pyqt5-dev-tools python3-dev python3-setuptools python3-pip git
+sudo apt install python3-pyqt6 libqt6core6
 ```
 
-## Customize
+## Configuration
 
-install qtpyvcp
-https://www.qtpyvcp.com/install/apt_install.html
-https://repository.qtpyvcp.com/apt/pool/main/stable/
+Everything you need to get started is in the config directory. It may be as simple as copying everything to your linuxcnc directory in your home dir.
+
+grinder-sim.ini is a sample configuration using simulated hardware. Of particular note is the following lines:
 
 ```
-$ cd src/grinder_touch
-$ editvcp config.yml
+[DISPLAY]
+DISPLAY = flexgui
+GUI = grinder_touch.ui
+QSS = touch.qss
+
+[FLEX]
+IMPORT = grinder
+
+[RS274NGC]
+SUBROUTINE_PATH=subroutines
+USER_M_PATH=m_codes
+
+[HAL]
+HALFILE = grinder.hal
+```
+
+grinder.hal launches the c++ backend that handles the motion coordination and end stop configurations. The rest is flexgui configuration required to load the python frontend.
+
+The UI is designed to be run full screen on a 1920x1200 touch screen monitor. If you require a different resolution, try changing `parent.setFixedSize(1920, 1200)` to what you need. There are a lot of fixed placement gui elements, so much different than that will probably look weird. If you want to use the qt6 designer to fix that, we accept pull requests!
+
+## Running
+
+Theoretically, all that is required is grinder.hal to run the backend, it would be entirely possible to operate the backend without any particular frontend just by setting hal pins. It's much easier with a ui though!
+
+### Simulated hardware
+
+Give it a try:
+
+```
+cd grinder_touch/config
+./startsim.sh
 ```
 
 ## Resources
 
-* [Development](https://github.com/digiexchris/qtpyvcp-grinder-touch)
-* [Documentation](https://qtpyvcp.com)
-
+* [Development](https://github.com/digiexchris/grinder_touch)
+* [Flexgui](https://github.com/jethornton/flexgui)
 
 ## Dependancies
 
 * [LinuxCNC](https://linuxcnc.org) 2.9.1 or later
-* Python 3.9
-* PyQt5 or PySide2
-* [QtPyVCP](https://qtpyvcp.com/)
+* Python 3.9 or later
+* PyQt6
 
-grinder_touch is developed and tested using the LinuxCNC Debian 12, It should run on any system that can have PyQt5 installed, but Debian 12 is the only OS
+grinder_touch is developed and tested using the LinuxCNC Debian 12, It should run on any system that can have PyQt6 installed, but Debian 12 is the only OS
 that is officially supported.
 
+## In Progress
+
+* Automated wheel dressing and dressing helpers
+* Swapping from inch to metric units and converting the limits/feeds/speeds accordingly
+* Spindle stop/start button
+
+## Future Ideas
+
+* Arbitrary axis for each operation type (eg. Side wheel grinding a vertical face, so infeed would be up/down not in/out and downfeed would be in/out. Or even crazier, swap the big left/right motion of a normal surface grinder with the up/down axis, so you can face the side of something by sweeping up and down and crossfeeding left and right. )
+* Radius or other wheel dressing forms
+* Cutter grinding cycles
+* Cam grinding modes (4rth axis)
 
 ## DISCLAIMER
 
