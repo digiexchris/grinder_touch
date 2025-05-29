@@ -81,6 +81,41 @@ bool GrinderMotion::setMDIMode()
 	return true;
 }
 
+void GrinderMotion::save()
+{
+	auto settings = mySettingsManager->Get();
+	settings->x_min = *(grinder_pins->x_min);
+	settings->x_max = *(grinder_pins->x_max);
+	settings->y_min = *(grinder_pins->y_min);
+	settings->y_max = *(grinder_pins->y_max);
+	settings->z_min = *(grinder_pins->z_min);
+	settings->z_max = *(grinder_pins->z_max);
+	settings->x_speed = *(grinder_pins->x_speed);
+	settings->y_speed = *(grinder_pins->y_speed);
+	settings->z_speed = *(grinder_pins->z_speed);
+	settings->z_crossfeed = *(grinder_pins->z_crossfeed);
+	settings->y_downfeed = *(grinder_pins->y_downfeed);
+	settings->enable_x = *(grinder_pins->enable_x);
+	settings->enable_y = *(grinder_pins->enable_y);
+	settings->enable_z = *(grinder_pins->enable_z);
+	settings->stop_at_z_limit = *(grinder_pins->stop_at_z_limit);
+	settings->crossfeed_at = *(grinder_pins->crossfeed_at);
+	settings->repeat_at = *(grinder_pins->repeat_at);
+	settings->dress_start_x = *(grinder_pins->dress_start_x);
+	settings->dress_start_y = *(grinder_pins->dress_start_y);
+	settings->dress_start_z = *(grinder_pins->dress_start_z);
+	settings->dress_end_x = *(grinder_pins->dress_end_x);
+	settings->dress_end_y = *(grinder_pins->dress_end_y);
+	settings->dress_end_z = *(grinder_pins->dress_end_z);
+	settings->dress_stepover_x = *(grinder_pins->dress_stepover_x);
+	settings->dress_stepover_y = *(grinder_pins->dress_stepover_y);
+	settings->dress_stepover_z = *(grinder_pins->dress_stepover_z);
+	settings->dress_wheel_rpm = *(grinder_pins->dress_wheel_rpm);
+	settings->dress_wheel_dia = *(grinder_pins->dress_wheel_dia);
+	mySettingsManager->Save();
+	*(grinder_pins->requires_save) = false;
+}
+
 void GrinderMotion::monitorStateImpl()
 {
 
@@ -104,8 +139,8 @@ void GrinderMotion::monitorStateImpl()
 	if (*grinder_pins->requires_save)
 	{
 		std::cout << "GUI requested settings to be saved, saving...\n";
-		mySettingsManager->Save();
-		*(grinder_pins->requires_save) = false;
+		save();
+		std::cout << "Settings saved\n";
 	}
 
 	updateStatus();
@@ -316,6 +351,7 @@ void GrinderMotion::initializeHAL()
 void GrinderMotion::sendMDICommand(const char *command)
 {
 	std::cout << "Sending MDI command: " << command << '\n';
+	setMDIMode();
 	sendMdiCmd(command);
 }
 
@@ -337,7 +373,6 @@ void GrinderMotion::start()
 		std::cout << "Starting grinder thread\n";
 		is_running = true;
 		*(grinder_pins->is_running) = true;
-		// main_thread = std::thread(&GrinderMotion::mainSequence, this);
 	}
 	else
 	{
@@ -352,15 +387,6 @@ void GrinderMotion::stop()
 	{
 		is_running = false;
 		*(grinder_pins->is_running) = false;
-		// if (main_thread.joinable())
-		// {
-		// 	std::cout << "Joining main thread\n";
-		// 	main_thread.join();
-		// 	std::cout << "Main thread joined\n";
-		// }
-
-		// EMC_TASK_ABORT abortMsg;
-		// command_channel->write(abortMsg);
 	}
 }
 
@@ -449,6 +475,7 @@ void GrinderMotion::mainSequence()
 	if (!machine_ok.load())
 	{
 		std::cout << "Machine not ok\n";
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		return;
 	}
 

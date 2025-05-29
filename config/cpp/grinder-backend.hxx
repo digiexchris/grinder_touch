@@ -52,6 +52,7 @@ private:
 	void mainSequence();
 	void moveInsideLimits();
 	void downfeed();
+	void save();
 
 public:
 	GrinderMotion(SettingsManager *aSettingsManager);
