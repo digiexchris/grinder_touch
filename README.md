@@ -37,18 +37,29 @@ IMPORT = grinder
 [RS274NGC]
 SUBROUTINE_PATH=subroutines
 USER_M_PATH=m_codes
-
-[HAL]
-HALFILE = grinder.hal
 ```
 
-grinder.hal launches the c++ backend that handles the motion coordination and end stop configurations. The rest is flexgui configuration required to load the python frontend.
+and choose a hal file depending on if you're on a standard pc, or arm64 such as a raspberry pi 4/5
+
+```
+[HAL]
+HALFILE = grinder-x86.hal
+```
+
+```
+[HAL]
+HALFILE = grinder-arm64.hal
+```
+
+grinder-*.hal launches the c++ backend that handles the motion coordination and end stop configurations. The rest is flexgui configuration required to load the python frontend.
+
+On my personal setup, I have a linuxcnc config directory in my home directory, and I symlink grinder.py, grinder_touch.ui, grinder_backend-arm64, grinder-arm64.hal, the subroutines and m_codes directory, touch.qss, and copy (rather than symlink) grinder_settings.json. This lets me keep my grinder_touch repo separate, and update it at any time, while preventing grinder_settings.json from being overwritten by the repository version when I update.
 
 The UI is designed to be run full screen on a 1920x1200 touch screen monitor. If you require a different resolution, try changing `parent.setFixedSize(1920, 1200)` to what you need. There are a lot of fixed placement gui elements, so much different than that will probably look weird. If you want to use the qt6 designer to fix that, we accept pull requests!
 
 ## Running
 
-Theoretically, all that is required is grinder.hal to run the backend, it would be entirely possible to operate the backend without any particular frontend just by setting hal pins. It's much easier with a ui though!
+Theoretically, all that is required is grinder.hal to run the backend, it would be entirely possible to operate the backend without any particular frontend just by setting hal pins. See autosave.halscope and halshow.preferences (or load it up with halshow). It's much easier with a ui though!
 
 ### Simulated hardware
 
