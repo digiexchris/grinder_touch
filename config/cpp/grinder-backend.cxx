@@ -516,9 +516,9 @@ void GrinderMotion::mainSequence()
 		}
 		waitForMotionComplete();
 
-		moveInsideLimits();
+		// moveInsideLimits();
 
-		waitForMotionComplete();
+		// waitForMotionComplete();
 	}
 
 	updateStatus();
@@ -539,11 +539,17 @@ void GrinderMotion::mainSequence()
 		return;
 	}
 
+	if (!(*(grinder_pins->is_running)))
+	{
+		stop();
+		return;
+	}
+
 	std::cout << "o<xmove_to_min> call\n";
 	sendMDICommand("o<xmove_to_min> call");
 	waitForMotionComplete();
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
 	if (!*(grinder_pins->is_running))
 	{
