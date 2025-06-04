@@ -1285,6 +1285,18 @@ QTabBar::tab * {
                <property name="input" stdset="0">
                 <string>number</string>
                </property>
+               <property name="function" stdset="0">
+                <string>hal_pin</string>
+               </property>
+               <property name="pin_name" stdset="0">
+                <string>x_min</string>
+               </property>
+               <property name="hal_type" stdset="0">
+                <string>HAL_FLOAT</string>
+               </property>
+               <property name="hal_dir" stdset="0">
+                <string>HAL_IN</string>
+               </property>
               </widget>
              </item>
              <item row="1" column="0">

@@ -1,0 +1,2 @@
+# wiring flexgui created pins to grinder_backend created pins
+# net x-min-edit flexgui.x_min => grinder.x_min

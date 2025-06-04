@@ -10,7 +10,7 @@ from python.grinderhal import GrinderHal
 def startup(parent):
     # parent.setFixedSize(1920, 1200)
     # parent.setFixedSize(1920, 1000)
-    parent.showFullScreen()
+    # parent.showFullScreen() # moved to flexhal ini with flexhal > 1.2.0
     try:
         parent.grinder_window = GrinderWindow(parent)
     except Exception as e:
