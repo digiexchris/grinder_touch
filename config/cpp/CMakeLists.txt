@@ -1,10 +1,18 @@
-cmake_minimum_required(VERSION 3.10)
-project(grinder_backend)
+cmake_minimum_required(VERSION 3.16)
+project(grinder_touch_gui)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find Qt6
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets UiTools)
+
+# Enable Qt6 MOC
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 
 # Define ULAPI for userspace program
@@ -42,6 +50,31 @@ set_target_properties(hal_lib PROPERTIES
 )
 
 add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx backward.cpp)
+
+# Add GUI application
+add_executable(grinder_touch_gui 
+    grinder_gui_main.cxx 
+    grinder_gui.cxx 
+    grinder_motion_gui.cxx 
+    shcom.cc 
+    settings.cxx 
+    backward.cpp
+)
+
+# Link Qt6 libraries to GUI application
+target_link_libraries(grinder_touch_gui 
+    Qt6::Core 
+    Qt6::Widgets 
+    Qt6::UiTools
+    ${LINUXCNC_LIB}
+    ${NML_LIB}
+    ${HAL_LIB}
+    nlohmann_json::nlohmann_json
+    pthread
+    dl
+    dw
+    unwind
+)
 
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
@@ -100,6 +133,11 @@ set_target_properties(grinder_backend PROPERTIES
     INSTALL_RPATH "${LINUXCNC_MODULE_DIR}:${LINUXCNC_LIB_DIR}"
 )
 
+set_target_properties(grinder_touch_gui PROPERTIES
+    BUILD_WITH_INSTALL_RPATH TRUE
+    INSTALL_RPATH "${LINUXCNC_MODULE_DIR}:${LINUXCNC_LIB_DIR}"
+)
+
 message(STATUS "BINARY_POSTFIX is: '${BINARY_POSTFIX}'")
 
 # Add post-build command to copy binary to config directory
@@ -107,5 +145,13 @@ add_custom_command(TARGET grinder_backend POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:grinder_backend>
         ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_backend${BINARY_POSTFIX}
-    COMMENT "Copying binary to config directory"
+    COMMENT "Copying backend binary to config directory"
+)
+
+# Add post-build command to copy GUI executable to config directory
+add_custom_command(TARGET grinder_touch_gui POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:grinder_touch_gui>
+        ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_touch_gui
+    COMMENT "Copying GUI executable to config directory"
 )
