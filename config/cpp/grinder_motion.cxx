@@ -138,6 +138,11 @@ void GrinderMotion::Start()
 
 	// Initialize NML
 	initializeNML();
+
+	// start the monitor thread
+
+	monitor_thread = std::thread(&GrinderMotion::monitorState, this);
+	std::cout << "Grinder motion started\n";
 }
 
 void GrinderMotion::initializeNML()

@@ -150,8 +150,8 @@ void GrinderMainWindow::connectSignals()
 
 	// Connect UI buttons
 	connect(ui.quit_pb, &QPushButton::clicked, this, &GrinderMainWindow::onExitClicked);
-	connect(ui.estop_pb, &QPushButton::toggled, motion.get(), &GrinderMotion::onToggleEstop);
-	connect(ui.power_pb, &QPushButton::toggled, motion.get(), &GrinderMotion::onTogglePower);
+	connect(ui.estop_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onToggleEstop);
+	connect(ui.power_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onTogglePower);
 	connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
 
 	// jogging
@@ -327,17 +327,17 @@ void GrinderMainWindow::closeEvent(QCloseEvent *event)
 
 void GrinderMainWindow::onPositionChanged(const Position &pos)
 {
-	if (ui.actual_lb_x)
+	if (ui.dro_lb_x)
 	{
-		ui.actual_lb_x->setText(formatPosition(pos.x, 4));
+		ui.dro_lb_x->setText(formatPosition(pos.x, 4));
 	}
-	if (ui.actual_lb_y)
+	if (ui.dro_lb_y)
 	{
-		ui.actual_lb_y->setText(formatPosition(pos.y, 4));
+		ui.dro_lb_y->setText(formatPosition(pos.y, 4));
 	}
-	if (ui.actual_lb_z)
+	if (ui.dro_lb_z)
 	{
-		ui.actual_lb_z->setText(formatPosition(pos.z, 4));
+		ui.dro_lb_z->setText(formatPosition(pos.z, 4));
 	}
 }
 
