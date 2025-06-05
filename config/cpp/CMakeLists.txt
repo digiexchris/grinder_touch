@@ -52,29 +52,17 @@ set_target_properties(hal_lib PROPERTIES
 add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx backward.cpp)
 
 # Add GUI application
-add_executable(grinder_touch_gui 
+qt_add_executable(grinder_touch_gui grinder_touch.ui
     grinder_gui_main.cxx 
     grinder_gui.cxx 
-    grinder_motion_gui.cxx 
+    gui_events.cxx
+    grinder_motion.cxx 
     shcom.cc 
     settings.cxx 
     backward.cpp
 )
 
-# Link Qt6 libraries to GUI application
-target_link_libraries(grinder_touch_gui 
-    Qt6::Core 
-    Qt6::Widgets 
-    Qt6::UiTools
-    ${LINUXCNC_LIB}
-    ${NML_LIB}
-    ${HAL_LIB}
-    nlohmann_json::nlohmann_json
-    pthread
-    dl
-    dw
-    unwind
-)
+
 
 # Add module directory to link directories
 link_directories(${LINUXCNC_MODULE_DIR})
@@ -87,6 +75,21 @@ include(FetchContent)
 set(DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
+
+# Link Qt6 libraries to GUI application
+target_link_libraries(grinder_touch_gui PRIVATE 
+    Qt6::Core 
+    Qt6::Widgets 
+    Qt6::UiTools
+    ${LINUXCNC_LIB}
+    ${NML_LIB}
+    ${HAL_LIB}
+    nlohmann_json::nlohmann_json
+    pthread
+    dl
+    dw
+    unwind
+)
 
 # FetchContent_Declare(
 #     backward
@@ -108,6 +111,10 @@ target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/inclu
 include_directories(
     /usr/include/linuxcnc
     /usr/lib/llvm-19/include  # Add libunwind include path
+)
+
+set(FORMS 
+    grinder_touch.ui
 )
 
 target_link_libraries(grinder_backend PUBLIC 
@@ -152,6 +159,6 @@ add_custom_command(TARGET grinder_backend POST_BUILD
 add_custom_command(TARGET grinder_touch_gui POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:grinder_touch_gui>
-        ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_touch_gui
+        ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_touch_gui${BINARY_POSTFIX}
     COMMENT "Copying GUI executable to config directory"
 )

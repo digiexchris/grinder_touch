@@ -33,51 +33,13 @@ int main(int argc, char **argv)
 	}
 
 	std::cerr.setf(std::ios::unitbuf);
-	// // signal(SIGINT, signal_handler);
-	// signal(SIGTERM, signal_handler);
-	// std::set_terminate(uncaught_handler); // uncaught c++ exceptions
-	// // signal(SIGSEGV, SIG_DFL); // Let backward handle segfaults
-	// // signal(SIGABRT, SIG_DFL); // Let backward handle aborts
-	// // signal(SIGPIPE, signal_handler);
-	// // signal(SIGQUIT, signal_handler);
-	// // signal(SIGSEGV, crash_handler);
-	// // signal(SIGABRT, crash_handler);
 
-	// signal(SIGSEGV, error_sig_handler);
-	// signal(SIGABRT, error_sig_handler);
-	// signal(SIGFPE, error_sig_handler);
-	// signal(SIGILL, error_sig_handler);
-	// signal(SIGBUS, error_sig_handler);
-
-	// std::cout << "Testing backward address resolution:\n";
-	// backward::StackTrace st;
-	// backward::Printer printer;
-	// st.load_here(5);
-	// printer.print(st, std::cout);
-	// std::cout << "End of test\n";
-
-	// int *ptr = nullptr;
-	// *ptr = 42; // This will crash with SIGSEGV
-
-	// try
-	// {
 	settings = new SettingsManager("./grinder_settings.json");
 
 	grinder = new GrinderMotion(settings);
 	grinder->Start();
 	grinder->monitorState();
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	// }
-	// catch (const std::exception &e)
-	// {
-	// 	std::cerr << "Error: " << e.what() << '\n';
-	// 	if (grinder != nullptr)
-	// 	{
-	// 		grinder->cleanup();
-	// 		delete grinder;
-	// 	}
-	// 	return 1;
-	// }
 
 	return 0;
 }

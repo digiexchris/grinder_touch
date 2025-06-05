@@ -11,6 +11,16 @@
             "program": "${workspaceFolder}/grinder_backend",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch Gui",
+            "program": "${workspaceFolder}/grinder_touch_gui-x64",
+            "args": [
+                // "--standalone"
+            ],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
