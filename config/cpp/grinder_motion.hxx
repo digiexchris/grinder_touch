@@ -38,7 +38,9 @@ signals:
 	void errorMessage(const QString &message);
 	void warningMessage(const QString &message);
 	void positionChanged(double x, double y, double z);
-	void machineStateChanged(LinuxCncStatus status);
+	void estopChanged(bool isActive);
+	void powerChanged(bool isOn);
+	void homedChanged(bool isHomed);
 	void grinderStarted();
 	void grinderStopped();
 	void settingsChanged();
@@ -46,15 +48,16 @@ signals:
 public slots:
 	void onJog(Axis axis, bool direction);
 	void onJogStop(Axis axis);
+	void onToggleEstop();
+	void onTogglePower();
+	void onHomeAll();
 
 private:
 	bool isStandalone = false;
-	QTimer *updateTimer;
 	EMC_STAT *myEmcStatus;
 	NML *error_channel;
 	NML *command_channel;
 	std::atomic<bool> is_running;
-	std::atomic<bool> machine_ok;
 	std::thread monitor_thread;
 	bool grinder_should_monitor;
 	bool is_first_run;
@@ -62,8 +65,10 @@ private:
 	std::array<double, 9> current_pos; // current relative position
 	SettingsManager *mySettingsManager;
 	GrinderSettings grinder_settings;
+	LinuxCncStatus retrievedStatus;
 	int command_serial_number = 0;
 
+	bool isOk();
 	void monitorStateImpl();
 	void waitForMotionComplete();
 	bool checkErrors();
@@ -74,6 +79,7 @@ private:
 	void downfeed();
 	void loadSettings();
 	void saveSettings();
+	void homeAxis(int axis);
 
 public:
 	GrinderMotion(SettingsManager *aSettingsManager, bool standaloneMode = false);
@@ -91,22 +97,7 @@ public:
 
 	Position getCurrentPosition() const;
 
-	void updatePosition();
-	// bool getMachineOk() const;
-	// void jogAxis(int axis, double velocity);
-	// void stopJog();
-	// void setSpindleSpeed(int rpm);
-	// void setSpindleDirection(bool forward);
-	// void stopSpindle();
-	// void setFeedOverride(double percentage);
-	// void setSpindleOverride(double percentage);
-	// void setRapidOverride(double percentage);
-	// void runGcodeFile(const std::string &filename);
-	// void pauseProgram();
-	// void stopProgram();
-	// void homeAxis(int axis);
-	// void homeAllAxes();
-	// void touchoffAxis(int axis, double value);
+	void updateState();
 
 	// Grinder-specific operations
 	void startGrindingCycle();

@@ -22,9 +22,11 @@
 #define UNUSED(x) (void)(x)
 
 GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager, bool standaloneMode)
-	: isStandalone(standaloneMode), is_running(false), machine_ok(false), grinder_should_monitor(true),
+	: isStandalone(standaloneMode), is_running(false), grinder_should_monitor(true),
 	  is_first_run(true), downfeed_now(false), mySettingsManager(aSettingsManager)
 {
+	is_running.store(false);
+
 	if (aSettingsManager == nullptr)
 	{
 		std::cerr << "SettingsManager is null!\n";
@@ -33,13 +35,6 @@ GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager, bool standaloneM
 
 	// Initialize settings from file
 	loadSettings();
-
-	updateTimer = new QTimer(this);
-	connect(updateTimer, &QTimer::timeout, this, &GrinderMotion::updatePosition);
-
-	updateTimer->start(50);
-
-	// connect(this, &GrinderMainWindow::jog, this, &GrinderMotion::onJog);
 }
 
 GrinderMotion::~GrinderMotion()
@@ -256,56 +251,19 @@ void GrinderMotion::monitorState()
 	std::cout << "Monitoring state\n";
 	while (grinder_should_monitor)
 	{
-		monitorStateImpl();
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-		mainSequence();
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-}
+		updateState();
 
-void GrinderMotion::monitorStateImpl()
-{
-	auto updated = updateStatus();
-	if (updated < 0)
-	{
-		std::cerr << "Error updating status\n";
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		return;
-	}
-
-	updated = updateError();
-	if (updated < 0)
-	{
-		std::cerr << "Error updating error\n";
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		return;
-	}
-
-	updateStatus();
-
-	bool was_ok = machine_ok.load();
-	if (myEmcStatus == nullptr)
-	{
-		std::cerr << "EMC status is null! LinuxCNC is probably not fully up yet, retrying!\n";
-		return;
-	}
-
-	bool is_ok = !(myEmcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
-				 myEmcStatus->task.state == EMC_TASK_STATE_ON &&
-				 myEmcStatus->motion.traj.enabled;
-
-	// Update position
-	current_pos[0] = myEmcStatus->motion.traj.position.tran.x;
-	current_pos[1] = myEmcStatus->motion.traj.position.tran.y;
-	current_pos[2] = myEmcStatus->motion.traj.position.tran.z;
-
-	if (was_ok != is_ok)
-	{
-		machine_ok.store(is_ok);
-		if (!is_ok && is_running)
+		bool is_ok = retrievedStatus.isEstopActive == false &&
+					 retrievedStatus.isPowerOn == true &&
+					 retrievedStatus.isHomed == true;
+		if (is_ok)
 		{
-			std::cout << "Stopping grinding cycle\n";
-			stop();
+			mainSequence();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+		else
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
 }
@@ -443,15 +401,27 @@ void GrinderMotion::stop()
 	}
 }
 
-void GrinderMotion::mainSequence()
+bool GrinderMotion::isOk()
 {
-	if (!machine_ok.load())
+	if (isStandalone)
 	{
-		std::cout << "Machine not ok\n";
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		return;
+		std::cout << "Standalone mode: isOk always returns true\n";
+		return true;
 	}
 
+	if (myEmcStatus == nullptr)
+	{
+		std::cerr << "EMC status is null!\n";
+		return false;
+	}
+
+	return retrievedStatus.isEstopActive == false &&
+		   retrievedStatus.isPowerOn == true &&
+		   retrievedStatus.isHomed == true;
+}
+
+void GrinderMotion::mainSequence()
+{
 	if (downfeed_now)
 	{
 		std::cout << "Downfeed now\n";
@@ -468,7 +438,8 @@ void GrinderMotion::mainSequence()
 		downfeed();
 	}
 
-	if (!is_running || !machine_ok.load())
+	updateStatus();
+	if (!is_running || !isOk())
 	{
 		return;
 	}
@@ -484,15 +455,10 @@ void GrinderMotion::mainSequence()
 			return;
 		}
 		waitForMotionComplete();
-
-		moveInsideLimits();
-		waitForMotionComplete();
 	}
 
 	updateStatus();
-
-	// Update is_running based on external changes
-	if (!is_running)
+	if (!is_running || !isOk())
 	{
 		stop();
 		return;
@@ -502,8 +468,10 @@ void GrinderMotion::mainSequence()
 	sendMDICommand("o<xmove_to_max> call");
 	waitForMotionComplete();
 
-	if (!machine_ok.load())
+	updateStatus();
+	if (!is_running || !isOk())
 	{
+		stop();
 		return;
 	}
 
@@ -511,11 +479,11 @@ void GrinderMotion::mainSequence()
 	sendMDICommand("o<xmove_to_min> call");
 	waitForMotionComplete();
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-	if (!is_running)
+	updateStatus();
+	if (!is_running || !isOk())
 	{
 		stop();
+		return;
 	}
 }
 
@@ -614,23 +582,23 @@ bool GrinderMotion::getIsRunning() const
 // 	std::cout << "Stopping program" << std::endl;
 // }
 
-// void GrinderMotion::homeAxis(int axis)
-// {
-// 	EMC_JOINT_HOME jointHome;
-// 	jointHome.serial_number = ++command_serial_number;
-// 	jointHome.joint = axis; // Assuming joint corresponds to axis
-// 	sendCommand(jointHome);
-// 	std::cout << "Homing axis " << axis << std::endl;
-// }
+void GrinderMotion::homeAxis(int axis)
+{
+	EMC_JOINT_HOME jointHome;
+	jointHome.serial_number = ++command_serial_number;
+	jointHome.joint = axis; // Assuming joint corresponds to axis
+	sendCommand(jointHome);
+	std::cout << "Homing axis " << axis << std::endl;
+}
 
-// void GrinderMotion::homeAllAxes()
-// {
-// 	for (int axis = 0; axis < 3; ++axis)
-// 	{
-// 		homeAxis(axis);
-// 	}
-// 	std::cout << "Homing all axes" << std::endl;
-// }
+void GrinderMotion::onHomeAll()
+{
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		homeAxis(axis);
+	}
+	std::cout << "Homing all axes" << std::endl;
+}
 
 // void GrinderMotion::touchoffAxis(int axis, double value)
 // {
@@ -686,7 +654,7 @@ void GrinderMotion::cleanup()
 	// }
 }
 
-void GrinderMotion::updatePosition()
+void GrinderMotion::updateState()
 {
 	updateStatus();
 	if (myEmcStatus == nullptr)
@@ -704,5 +672,64 @@ void GrinderMotion::updatePosition()
 		current_pos[2] = myEmcStatus->motion.traj.position.tran.z;
 
 		emit positionChanged(current_pos[0], current_pos[1], current_pos[2]);
+	}
+
+	if (retrievedStatus.isEstopActive != myEmcStatus->task.state == EMC_TASK_STATE_ESTOP)
+	{
+		retrievedStatus.isEstopActive = myEmcStatus->task.state == EMC_TASK_STATE_ESTOP;
+
+		if (retrievedStatus.isEstopActive && is_running)
+		{
+			std::cout << "Emergency stop activated, stopping grinder\n";
+			stop();
+		}
+		emit estopChanged(retrievedStatus.isEstopActive);
+	}
+
+	if (retrievedStatus.isPowerOn != myEmcStatus->task.state == EMC_TASK_STATE_ON)
+	{
+		retrievedStatus.isPowerOn = myEmcStatus->task.state == EMC_TASK_STATE_ON;
+
+		if (!retrievedStatus.isPowerOn && is_running)
+		{
+			std::cout << "Power turned off, stopping grinder\n";
+			stop();
+		}
+
+		emit powerChanged(retrievedStatus.isPowerOn);
+	}
+
+	if (retrievedStatus.isHomed != myEmcStatus->motion.traj.enabled)
+	{
+		retrievedStatus.isHomed = myEmcStatus->motion.traj.enabled;
+		emit homedChanged(retrievedStatus.isHomed);
+	}
+}
+
+void GrinderMotion::onToggleEstop()
+{
+	if (retrievedStatus.isEstopActive)
+	{
+		std::cout << "Disabling emergency stop\n";
+		sendEstopReset();
+	}
+	else
+	{
+		std::cout << "Enabling emergency stop\n";
+		sendEstop();
+	}
+}
+
+void GrinderMotion::onTogglePower()
+{
+	if (retrievedStatus.isPowerOn)
+	{
+		std::cout << "Turning off power\n";
+		sendMachineOff();
+	}
+	else
+	{
+		std::cout << "Turning on power\n";
+		sendMachineOn();
 	}
 }

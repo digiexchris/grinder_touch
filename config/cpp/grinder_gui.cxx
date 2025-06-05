@@ -27,7 +27,7 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	ui.setupUi(this);
 	loadStyleSheet();
 	setupMenus();
-	connectSignals();
+
 	try
 	{
 		// Initialize settings manager
@@ -37,12 +37,6 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 		motion = std::make_unique<GrinderMotion>(settingsManager.get());
 
 		// Connect position change signals
-		connect(motion.get(), &GrinderMotion::positionChanged, this, &GrinderMainWindow::onPositionChanged);
-
-		// Connect signals for modern Qt6 message handling
-		connect(motion.get(), &GrinderMotion::infoMessage, this, &GrinderMainWindow::onInfoMessage);
-		connect(motion.get(), &GrinderMotion::errorMessage, this, &GrinderMainWindow::onErrorMessage);
-		connect(motion.get(), &GrinderMotion::warningMessage, this, &GrinderMainWindow::onWarningMessage);
 
 		std::cout << "Grinder backend initialized successfully" << std::endl;
 	}
@@ -51,6 +45,8 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 		emit errorMessage(QString("Failed to initialize grinder backend: %1").arg(e.what()));
 		throw std::runtime_error("Failed to initialize grinder backend: " + std::string(e.what()));
 	}
+
+	connectSignals();
 
 	if (!m_standaloneMode)
 	{
@@ -148,9 +144,15 @@ void GrinderMainWindow::setupMenus()
 
 void GrinderMainWindow::connectSignals()
 {
+	connect(motion.get(), &GrinderMotion::infoMessage, this, &GrinderMainWindow::onInfoMessage);
+	connect(motion.get(), &GrinderMotion::errorMessage, this, &GrinderMainWindow::onErrorMessage);
+	connect(motion.get(), &GrinderMotion::warningMessage, this, &GrinderMainWindow::onWarningMessage);
+
 	// Connect UI buttons
-	connect(ui.run_stop_pb, &QPushButton::clicked, this, &GrinderMainWindow::onGrindStartStop);
 	connect(ui.quit_pb, &QPushButton::clicked, this, &GrinderMainWindow::onExitClicked);
+	connect(ui.estop_pb, &QPushButton::toggled, motion.get(), &GrinderMotion::onToggleEstop);
+	connect(ui.power_pb, &QPushButton::toggled, motion.get(), &GrinderMotion::onTogglePower);
+	connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
 
 	// jogging
 	connect(ui.jog_x_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXPlusPressed);
@@ -169,7 +171,12 @@ void GrinderMainWindow::connectSignals()
 
 	connect(this, &GrinderMainWindow::jog, motion.get(), &GrinderMotion::onJog);
 
-	// Connect own signals to own slots (self-connection)
+	// Machine status
+	connect(motion.get(), &GrinderMotion::positionChanged, this, &GrinderMainWindow::onPositionChanged);
+	connect(motion.get(), &GrinderMotion::estopChanged, this, &GrinderMainWindow::onEstopChanged);
+	connect(motion.get(), &GrinderMotion::powerChanged, this, &GrinderMainWindow::onPowerChanged);
+	connect(motion.get(), &GrinderMotion::homedChanged, this, &GrinderMainWindow::onHomedChanged);
+
 	connect(this, &GrinderMainWindow::infoMessage, this, &GrinderMainWindow::onInfoMessage);
 	connect(this, &GrinderMainWindow::errorMessage, this, &GrinderMainWindow::onErrorMessage);
 	connect(this, &GrinderMainWindow::warningMessage, this, &GrinderMainWindow::onWarningMessage);
@@ -186,6 +193,50 @@ void GrinderMainWindow::onJogPressed(Axis axis, bool direction)
 	else
 	{
 		emit errorMessage("Grinder motion controller not initialized");
+	}
+}
+
+void GrinderMainWindow::onEstopChanged(bool isActive)
+{
+	ui.estop_pb->setChecked(isActive);
+	if (isActive)
+	{
+		ui.estop_pb->setText("E-Stop Active");
+		ui.estop_pb->setStyleSheet("background-color: red; color: white;");
+	}
+	else
+	{
+		ui.estop_pb->setText("E-Stop");
+		ui.estop_pb->setStyleSheet(""); // Reset to default style
+	}
+}
+
+void GrinderMainWindow::onPowerChanged(bool isOn)
+{
+	ui.power_pb->setChecked(isOn);
+	if (isOn)
+	{
+		ui.power_pb->setText("Power On");
+		ui.power_pb->setStyleSheet("background-color: green; color: white;");
+	}
+	else
+	{
+		ui.power_pb->setText("Power Off");
+		ui.power_pb->setStyleSheet(""); // Reset to default style
+	}
+}
+
+void GrinderMainWindow::onHomedChanged(bool isHomed)
+{
+	if (isHomed)
+	{
+		ui.home_all_pb->setText("Homed");
+		ui.home_all_pb->setStyleSheet("color: green;");
+	}
+	else
+	{
+		ui.home_all_pb->setText("Not Homed");
+		ui.home_all_pb->setStyleSheet("color: red;");
 	}
 }
 

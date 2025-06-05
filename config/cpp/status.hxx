@@ -18,13 +18,11 @@ struct Position
 
 struct LinuxCncStatus
 {
-	bool machineOk;
-	bool isRunning;
-	Position currentPos;
-	double spindleSpeed;
-	bool spindleForward;
-	bool spindleOn;
-	int feedOverridePercentage;
-	int jogVelocity[3]; // X, Y, Z axis jog velocities
-						// int errors;			// Error count or error code
+	bool isEstopActive = true;
+	bool isPowerOn = false;
+	bool isHomed = false;
+	double spindleSpeed = 0.0;
+	bool spindleForward = false;
+	bool spindleOn = false;
+	int feedOverridePercentage = 100;
 };
