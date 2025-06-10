@@ -1,11 +1,11 @@
 #include "grinder-backend.hxx"
-#include "linuxcnc/emc.hh"
-#include "linuxcnc/nml.hh"
-#include "linuxcnc/rcs.hh"
-#include "linuxcnc/stat_msg.hh"
+#include "emc.hh"
+#include "nml.hh"
 #include "nmlmsg.hh"
+#include "rcs.hh"
 #include "settings.hxx"
 #include "shcom.hh"
+#include "stat_msg.hh"
 #include <cassert>
 #include <csignal>
 #include <cstdlib>
@@ -14,10 +14,6 @@
 #include <execinfo.h>
 #include <iostream>
 #include <sstream>
-
-#ifndef EMC2_DEFAULT_INIFILE
-#define EMC2_DEFAULT_INIFILE "/usr/share/linuxcnc/linuxcnc.ini"
-#endif
 
 #define UNUSED(x) (void)(x)
 
@@ -151,8 +147,8 @@ void GrinderMotion::monitorStateImpl()
 		std::cerr << "EMC status is null! Linuxcnc is probably not fully up yet, retrying!\n";
 		return;
 	}
-	bool is_ok = !(myEmcStatus->task.state == EMC_TASK_STATE_ESTOP) &&
-				 myEmcStatus->task.state == EMC_TASK_STATE_ON &&
+	bool is_ok = !(myEmcStatus->task.state == EMC_TASK_STATE::ESTOP) &&
+				 myEmcStatus->task.state == EMC_TASK_STATE::ON &&
 				 myEmcStatus->motion.traj.enabled;
 
 	// Update position
@@ -357,8 +353,8 @@ void GrinderMotion::sendMDICommand(const char *command)
 bool GrinderMotion::canStart()
 {
 	updateStatus();
-	auto stateEstop = (myEmcStatus->task.state == EMC_TASK_STATE_ESTOP);
-	auto powerOff = (myEmcStatus->task.state == EMC_TASK_STATE_OFF);
+	auto stateEstop = (myEmcStatus->task.state == EMC_TASK_STATE::ESTOP);
+	auto powerOff = (myEmcStatus->task.state == EMC_TASK_STATE::OFF);
 	auto motion_enabled = myEmcStatus->motion.traj.enabled;
 
 	return (!stateEstop && !powerOff && motion_enabled);

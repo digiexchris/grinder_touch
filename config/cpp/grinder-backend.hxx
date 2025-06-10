@@ -1,7 +1,7 @@
 #pragma once
 
-#include "linuxcnc/emc_nml.hh"
-#include "linuxcnc/hal.h"
+#include "emc_nml.hh"
+#include "hal.h"
 #include "settings.hxx"
 #include <array>
 #include <atomic>

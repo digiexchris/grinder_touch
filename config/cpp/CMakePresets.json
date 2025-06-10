@@ -27,6 +27,21 @@
       }
     },
     {
+      "name": "clang-debug-inplace",
+      "displayName": "Clang Debug w/ LinuxCNC compiled In Place",
+      "description": "Debug build using Clang compiler",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/clang-debug",
+      "inherits": [
+        "clang-debug"
+      ],
+      "cacheVariables": {
+        "LINUXCNC_LIB_DIR": "~/linuxcnc-dev/lib",
+        "LINUXCNC_MODULE_DIR": "~/linuxcnc-dev/lib",
+        "LINUXCNC_INCLUDE_DIR": "~/linuxcnc-dev/include"
+      }
+    },
+    {
       "name": "arm64-debug",
       "displayName": "arm64 clang Debug",
       "binaryDir": "${sourceDir}/build/clang-debug-arm64",

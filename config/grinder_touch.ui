@@ -1241,7 +1241,7 @@ QTabBar::tab * {
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <layout class="QGridLayout" name="gridLayout_7" rowstretch="0,0,0,0,0,0" columnstretch="0,0,0">
+            <layout class="QGridLayout" name="gridLayout_7" rowstretch="0,0,0,0,0,0" columnstretch="0,0,0,0">
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -1254,20 +1254,8 @@ QTabBar::tab * {
              <property name="spacing">
               <number>4</number>
              </property>
-             <item row="5" column="0" colspan="2">
-              <widget class="QLabel" name="label_50">
-               <property name="font">
-                <font>
-                 <pointsize>29</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Infeed At</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1" colspan="2">
-              <widget class="QLineEdit" name="x_min_edit">
+             <item row="3" column="3">
+              <widget class="QDoubleSpinBox" name="x_speed_sb">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -1279,11 +1267,26 @@ QTabBar::tab * {
                  <pointsize>26</pointsize>
                 </font>
                </property>
-               <property name="text">
-                <string>0.000</string>
+               <property name="buttonSymbols">
+                <enum>QAbstractSpinBox::UpDownArrows</enum>
+               </property>
+               <property name="maximum">
+                <double>99999.990000000005239</double>
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0" colspan="3">
+              <widget class="QLabel" name="label_44">
+               <property name="font">
+                <font>
+                 <pointsize>29</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Speed</string>
                </property>
               </widget>
              </item>
@@ -1311,31 +1314,7 @@ QTabBar::tab * {
                </property>
               </widget>
              </item>
-             <item row="3" column="2">
-              <widget class="QDoubleSpinBox" name="x_speed_sb">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>80</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>26</pointsize>
-                </font>
-               </property>
-               <property name="buttonSymbols">
-                <enum>QAbstractSpinBox::UpDownArrows</enum>
-               </property>
-               <property name="maximum">
-                <double>99999.990000000005239</double>
-               </property>
-               <property name="input" stdset="0">
-                <string>number</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="2">
+             <item row="5" column="3">
               <widget class="QComboBox" name="crossfeed_at_cb">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -1377,43 +1356,7 @@ QTabBar::tab * {
                </item>
               </widget>
              </item>
-             <item row="3" column="0" colspan="2">
-              <widget class="QLabel" name="label_44">
-               <property name="font">
-                <font>
-                 <pointsize>29</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Speed</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QPushButton" name="x_max_here_pb">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>120</width>
-                 <height>80</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>26</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>+X</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1" colspan="2">
+             <item row="2" column="2" colspan="2">
               <widget class="QLineEdit" name="x_max_edit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -1443,6 +1386,93 @@ QTabBar::tab * {
                </property>
                <property name="input" stdset="0">
                 <string>number</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0" colspan="3">
+              <widget class="QLabel" name="label_50">
+               <property name="font">
+                <font>
+                 <pointsize>29</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Infeed At</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="x_max_here_pb">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>80</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>26</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>+X</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QDoubleSpinBox" name="x_min_edit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>80</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>26</pointsize>
+                </font>
+               </property>
+               <property name="mouseTracking">
+                <bool>true</bool>
+               </property>
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="minimum">
+                <double>-999999.989999999990687</double>
+               </property>
+               <property name="maximum">
+                <double>999999.989999999990687</double>
+               </property>
+               <property name="value">
+                <double>2.000000000000000</double>
+               </property>
+               <property name="input" stdset="0">
+                <string>number</string>
+               </property>
+               <property name="function" stdset="0">
+                <string>hal_pin</string>
+               </property>
+               <property name="pin_name" stdset="0">
+                <string>x_min</string>
+               </property>
+               <property name="hal_type" stdset="0">
+                <string>HAL_FLOAT</string>
+               </property>
+               <property name="hal_dir" stdset="0">
+                <string>HAL_OUT</string>
                </property>
               </widget>
              </item>
