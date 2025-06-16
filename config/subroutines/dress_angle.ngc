@@ -1,0 +1,47 @@
+; CNC Surface Grinder Wheel Dressing Subroutine
+; Usage: O<dress> call [angle] [infeed] [retract] [distance]
+; Example: O<dress> call [45] [0.002] [0.005] [1.0]
+;
+; Parameters:
+; #1 = Dress angle (degrees from horizontal)
+; #2 = Infeed distance (inches) - moves wheel down (Y negative)
+; #3 = Retract distance (inches) - moves wheel up (Y positive) 
+; #4 = Travel distance along angled path (inches)
+;
+; Z-axis: Parallel to wheel spindle
+; Y-axis: Wheel up/down movement (negative = deeper cut)
+
+O<dress> sub
+
+; Capture current position as starting reference  
+#<start_y> = #<_y>
+#<start_z> = #<_z>
+
+; Calculate movement components for specified distance at specified angle
+#<y_move> = [SIN[#1] * #4]  ; Y component 
+#<z_move> = [COS[#1] * #4]  ; Z component
+
+; Safety: Ensure feedrates and modes are set
+G94     ; Feed per minute mode
+G90     ; Absolute positioning
+
+; Step 1: Feed Z in by infeed distance
+G01 Z[#<start_z> - #2] F5
+
+; Step 2: Move both axes for angled dress over 1" distance
+G01 Y[#<start_y> + #<y_move>] Z[#<start_z> - #2 + #<z_move>] F10
+
+; Step 3: Retract Z to clear wheel
+G01 Z[#<start_z> - #2 + #<z_move> + #3] F20
+
+; Step 4: Return to reference position (deeper by infeed amount)
+G00 Y[#<start_y>] Z[#<start_z> - #2]
+
+O<dress> endsub
+
+; Example calls:
+; O<dress> call [45] [0.002] [0.005] [1.0]   ; 45°, wheel down 0.002", up 0.005" retract, 1" travel
+; O<dress> call [30] [0.001] [0.003] [0.5]   ; 30°, wheel down 0.001", up 0.003" retract, 0.5" travel
+; O<dress> call [-45] [0.003] [0.010] [2.0]  ; -45°, wheel down 0.003", up 0.010" retract, 2" travel
+
+M30

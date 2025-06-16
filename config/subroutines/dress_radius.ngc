@@ -1,0 +1,56 @@
+; CNC Surface Grinder Wheel Radius Dressing Subroutine  
+; Usage: O<dress_radius> call [radius] [infeed] [retract] [side]
+; Example: O<dress_radius> call [0.125] [0.002] [0.005] [1]
+;
+; Parameters:
+; #1 = Radius size (inches)
+; #2 = Infeed distance (inches) - moves wheel down (Y negative)
+; #3 = Retract distance (inches) - moves wheel up (Y positive)
+; #4 = Side: 1 = right side (+Z), -1 = left side (-Z)
+;
+; Dresses lower 1/4 circle (90 degrees) from side to bottom
+; Z-axis: Parallel to wheel spindle
+; Y-axis: Wheel up/down movement (negative = deeper cut)
+
+O<dress_radius> sub
+
+; Capture current position as starting reference  
+#<start_y> = #<_y>
+#<start_z> = #<_z>
+
+; Calculate arc center position
+#<arc_center_y> = #<start_y> - #2 + #1  ; Center Y = current Y + radius
+#<arc_center_z> = #<start_z>            ; Center Z = current Z
+
+; Safety: Ensure feedrates and modes are set
+G94     ; Feed per minute mode
+G90     ; Absolute positioning
+G19     ; YZ plane for arc moves (rotation around X axis)
+
+; Step 1: Feed Y down (wheel down) by infeed distance
+G01 Y[#<start_y> - #2] F5
+
+; Step 2: Move to arc start position (side, horizontal tangent)
+G01 Y[#<arc_center_y> - #1] Z[#<start_z> + [#4 * #1]] F10
+
+; Step 3: Execute 90-degree arc to bottom position
+IF [#4 GT 0] THEN  ; Right side - use G03 (counterclockwise)
+    G03 Y[#<arc_center_y>] Z[#<start_z>] I0 J[#1] F10
+ELSE               ; Left side - use G02 (clockwise)  
+    G02 Y[#<arc_center_y>] Z[#<start_z>] I0 J[#1] F10
+ENDIF
+
+; Step 4: Retract Y up (wheel up) to clear
+G01 Y[#<arc_center_y> + #3] F20
+
+; Step 5: Return to reference position (deeper by infeed amount)
+G00 Y[#<start_y> - #2] Z[#<start_z>]
+
+O<dress_radius> endsub
+
+; Example calls:
+; O<dress_radius> call [0.125] [0.002] [0.005] [1]    ; 1/8" radius, right side
+; O<dress_radius> call [0.250] [0.001] [0.003] [-1]   ; 1/4" radius, left side  
+; O<dress_radius> call [0.062] [0.003] [0.010] [1]    ; 1/16" radius, right side
+
+M30
