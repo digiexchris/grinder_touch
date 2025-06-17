@@ -1,0 +1,49 @@
+
+net is-running-sync flexhal.is_running grinder.is_running
+
+net x-max-sync flexhal.x_max grinder.x_max
+net x-min-sync flexhal.x_min grinder.x_min
+net y-max-sync flexhal.y_max grinder.y_max
+net y-min-sync flexhal.y_min grinder.y_min
+net z-max-sync flexhal.z_max grinder.z_max
+net z-min-sync flexhal.z_min grinder.z_min
+
+# lists not implemented in flexhal:
+#net crossfeed-at-sync flexhal.crossfeed_at grinder.crossfeed_at
+#net repeat-at-sync flexhal.repeat_at grinder.repeat_at
+
+# Speed settings
+net x-speed-sync flexhal.x_speed grinder.x_speed
+net y-speed-sync flexhal.y_speed grinder.y_speed
+net z-speed-sync flexhal.z_speed grinder.z_speed
+
+# Feed settings
+net z-crossfeed-sync flexhal.z_crossfeed grinder.z_crossfeed
+net y-downfeed-sync flexhal.y_downfeed grinder.y_downfeed
+
+# Enable signals
+#net enable-x-sync flexhal.enable_x grinder.enable_x
+#net enable-y-sync flexhal.enable_y grinder.enable_y
+#net enable-z-sync flexhal.enable_z grinder.enable_z
+
+# Control settings
+net stop-at-z-limit-sync flexhal.stop_at_z_limit grinder.stop_at_z_limit
+
+# Dressing start positions
+#net dress-start-x-sync flexhal.dress_start_x grinder.dress_start_x
+#net dress-start-y-sync flexhal.dress_start_y grinder.dress_start_y
+#net dress-start-z-sync flexhal.dress_start_z grinder.dress_start_z
+
+# Dressing end positions
+#net dress-end-x-sync flexhal.dress_end_x grinder.dress_end_x
+#net dress-end-y-sync flexhal.dress_end_y grinder.dress_end_y
+#net dress-end-z-sync flexhal.dress_end_z grinder.dress_end_z
+
+# Dressing stepover values
+#net dress-stepover-x-sync flexhal.dress_stepover_x grinder.dress_stepover_x
+#net dress-stepover-y-sync flexhal.dress_stepover_y grinder.dress_stepover_y
+#net dress-stepover-z-sync flexhal.dress_stepover_z grinder.dress_stepover_z
+
+# Dressing wheel parameters
+#net dress-wheel-rpm-sync flexhal.dress_wheel_rpm grinder.dress_wheel_rpm
+#net dress-wheel-dia-sync flexhal.dress_wheel_dia grinder.dress_wheel_dia

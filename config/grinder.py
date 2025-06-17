@@ -5,7 +5,7 @@ import linuxcnc
 # from hal_glib import GStat
 
 # from python.axis import Axis
-# from python.grinderhal import GrinderHal
+from python.grinderhal import GrinderHal
 
 from functools import partial
 
@@ -38,12 +38,12 @@ def stop():
 def initialize_controls(parent):
     """Initialize custom controls and connect UI elements."""
 
-    parent.x_max_here_pb.clicked.connect(lambda: on_set_limit_clicked("x_max", parent.x_max_edit))
-    parent.x_min_here_pb.clicked.connect(lambda: on_set_limit_clicked("x_min", parent.x_min_edit))
-    parent.z_max_here_pb.clicked.connect(lambda: on_set_limit_clicked("z_max", parent.z_max_edit))
-    parent.z_min_here_pb.clicked.connect(lambda: on_set_limit_clicked("z_min", parent.z_min_edit))
-    parent.y_max_here_pb.clicked.connect(lambda: on_set_limit_clicked("y_max", parent.y_max_edit))
-    parent.y_min_here_pb.clicked.connect(lambda: on_set_limit_clicked("y_min", parent.y_min_edit))
+    parent.x_max_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_x, parent.x_max_edit))
+    parent.x_min_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_x, parent.x_min_edit))
+    parent.z_max_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_z, parent.z_max_edit))
+    parent.z_min_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_z, parent.z_min_edit))
+    parent.y_max_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_y, parent.y_max_edit))
+    parent.y_min_here_pb.clicked.connect(lambda: on_set_limit_clicked(parent.dro_lb_y, parent.y_min_edit))
 
     parent.stop_at_z_limit_pb.clicked.connect(on_value_changed)
 
@@ -64,11 +64,11 @@ def initialize_controls(parent):
     parent.y_speed_sb.valueChanged.connect(on_value_changed)
     parent.z_speed_sb.valueChanged.connect(on_value_changed)
 
-    parent.crossfeed_at_cb.currentIndexChanged.connect(on_value_changed)
-    parent.repeat_at_cb.currentIndexChanged.connect(on_value_changed)
+    parent.crossfeed_at_lv.currentItemChanged.connect(on_value_changed)
+    parent.repeat_at_lv.currentItemChanged.connect(on_value_changed)
 
-    parent.z_crossfeed_edit.textChanged.connect(on_value_changed)
-    parent.y_downfeed_edit.textChanged.connect(on_value_changed)
+    parent.z_crossfeed_sb.valueChanged.connect(on_value_changed)
+    parent.y_downfeed_sb.valueChanged.connect(on_value_changed)
 
     parent.run_stop_pb.clicked.connect(on_run_stop_clicked)
 
@@ -83,9 +83,11 @@ def on_set_limit_clicked(source, field):
     # axis_name = axis_name.removesuffix("_max")
     # axis = Axis.from_str(axis_name)
     print("fired")
-    print(source.text)
-    field.setText(str(source.text))
-    GrinderHal.save()
+    print(dir(source.text))
+    print(dir(field))
+    # value = round(float(source.text()), 4)
+    field.setValue(round(float(source.text()), 4))
+    save_settings()
 
 def on_value_changed(self):
     save_settings()

@@ -1,5 +1,1 @@
-<RCC>
-  <qresource prefix="local">
-    <file>touch.qss</file>
-  </qresource>
-</RCC>
+<RCC/>

@@ -1,8 +1,8 @@
 /* ********** Regular Buttons ********** */
 
- * {
+ /* * {
 	font-size: 23px;
-	}
+	} */
 
 
 /* QWidget  */
@@ -42,7 +42,7 @@ QTabWidget, QTabBar, QMainWindow {
 
 QMenu {
     border: 1px solid white;
-	font-size: 26px;
+	font-size: 18px;
 	}
 
 QMenu::separator {
@@ -53,7 +53,7 @@ QMenu::separator {
 	}
 
 QMenu::item{
-	font-size: 20px;
+	font-size: 18px;
 }
 
 QMenu::item:selected{
@@ -81,6 +81,11 @@ QMenu::icon:checked { /* appearance of a 'checked' icon */
     left: 1px;
 	}
 
+#bottom_buttons::QPushButton {
+	min-height: 60px;
+	min-width: 120px;
+}
+
 QMenu::indicator {
     width: 13px;
     height: 13px;
@@ -96,6 +101,12 @@ QListWidget {
     border: 1px solid gray;
     border-radius: 3px;
 	}
+
+QListWidget#crossfeed_at_lv::item, QListWidget#repeat_at_lv::item {
+	height: 40px;
+	font-size: 25px;
+	padding: 8px;
+}
 	
 QCheckBox {
 	background-color: rgba(160, 160, 160, 50%);
@@ -141,15 +152,15 @@ QPushButton {
 	background-color: rgba(160, 160, 160, 50%);
 /*	min-height: 50px; */
 /*	min-width: 50px; */
-	min-height: 35px;
-	min-width: 35px;
+	/* min-height: 80px;
+	min-width: 80px; */
 	border: 0px solid rgba(128, 128, 128, 100%);
 	border-style: outset;
 	border-width: 3px;
 	border-radius: 10px;
 	margin-bottom: 1px;
-	padding-right: 10px;
-	padding-left: 10px;
+	padding-right: 5px;
+	padding-left: 5px;
 	}
 
 QTabBar::tab {
@@ -176,13 +187,28 @@ QSpinBox, QAbstractSpinBox {
 	min-height: 80px;
 		Width: 300px;
 		background-color: rgba(160, 160, 160, 50%);
+		padding-right: 80px;
 	}
 
 QSpinBox::up-button, QSpinBox::up-arrow, QDoubleSpinBox::up-botton, QAbstractSpinBox::up-button, QSpinBox::plus-button, QAbstractSpinBox::plus-button,
 QSpinBox::down-button, QSpinBox:down-arrow, QDoubleSpinBox::down-arrow, QDoubleSpinBox::down-botton, QAbstractSpinBox::down-button, QSpinBox::minus-button, QAbstractSpinBox::minus-button {
 	min-width: 80px;
-	min-height: 20px;
+	min-height: 74px;
 	}
+
+QSpinBox::up-button, QAbstractSpinBox::up-button {
+    subcontrol-position: right;
+    right: 80px;
+	subcontrol-origin: padding;
+}
+
+QSpinBox::down-button, QAbstractSpinBox::down-button {
+    subcontrol-position: right;
+	subcontrol-origin: padding;
+    /* right: 0px; */
+}
+
+
 
 /* ********** General Buttons ********** */
 QPushButton:hover {
@@ -309,6 +335,11 @@ QComboBox#tool_change_cb::item:!selected, QComboBox#jog_modes_cb::item:!selected
 	background-color: black;
 	color: white;
 	}
+
+/* QComboBox::item {
+    background-color: gray;
+	font-size: 20px;
+	} */
 
 /* ********** NOTES ********** */
 /*  QMainWindow{
