@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/config/grinder_backend",
+            "program": "${workspaceFolder}/config/grinder_touch_gui-x64",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

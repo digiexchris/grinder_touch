@@ -49,7 +49,7 @@ set_target_properties(hal_lib PROPERTIES
     IMPORTED_LOCATION "${HAL_MODULE}"
 )
 
-add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx backward.cpp)
+add_executable(grinder_backend grinder-backend.cxx shcom.cc main.cxx settings.cxx backward.cpp linuxcnc/hal.cxx linuxcnc/machine.cxx)
 
 # Add GUI application
 qt_add_executable(grinder_touch_gui grinder_touch.ui
@@ -60,6 +60,7 @@ qt_add_executable(grinder_touch_gui grinder_touch.ui
     shcom.cc 
     settings.cxx 
     backward.cpp
+    linuxcnc/hal.cxx linuxcnc/machine.cxx
 )
 
 

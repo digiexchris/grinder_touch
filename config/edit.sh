@@ -1,2 +1,2 @@
 #!/bin/bash
-/usr/lib/qt6/bin/designer ./grinder_touch.ui
+/usr/lib/qt6/bin/designer ./cpp/grinder_touch.ui

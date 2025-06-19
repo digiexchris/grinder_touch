@@ -8,6 +8,8 @@
 #include <cxxabi.h>
 #include <iostream>
 
+#include "linuxcnc/machine.hxx"
+
 // backward::SignalHandling sh({SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS});
 
 static GrinderMotion *grinder = nullptr;
@@ -36,9 +38,11 @@ int main(int argc, char **argv)
 
 	settings = new SettingsManager("./grinder_settings.json");
 
-	grinder = new GrinderMotion(settings);
-	grinder->Start();
-	grinder->monitorState();
+	// Machine machine;
+
+	// grinder = new GrinderMotion(settings);
+	//  grinder->Start();
+	//  grinder->monitorState();
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	return 0;

@@ -20,7 +20,61 @@
             "args": [
                 // "--standalone"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "initCommands": [
+                "settings set target.inline-breakpoint-strategy always"
+            ],
+            // "preRunCommands": [
+            //     "command script import /usr/share/qt6/qtcreator/debugger/lldbbridge.py"
+            // ]
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Launch Backend (GDB)",
+            "program": "${workspaceFolder}/grinder_backend",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Launch GUI (GDB)",
+            "program": "${workspaceFolder}/grinder_touch_gui-x64",
+            "args": [
+                // "--standalone"
+            ],
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

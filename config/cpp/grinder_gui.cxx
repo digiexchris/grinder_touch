@@ -11,6 +11,8 @@
 #include <QTextStream>
 #include <iostream>
 
+#include "linuxcnc/machine.hxx"
+
 GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	: QMainWindow(parent), isInitialized(false), isShuttingDown(false), m_standaloneMode(standaloneMode)
 {
@@ -22,19 +24,21 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	{
 		setWindowTitle("Grinder Touch - LinuxCNC GUI");
 	}
-	setMinimumSize(800, 600);
+	// setMinimumSize(800, 600);
 
-	ui.setupUi(this);
-	loadStyleSheet();
-	setupMenus();
+	// ui.setupUi(this);
+	// loadStyleSheet();
+	// setupMenus();
 
 	try
 	{
 		// Initialize settings manager
 		settingsManager = std::make_unique<SettingsManager>("./grinder_settings.json");
 
+		machine = new Machine(*settingsManager->Get());
+
 		// Initialize grinder motion controller
-		motion = std::make_unique<GrinderMotion>(settingsManager.get());
+		// motion = std::make_unique<GrinderMotion>(settingsManager.get());
 
 		// Connect position change signals
 
@@ -46,19 +50,19 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 		throw std::runtime_error("Failed to initialize grinder backend: " + std::string(e.what()));
 	}
 
-	connectSignals();
+	// connectSignals();
 
-	if (!m_standaloneMode)
-	{
-		// Initialize the grinder backend only in LinuxCNC mode
-		motion->Start();
-	}
-	else
-	{
-		std::cout << "Standalone mode: Skipping LinuxCNC backend initialization" << std::endl;
+	// if (!m_standaloneMode)
+	// {
+	// 	// Initialize the grinder backend only in LinuxCNC mode
+	// 	motion->Start();
+	// }
+	// else
+	// {
+	// 	std::cout << "Standalone mode: Skipping LinuxCNC backend initialization" << std::endl;
 
-		// emit infoMessage("Grinder GUI initialized in standalone mode");
-	}
+	// 	// emit infoMessage("Grinder GUI initialized in standalone mode");
+	// }
 
 	isInitialized = true;
 
@@ -88,6 +92,11 @@ GrinderMainWindow::~GrinderMainWindow()
 		{
 			motion->stop();
 			motion->cleanup();
+		}
+
+		if (machine)
+		{
+			delete machine;
 		}
 	}
 }
@@ -155,19 +164,19 @@ void GrinderMainWindow::connectSignals()
 	connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
 
 	// jogging
-	connect(ui.jog_x_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXPlusPressed);
-	connect(ui.jog_x_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXMinusPressed);
-	connect(ui.jog_y_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYPlusPressed);
-	connect(ui.jog_y_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYMinusPressed);
-	connect(ui.jog_z_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogZPlusPressed);
-	connect(ui.jog_z_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogZMinusPressed);
+	// connect(ui.jog_x_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXPlusPressed);
+	// connect(ui.jog_x_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXMinusPressed);
+	// connect(ui.jog_y_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYPlusPressed);
+	// connect(ui.jog_y_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYMinusPressed);
+	// connect(ui.jog_z_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogZPlusPressed);
+	// connect(ui.jog_z_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogZMinusPressed);
 
-	connect(ui.jog_x_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
-	connect(ui.jog_x_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
-	connect(ui.jog_y_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
-	connect(ui.jog_y_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
-	connect(ui.jog_z_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
-	connect(ui.jog_z_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_x_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_x_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_y_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_y_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_z_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
+	// connect(ui.jog_z_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
 
 	connect(this, &GrinderMainWindow::jog, motion.get(), &GrinderMotion::onJog);
 

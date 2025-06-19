@@ -22,6 +22,7 @@
 
 #include "grinder_motion.hxx"
 #include "gui_events.hxx"
+#include "linuxcnc/machine.hxx"
 #include "settings.hxx"
 
 #include "ui_grinder_touch.h" // Generated from grinder_touch.ui
@@ -95,6 +96,8 @@ private:
 	// // Backend components
 	std::unique_ptr<GrinderMotion> motion;
 	std::unique_ptr<SettingsManager> settingsManager;
+
+	Machine *machine;
 
 	// Application state
 	bool isInitialized;
