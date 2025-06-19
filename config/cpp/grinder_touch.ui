@@ -5996,7 +5996,7 @@ QTabBar::tab {
   </action>
  </widget>
  <resources>
-  <include location="touch.qrc"/>
+  <include location="../touch.qrc"/>
  </resources>
  <connections/>
 </ui>
