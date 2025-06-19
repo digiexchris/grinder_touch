@@ -23,8 +23,8 @@ struct Settings
 	bool enable_y;
 	bool enable_z;
 	bool stop_at_z_limit;
-	int32_t crossfeed_at;
-	int32_t repeat_at;
+	uint32_t crossfeed_at;
+	uint32_t repeat_at;
 	bool is_running;
 	double dress_start_x;
 	double dress_start_y;

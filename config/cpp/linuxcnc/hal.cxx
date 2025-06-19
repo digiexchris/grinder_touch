@@ -9,13 +9,22 @@
 // #include <cstring>
 // #include <cxxabi.h>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 // #include <sstream>
 
 template <typename T>
 void Hal::CreatePin(Pin aPin, std::string aName, hal_pin_dir_t aDirection)
 {
-	pins.try_emplace(aPin, T(aPin, aName, aDirection, componentName, componentId));
+	// pins.try_emplace(aPin, T(aPin, aName, aDirection, componentName, componentId));
+
+	// auto pinVariant = T(aPin, aName, aDirection, componentName, componentId);
+	// pins.try_emplace(aPin, std::make_unique<T>(std::move(pinVariant)));
+
+	pins.try_emplace(
+		aPin,
+		HalType{std::in_place_type<std::unique_ptr<HalFloat>>,
+				std::make_unique<HalFloat>(aPin, aName, aDirection, componentName, componentId)});
 }
 
 Hal::Hal()
@@ -47,14 +56,14 @@ Hal::Hal()
 	CreatePin<HalBit>(Pin::Z_DIRECTION, "z_direction", HAL_IO);
 	CreatePin<HalFloat>(Pin::Z_CROSSFEED, "z_crossfeed", HAL_IN);
 	CreatePin<HalFloat>(Pin::Y_DOWNFEED, "y_downfeed", HAL_IN);
-	CreatePin<HalBit>(Pin::ENABLE_X, "enable_x", HAL_IO);
-	CreatePin<HalBit>(Pin::ENABLE_Y, "enable_y", HAL_IO);
+	CreatePin<HalBit>(Pin::ENABLE_X, "enable_x", HAL_IO); //
+	CreatePin<HalBit>(Pin::ENABLE_Y, "enable_y", HAL_IO); //
 	CreatePin<HalBit>(Pin::ENABLE_Z, "enable_z", HAL_IO);
-	CreatePin<HalBit>(Pin::STOP_AT_Z_LIMIT, "stop_at_z_limit", HAL_IN);
-	CreatePin<HalU32>(Pin::CROSSFEED_AT, "crossfeed_at", HAL_IN);
-	CreatePin<HalU32>(Pin::REPEAT_AT, "repeat_at", HAL_IN);
-	CreatePin<HalBit>(Pin::IS_RUNNING, "is_running", HAL_IO);
-	CreatePin<HalBit>(Pin::DOWNFEED_NOW, "downfeed_now", HAL_IO);
+	CreatePin<HalBit>(Pin::STOP_AT_Z_LIMIT, "stop_at_z_limit", HAL_IN); //
+	CreatePin<HalU32>(Pin::CROSSFEED_AT, "crossfeed_at", HAL_IN);		//
+	CreatePin<HalU32>(Pin::REPEAT_AT, "repeat_at", HAL_IN);				//
+	CreatePin<HalBit>(Pin::IS_RUNNING, "is_running", HAL_IO);			//
+	CreatePin<HalBit>(Pin::DOWNFEED_NOW, "downfeed_now", HAL_IO);		//
 
 	std::cout << "HAL pins created\n";
 
@@ -69,13 +78,13 @@ Hal::~Hal()
 	}
 }
 
-void Hal::SetPin(Pin aPin, std::variant<bool, float, std::string, int> aValue)
+void Hal::SetPin(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue)
 {
 	auto it = pins.find(aPin);
 	if (it != pins.end())
 	{
 		std::visit([&](auto &halpin)
-				   { halpin.SetValue(aValue); }, it->second);
+				   { halpin->SetValue(aValue); }, it->second);
 	}
 	else
 	{
@@ -83,15 +92,15 @@ void Hal::SetPin(Pin aPin, std::variant<bool, float, std::string, int> aValue)
 	}
 }
 
-std::variant<bool, float, std::string, int> Hal::GetPin(Pin aPin)
+std::variant<bool, double, std::string, uint32_t> Hal::GetPin(Pin aPin)
 {
 	auto it = pins.find(aPin);
 	if (it != pins.end())
 	{
-		std::variant<bool, float, std::string, int> value;
+		std::variant<bool, double, std::string, uint32_t> value;
 
 		std::visit([&](auto &pin)
-				   { value = pin.Get(); }, it->second);
+				   { value = pin->Get(); }, it->second);
 
 		return value;
 	}

@@ -22,7 +22,7 @@ struct GrinderSettings
 	double z_crossfeed, y_downfeed;
 	bool enable_x, enable_y, enable_z;
 	bool stop_at_z_limit;
-	int crossfeed_at, repeat_at;
+	uint32_t crossfeed_at, repeat_at;
 	double dress_start_x, dress_start_y, dress_start_z;
 	double dress_end_x, dress_end_y, dress_end_z;
 	double dress_stepover_x, dress_stepover_y, dress_stepover_z;

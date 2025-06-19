@@ -30,25 +30,25 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	// loadStyleSheet();
 	// setupMenus();
 
-	try
-	{
-		// Initialize settings manager
-		settingsManager = std::make_unique<SettingsManager>("./grinder_settings.json");
+	// try
+	// {
+	// Initialize settings manager
+	settingsManager = std::make_unique<SettingsManager>("./grinder_settings.json");
 
-		machine = new Machine(*settingsManager->Get());
+	machine = new Machine(*settingsManager->Get());
 
-		// Initialize grinder motion controller
-		// motion = std::make_unique<GrinderMotion>(settingsManager.get());
+	// Initialize grinder motion controller
+	// motion = std::make_unique<GrinderMotion>(settingsManager.get());
 
-		// Connect position change signals
+	// Connect position change signals
 
-		std::cout << "Grinder backend initialized successfully" << std::endl;
-	}
-	catch (const std::exception &e)
-	{
-		emit errorMessage(QString("Failed to initialize grinder backend: %1").arg(e.what()));
-		throw std::runtime_error("Failed to initialize grinder backend: " + std::string(e.what()));
-	}
+	std::cout << "Grinder backend initialized successfully" << std::endl;
+	// }
+	// catch (const std::exception &e)
+	// {
+	// 	emit errorMessage(QString("Failed to initialize grinder backend: %1").arg(e.what()));
+	// 	throw e;
+	// }
 
 	// connectSignals();
 

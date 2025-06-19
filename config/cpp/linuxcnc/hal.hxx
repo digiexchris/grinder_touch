@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -65,7 +66,7 @@ struct HalPin
 	{
 	}
 
-	void SetValue(std::variant<bool, float, std::string, int> aValue)
+	void SetValue(std::variant<bool, double, std::string, uint32_t> aValue)
 	{
 		// static_cast<Derived *>(this)->Set(static_cast<BaseUnit>(aValue));
 
@@ -83,29 +84,32 @@ struct HalPin
 	// }
 };
 
-struct HalFloat : HalPin<hal_float_t, HalFloat, float>
+struct HalFloat : HalPin<hal_float_t, HalFloat, double>
 {
 
 	hal_float_t **address;
-	HalFloat(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_float_t, HalFloat, float>(aPin, aName, aDirection)
+	HalFloat(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_float_t, HalFloat, double>(aPin, aName, aDirection)
 	{
 		address = static_cast<hal_float_t **>(hal_malloc(sizeof(hal_float_t)));
 		if (address == nullptr)
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for float pin: " + aName);
 		}
+
+		*address = nullptr;
+
 		assert(hal_pin_float_new((componentName + "." + name).c_str(),
 								 direction,
 								 address,
 								 componentId) == 0);
 	}
 
-	void Set(float aValue)
+	void Set(double aValue)
 	{
 		**address = aValue;
 	}
 
-	float Get()
+	double Get()
 	{
 		return **address;
 	}
@@ -120,6 +124,9 @@ struct HalBit : HalPin<hal_bit_t, HalBit, bool>
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for bit pin: " + aName);
 		}
+
+		*address = nullptr;
+
 		assert(hal_pin_bit_new((componentName + "." + name).c_str(),
 							   direction,
 							   address,
@@ -130,6 +137,8 @@ struct HalBit : HalPin<hal_bit_t, HalBit, bool>
 
 	void Set(bool aValue)
 	{
+		assert(address != nullptr && *address != nullptr);
+
 		**address = aValue;
 	}
 
@@ -166,15 +175,18 @@ struct HalBit : HalPin<hal_bit_t, HalBit, bool>
 // 	}
 // };
 
-struct HalU32 : HalPin<hal_u32_t, HalU32, int>
+struct HalU32 : HalPin<hal_u32_t, HalU32, uint32_t>
 {
-	HalU32(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_u32_t, HalU32, int>(aPin, aName, aDirection)
+	HalU32(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_u32_t, HalU32, uint32_t>(aPin, aName, aDirection)
 	{
 		address = static_cast<hal_u32_t **>(hal_malloc(sizeof(hal_u32_t)));
 		if (address == nullptr)
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for u32 pin: " + aName);
 		}
+
+		*address = nullptr;
+
 		assert(hal_pin_u32_new((componentName + "." + name).c_str(),
 							   direction,
 							   address,
@@ -183,12 +195,12 @@ struct HalU32 : HalPin<hal_u32_t, HalU32, int>
 
 	hal_u32_t **address;
 
-	void Set(int aValue)
+	void Set(uint32_t aValue)
 	{
 		**address = aValue;
 	}
 
-	int Get()
+	uint32_t Get()
 	{
 		return **address;
 	}
@@ -205,7 +217,12 @@ struct HalU32 : HalPin<hal_u32_t, HalU32, int>
 // 	hal_bit_t *downfeed_now;
 // };
 
-using HalType = std::variant<HalFloat, HalBit, /*HalS32,*/ HalU32>;
+// using HalType = std::variant<HalFloat, HalBit, /*HalS32,*/ HalU32>;
+
+using HalType = std::variant<
+	std::unique_ptr<HalFloat>,
+	std::unique_ptr<HalBit>,
+	std::unique_ptr<HalU32>>;
 
 class Hal
 {
@@ -213,9 +230,9 @@ public:
 	Hal();
 	~Hal();
 
-	void SetPin(Pin aPin, std::variant<bool, float, std::string, int> aValue);
+	void SetPin(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue);
 
-	std::variant<bool, float, std::string, int> GetPin(Pin aPin);
+	std::variant<bool, double, std::string, uint32_t> GetPin(Pin aPin);
 
 private:
 	template <typename T>
