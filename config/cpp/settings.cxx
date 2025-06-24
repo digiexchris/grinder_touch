@@ -2,123 +2,220 @@
 #include <fstream>
 #include <iostream>
 
+Settings::Settings(QObject *aParent) : QObject(aParent) {}
+
+#define SETTER_IMPL(TYPE, NAME, SIGNAL)    \
+	void Settings::Set##NAME(TYPE a##NAME) \
+	{                                      \
+		if (my##NAME != a##NAME)           \
+		{                                  \
+			my##NAME = a##NAME;            \
+			emit SIGNAL(a##NAME);          \
+			emit AnyPropertyChanged();     \
+		}                                  \
+	}
+
+SETTER_IMPL(double, XMin, XMinChanged)
+SETTER_IMPL(double, XMax, XMaxChanged)
+SETTER_IMPL(double, YMin, YMinChanged)
+SETTER_IMPL(double, YMax, YMaxChanged)
+SETTER_IMPL(double, ZMin, ZMinChanged)
+SETTER_IMPL(double, ZMax, ZMaxChanged)
+SETTER_IMPL(uint32_t, XSpeed, XSpeedChanged)
+SETTER_IMPL(uint32_t, YSpeed, YSpeedChanged)
+SETTER_IMPL(uint32_t, ZSpeed, ZSpeedChanged)
+SETTER_IMPL(bool, ZDirection, ZDirectionChanged)
+SETTER_IMPL(double, ZCrossfeed, ZCrossfeedChanged)
+SETTER_IMPL(double, YDownfeed, YDownfeedChanged)
+SETTER_IMPL(bool, EnableX, EnableXChanged)
+SETTER_IMPL(bool, EnableY, EnableYChanged)
+SETTER_IMPL(bool, EnableZ, EnableZChanged)
+SETTER_IMPL(bool, StopAtZLimit, StopAtZLimitChanged)
+SETTER_IMPL(uint32_t, CrossfeedAt, CrossfeedAtChanged)
+SETTER_IMPL(uint32_t, RepeatAt, RepeatAtChanged)
+SETTER_IMPL(bool, IsRunning, IsRunningChanged)
+SETTER_IMPL(double, DressStartX, DressStartXChanged)
+SETTER_IMPL(double, DressStartY, DressStartYChanged)
+SETTER_IMPL(double, DressStartZ, DressStartZChanged)
+SETTER_IMPL(double, DressEndX, DressEndXChanged)
+SETTER_IMPL(double, DressEndY, DressEndYChanged)
+SETTER_IMPL(double, DressEndZ, DressEndZChanged)
+SETTER_IMPL(double, DressStepoverX, DressStepoverXChanged)
+SETTER_IMPL(double, DressStepoverY, DressStepoverYChanged)
+SETTER_IMPL(double, DressStepoverZ, DressStepoverZChanged)
+SETTER_IMPL(double, DressWheelRpm, DressWheelRpmChanged)
+SETTER_IMPL(double, DressWheelDia, DressWheelDiaChanged)
+SETTER_IMPL(double, DressPointDia, DressPointDiaChanged)
+
+void Settings::SetDressOffsetGcodeQString(const QString &aDressOffsetGcode)
+{
+	std::string newVal = aDressOffsetGcode.toStdString();
+	if (myDressOffsetGcode != newVal)
+	{
+		myDressOffsetGcode = newVal;
+		emit DressOffsetGcodeChanged(aDressOffsetGcode);
+		emit AnyPropertyChanged();
+	}
+}
+
+void Settings::SetDressOffsetGcode(const std::string &aDressOffsetGcode)
+{
+	if (myDressOffsetGcode != aDressOffsetGcode)
+	{
+		myDressOffsetGcode = aDressOffsetGcode;
+		emit DressOffsetGcodeChanged(QString::fromStdString(aDressOffsetGcode));
+		emit AnyPropertyChanged();
+	}
+}
+
+nlohmann::json Settings::ToJson() const
+{
+	nlohmann::json j;
+	j["x_min"] = myXMin;
+	j["x_max"] = myXMax;
+	j["y_min"] = myYMin;
+	j["y_max"] = myYMax;
+	j["z_min"] = myZMin;
+	j["z_max"] = myZMax;
+	j["x_speed"] = myXSpeed;
+	j["y_speed"] = myYSpeed;
+	j["z_speed"] = myZSpeed;
+	j["z_direction"] = myZDirection;
+	j["z_crossfeed"] = myZCrossfeed;
+	j["y_downfeed"] = myYDownfeed;
+	j["enable_x"] = myEnableX;
+	j["enable_y"] = myEnableY;
+	j["enable_z"] = myEnableZ;
+	j["stop_at_z_limit"] = myStopAtZLimit;
+	j["crossfeed_at"] = myCrossfeedAt;
+	j["repeat_at"] = myRepeatAt;
+	j["is_running"] = myIsRunning;
+	j["dress_start_x"] = myDressStartX;
+	j["dress_start_y"] = myDressStartY;
+	j["dress_start_z"] = myDressStartZ;
+	j["dress_end_x"] = myDressEndX;
+	j["dress_end_y"] = myDressEndY;
+	j["dress_end_z"] = myDressEndZ;
+	j["dress_stepover_x"] = myDressStepoverX;
+	j["dress_stepover_y"] = myDressStepoverY;
+	j["dress_stepover_z"] = myDressStepoverZ;
+	j["dress_wheel_rpm"] = myDressWheelRpm;
+	j["dress_wheel_dia"] = myDressWheelDia;
+	j["dress_point_dia"] = myDressPointDia;
+	j["dress_offset_gcode"] = myDressOffsetGcode.toStdString();
+	return j;
+}
+
+void Settings::FromJson(const nlohmann::json &aJ)
+{
+	if (aJ.contains("x_min"))
+		SetXMin(aJ["x_min"].get<double>());
+	if (aJ.contains("x_max"))
+		SetXMax(aJ["x_max"].get<double>());
+	if (aJ.contains("y_min"))
+		SetYMin(aJ["y_min"].get<double>());
+	if (aJ.contains("y_max"))
+		SetYMax(aJ["y_max"].get<double>());
+	if (aJ.contains("z_min"))
+		SetZMin(aJ["z_min"].get<double>());
+	if (aJ.contains("z_max"))
+		SetZMax(aJ["z_max"].get<double>());
+	if (aJ.contains("x_speed"))
+		SetXSpeed(aJ["x_speed"].get<uint32_t>());
+	if (aJ.contains("y_speed"))
+		SetYSpeed(aJ["y_speed"].get<uint32_t>());
+	if (aJ.contains("z_speed"))
+		SetZSpeed(aJ["z_speed"].get<uint32_t>());
+	if (aJ.contains("z_direction"))
+		SetZDirection(aJ["z_direction"].get<bool>());
+	if (aJ.contains("z_crossfeed"))
+		SetZCrossfeed(aJ["z_crossfeed"].get<double>());
+	if (aJ.contains("y_downfeed"))
+		SetYDownfeed(aJ["y_downfeed"].get<double>());
+	if (aJ.contains("enable_x"))
+		SetEnableX(aJ["enable_x"].get<bool>());
+	if (aJ.contains("enable_y"))
+		SetEnableY(aJ["enable_y"].get<bool>());
+	if (aJ.contains("enable_z"))
+		SetEnableZ(aJ["enable_z"].get<bool>());
+	if (aJ.contains("stop_at_z_limit"))
+		SetStopAtZLimit(aJ["stop_at_z_limit"].get<bool>());
+	if (aJ.contains("crossfeed_at"))
+		SetCrossfeedAt(aJ["crossfeed_at"].get<uint32_t>());
+	if (aJ.contains("repeat_at"))
+		SetRepeatAt(aJ["repeat_at"].get<uint32_t>());
+	if (aJ.contains("is_running"))
+		SetIsRunning(aJ["is_running"].get<bool>());
+	if (aJ.contains("dress_start_x"))
+		SetDressStartX(aJ["dress_start_x"].get<double>());
+	if (aJ.contains("dress_start_y"))
+		SetDressStartY(aJ["dress_start_y"].get<double>());
+	if (aJ.contains("dress_start_z"))
+		SetDressStartZ(aJ["dress_start_z"].get<double>());
+	if (aJ.contains("dress_end_x"))
+		SetDressEndX(aJ["dress_end_x"].get<double>());
+	if (aJ.contains("dress_end_y"))
+		SetDressEndY(aJ["dress_end_y"].get<double>());
+	if (aJ.contains("dress_end_z"))
+		SetDressEndZ(aJ["dress_end_z"].get<double>());
+	if (aJ.contains("dress_stepover_x"))
+		SetDressStepoverX(aJ["dress_stepover_x"].get<double>());
+	if (aJ.contains("dress_stepover_y"))
+		SetDressStepoverY(aJ["dress_stepover_y"].get<double>());
+	if (aJ.contains("dress_stepover_z"))
+		SetDressStepoverZ(aJ["dress_stepover_z"].get<double>());
+	if (aJ.contains("dress_wheel_rpm"))
+		SetDressWheelRpm(aJ["dress_wheel_rpm"].get<double>());
+	if (aJ.contains("dress_wheel_dia"))
+		SetDressWheelDia(aJ["dress_wheel_dia"].get<double>());
+	if (aJ.contains("dress_point_dia"))
+		SetDressPointDia(aJ["dress_point_dia"].get<double>());
+	if (aJ.contains("dress_offset_gcode"))
+		SetDressOffsetGcode(QString::fromStdString(aJ["dress_offset_gcode"].get<std::string>()));
+}
+
+// --- SettingsManager ---
+
 SettingsManager *SettingsManager::myInstance = nullptr;
 
-SettingsManager::SettingsManager(std::string aFilename) : myFilename(aFilename)
+SettingsManager::SettingsManager(std::string aFilename)
+	: QObject(nullptr), myFilename(std::move(aFilename))
 {
 	mySettings = Load();
-	myInstance = this;
+	if (mySettings)
+	{
+		QObject::connect(mySettings.get(), &Settings::AnyPropertyChanged, [this]()
+						 { this->Save(); });
+	}
 }
 
 std::shared_ptr<Settings> SettingsManager::Load()
 {
-	std::ifstream file(myFilename);
-	if (!file.is_open())
-	{
-		std::cerr << "Failed to open settings file: " << myFilename << '\n';
-		return nullptr;
-	}
-
-	nlohmann::json j;
-	file >> j;
-
 	auto settings = std::make_shared<Settings>();
-	settings->from_json(j);
-	file.close();
-
+	std::ifstream inFile(myFilename);
+	if (inFile)
+	{
+		nlohmann::json j;
+		inFile >> j;
+		settings->FromJson(j);
+	}
+	mySettings = settings;
 	return settings;
 }
 
 void SettingsManager::Save()
 {
-	std::ofstream file(myFilename);
-	if (!file.is_open())
-	{
-		std::cerr << "Failed to open settings file for writing: " << myFilename << '\n';
+	if (!mySettings)
 		return;
+	std::ofstream outFile(myFilename);
+	if (outFile)
+	{
+		nlohmann::json j = mySettings->ToJson();
+		outFile << j.dump(4);
 	}
-
-	nlohmann::json j = mySettings->to_json();
-	file << j.dump(4); // Pretty print with 4 spaces
-	file.close();
 }
 
 std::shared_ptr<Settings> SettingsManager::Get()
 {
 	return mySettings;
-}
-
-void Settings::from_json(const nlohmann::json &j)
-{
-	x_min = j["x_min"].get<double>();
-	x_max = j["x_max"].get<double>();
-	y_min = j["y_min"].get<double>();
-	y_max = j["y_max"].get<double>();
-	z_min = j["z_min"].get<double>();
-	z_max = j["z_max"].get<double>();
-	x_speed = j["x_speed"].get<uint32_t>();
-	y_speed = j["y_speed"].get<uint32_t>();
-	z_speed = j["z_speed"].get<uint32_t>();
-	z_direction = j["z_direction"].get<bool>();
-	z_crossfeed = j["z_crossfeed"].get<double>();
-	y_downfeed = j["y_downfeed"].get<double>();
-	enable_x = j["enable_x"].get<bool>();
-	enable_y = j["enable_y"].get<bool>();
-	enable_z = j["enable_z"].get<bool>();
-	stop_at_z_limit = j["stop_at_z_limit"].get<bool>();
-	crossfeed_at = j["crossfeed_at"].get<int32_t>();
-	repeat_at = j["repeat_at"].get<int32_t>();
-	is_running = j["is_running"].get<bool>();
-	dress_start_x = j["dress_start_x"].get<double>();
-	dress_start_y = j["dress_start_y"].get<double>();
-	dress_start_z = j["dress_start_z"].get<double>();
-	dress_end_x = j["dress_end_x"].get<double>();
-	dress_end_y = j["dress_end_y"].get<double>();
-	dress_end_z = j["dress_end_z"].get<double>();
-	dress_stepover_x = j["dress_stepover_x"].get<double>();
-	dress_stepover_y = j["dress_stepover_y"].get<double>();
-	dress_stepover_z = j["dress_stepover_z"].get<double>();
-	dress_wheel_rpm = j["dress_wheel_rpm"].get<double>();
-	dress_wheel_dia = j["dress_wheel_dia"].get<double>();
-	dress_point_dia = j["dress_point_dia"].get<double>();
-	dress_offset_gcode = j["dress_offset_gcode"].get<std::string>();
-}
-
-nlohmann::json
-Settings::to_json() const
-{
-	nlohmann::json j;
-	j["x_min"] = x_min;
-	j["x_max"] = x_max;
-	j["y_min"] = y_min;
-	j["y_max"] = y_max;
-	j["z_min"] = z_min;
-	j["z_max"] = z_max;
-	j["x_speed"] = x_speed;
-	j["y_speed"] = y_speed;
-	j["z_speed"] = z_speed;
-	j["z_direction"] = z_direction;
-	j["z_crossfeed"] = z_crossfeed;
-	j["y_downfeed"] = y_downfeed;
-	j["enable_x"] = enable_x;
-	j["enable_y"] = enable_y;
-	j["enable_z"] = enable_z;
-	j["stop_at_z_limit"] = stop_at_z_limit;
-	j["crossfeed_at"] = crossfeed_at;
-	j["repeat_at"] = repeat_at;
-	j["is_running"] = is_running;
-	j["dress_start_x"] = dress_start_x;
-	j["dress_start_y"] = dress_start_y;
-	j["dress_start_z"] = dress_start_z;
-	j["dress_end_x"] = dress_end_x;
-	j["dress_end_y"] = dress_end_y;
-	j["dress_end_z"] = dress_end_z;
-	j["dress_stepover_x"] = dress_stepover_x;
-	j["dress_stepover_y"] = dress_stepover_y;
-	j["dress_stepover_z"] = dress_stepover_z;
-	j["dress_wheel_rpm"] = dress_wheel_rpm;
-	j["dress_wheel_dia"] = dress_wheel_dia;
-	j["dress_point_dia"] = dress_point_dia;
-	j["dress_offset_gcode"] = dress_offset_gcode;
-	return j;
 }

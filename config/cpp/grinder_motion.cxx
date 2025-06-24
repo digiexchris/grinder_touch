@@ -32,82 +32,11 @@ GrinderMotion::GrinderMotion(SettingsManager *aSettingsManager, bool standaloneM
 		std::cerr << "SettingsManager is null!\n";
 		throw std::runtime_error("SettingsManager cannot be null");
 	}
-
-	// Initialize settings from file
-	loadSettings();
 }
 
 GrinderMotion::~GrinderMotion()
 {
 	cleanup();
-}
-
-void GrinderMotion::loadSettings()
-{
-	auto settings = mySettingsManager->Get();
-	grinder_settings.x_min = settings->x_min;
-	grinder_settings.x_max = settings->x_max;
-	grinder_settings.y_min = settings->y_min;
-	grinder_settings.y_max = settings->y_max;
-	grinder_settings.z_min = settings->z_min;
-	grinder_settings.z_max = settings->z_max;
-	grinder_settings.x_speed = settings->x_speed;
-	grinder_settings.y_speed = settings->y_speed;
-	grinder_settings.z_speed = settings->z_speed;
-	grinder_settings.z_crossfeed = settings->z_crossfeed;
-	grinder_settings.y_downfeed = settings->y_downfeed;
-	grinder_settings.enable_x = settings->enable_x;
-	grinder_settings.enable_y = settings->enable_y;
-	grinder_settings.enable_z = settings->enable_z;
-	grinder_settings.stop_at_z_limit = settings->stop_at_z_limit;
-	grinder_settings.crossfeed_at = settings->crossfeed_at;
-	grinder_settings.repeat_at = settings->repeat_at;
-	grinder_settings.dress_start_x = settings->dress_start_x;
-	grinder_settings.dress_start_y = settings->dress_start_y;
-	grinder_settings.dress_start_z = settings->dress_start_z;
-	grinder_settings.dress_end_x = settings->dress_end_x;
-	grinder_settings.dress_end_y = settings->dress_end_y;
-	grinder_settings.dress_end_z = settings->dress_end_z;
-	grinder_settings.dress_stepover_x = settings->dress_stepover_x;
-	grinder_settings.dress_stepover_y = settings->dress_stepover_y;
-	grinder_settings.dress_stepover_z = settings->dress_stepover_z;
-	grinder_settings.dress_wheel_rpm = settings->dress_wheel_rpm;
-	grinder_settings.dress_wheel_dia = settings->dress_wheel_dia;
-}
-
-void GrinderMotion::saveSettings()
-{
-	auto settings = mySettingsManager->Get();
-	settings->x_min = grinder_settings.x_min;
-	settings->x_max = grinder_settings.x_max;
-	settings->y_min = grinder_settings.y_min;
-	settings->y_max = grinder_settings.y_max;
-	settings->z_min = grinder_settings.z_min;
-	settings->z_max = grinder_settings.z_max;
-	settings->x_speed = grinder_settings.x_speed;
-	settings->y_speed = grinder_settings.y_speed;
-	settings->z_speed = grinder_settings.z_speed;
-	settings->z_crossfeed = grinder_settings.z_crossfeed;
-	settings->y_downfeed = grinder_settings.y_downfeed;
-	settings->enable_x = grinder_settings.enable_x;
-	settings->enable_y = grinder_settings.enable_y;
-	settings->enable_z = grinder_settings.enable_z;
-	settings->stop_at_z_limit = grinder_settings.stop_at_z_limit;
-	settings->crossfeed_at = grinder_settings.crossfeed_at;
-	settings->repeat_at = grinder_settings.repeat_at;
-	settings->dress_start_x = grinder_settings.dress_start_x;
-	settings->dress_start_y = grinder_settings.dress_start_y;
-	settings->dress_start_z = grinder_settings.dress_start_z;
-	settings->dress_end_x = grinder_settings.dress_end_x;
-	settings->dress_end_y = grinder_settings.dress_end_y;
-	settings->dress_end_z = grinder_settings.dress_end_z;
-	settings->dress_stepover_x = grinder_settings.dress_stepover_x;
-	settings->dress_stepover_y = grinder_settings.dress_stepover_y;
-	settings->dress_stepover_z = grinder_settings.dress_stepover_z;
-	settings->dress_wheel_rpm = grinder_settings.dress_wheel_rpm;
-	settings->dress_wheel_dia = grinder_settings.dress_wheel_dia;
-	mySettingsManager->Save();
-	std::cout << "Settings saved\n";
 }
 
 void GrinderMotion::Start()
@@ -629,19 +558,6 @@ void GrinderMotion::performDownfeed()
 {
 	downfeed_now = true;
 }
-
-void GrinderMotion::updateSettings(const GrinderSettings &settings)
-{
-	grinder_settings = settings;
-	saveSettings();
-	emit settingsChanged();
-}
-
-GrinderSettings GrinderMotion::getSettings() const
-{
-	return grinder_settings;
-}
-
 void GrinderMotion::cleanup()
 {
 	grinder_should_monitor = false;

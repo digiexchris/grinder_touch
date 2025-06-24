@@ -26,9 +26,9 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	}
 	// setMinimumSize(800, 600);
 
-	// ui.setupUi(this);
-	// loadStyleSheet();
-	// setupMenus();
+	ui.setupUi(this);
+	loadStyleSheet();
+	setupMenus();
 
 	// try
 	// {
@@ -38,7 +38,7 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	machine = new Machine(*settingsManager->Get());
 
 	// Initialize grinder motion controller
-	// motion = std::make_unique<GrinderMotion>(settingsManager.get());
+	motion = std::make_unique<GrinderMotion>(settingsManager.get());
 
 	// Connect position change signals
 
@@ -50,7 +50,7 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	// 	throw e;
 	// }
 
-	// connectSignals();
+	connectSignals();
 
 	// if (!m_standaloneMode)
 	// {

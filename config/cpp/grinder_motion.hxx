@@ -77,8 +77,6 @@ private:
 	void mainSequence();
 	void moveInsideLimits();
 	void downfeed();
-	void loadSettings();
-	void saveSettings();
 	void homeAxis(int axis);
 
 public:
