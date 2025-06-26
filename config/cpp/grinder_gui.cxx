@@ -30,27 +30,19 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	loadStyleSheet();
 	setupMenus();
 
-	// try
-	// {
-	// Initialize settings manager
 	settingsManager = std::make_unique<SettingsManager>("./grinder_settings.json");
 
-	machine = new Machine(*settingsManager->Get());
+	// Initialize machine and connect signals to Settings
+	machine = new Machine(settingsManager->Get());
 
 	// Initialize grinder motion controller
-	motion = std::make_unique<GrinderMotion>(settingsManager.get());
+	// motion = std::make_unique<GrinderMotion>(settingsManager.get());
 
-	// Connect position change signals
-
-	std::cout << "Grinder backend initialized successfully" << std::endl;
-	// }
-	// catch (const std::exception &e)
-	// {
-	// 	emit errorMessage(QString("Failed to initialize grinder backend: %1").arg(e.what()));
-	// 	throw e;
-	// }
-
+	// Connect gui signals
 	connectSignals();
+
+	// Load from config, trigger a gui update and machine/hal update
+	settingsManager->Load();
 
 	// if (!m_standaloneMode)
 	// {
@@ -88,11 +80,11 @@ GrinderMainWindow::~GrinderMainWindow()
 	if (!m_standaloneMode)
 	{
 
-		if (motion)
-		{
-			motion->stop();
-			motion->cleanup();
-		}
+		// if (motion)
+		// {
+		// 	motion->stop();
+		// 	motion->cleanup();
+		// }
 
 		if (machine)
 		{
@@ -153,18 +145,119 @@ void GrinderMainWindow::setupMenus()
 
 void GrinderMainWindow::connectSignals()
 {
-	connect(motion.get(), &GrinderMotion::infoMessage, this, &GrinderMainWindow::onInfoMessage);
-	connect(motion.get(), &GrinderMotion::errorMessage, this, &GrinderMainWindow::onErrorMessage);
-	connect(motion.get(), &GrinderMotion::warningMessage, this, &GrinderMainWindow::onWarningMessage);
+
+	Settings *settings = settingsManager->Get().get();
+	// connect(motion.get(), &GrinderMotion::infoMessage, this, &GrinderMainWindow::onInfoMessage);
+	// connect(motion.get(), &GrinderMotion::errorMessage, this, &GrinderMainWindow::onErrorMessage);
+	// connect(motion.get(), &GrinderMotion::warningMessage, this, &GrinderMainWindow::onWarningMessage);
 
 	// Connect UI buttons
 	connect(ui.quit_pb, &QPushButton::clicked, this, &GrinderMainWindow::onExitClicked);
-	connect(ui.estop_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onToggleEstop);
-	connect(ui.power_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onTogglePower);
-	connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
+	// connect(ui.estop_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onToggleEstop);
+	// connect(ui.power_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onTogglePower);
+	// connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
+
+	// Grind Parameters
+
+	// XMin
+	connect(settings, &Settings::XMinChanged, [this](double value)
+			{ ui.x_min_edit->setValue(value); });
+	connect(ui.x_min_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetXMin);
+
+	// XMax
+	connect(settings, &Settings::XMaxChanged, [this](double value)
+			{ ui.x_max_edit->setValue(value); });
+	connect(ui.x_max_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetXMax);
+
+	// YMin
+	connect(settings, &Settings::YMinChanged, [this](double value)
+			{ ui.y_min_edit->setValue(value); });
+	connect(ui.y_min_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetYMin);
+
+	// YMax
+	connect(settings, &Settings::YMaxChanged, [this](double value)
+			{ ui.y_max_edit->setValue(value); });
+	connect(ui.y_max_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetYMax);
+
+	// ZMin
+	connect(settings, &Settings::ZMinChanged, [this](double value)
+			{ ui.z_min_edit->setValue(value); });
+	connect(ui.z_min_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetZMin);
+
+	// ZMax
+	connect(settings, &Settings::ZMaxChanged, [this](double value)
+			{ ui.z_max_edit->setValue(value); });
+	connect(ui.z_max_edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetZMax);
+
+	// XSpeed
+	connect(settings, &Settings::XSpeedChanged, [this](double value)
+			{ ui.x_speed_sb->setValue(value); });
+	connect(ui.x_speed_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetXSpeed);
+
+	// YSpeed
+	connect(settings, &Settings::YSpeedChanged, [this](double value)
+			{ ui.y_speed_sb->setValue(value); });
+	connect(ui.y_speed_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetYSpeed);
+
+	// ZSpeed
+	connect(settings, &Settings::ZSpeedChanged, [this](double value)
+			{ ui.z_speed_sb->setValue(value); });
+	connect(ui.z_speed_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetZSpeed);
+
+	// ZDirection
+	// 	    connect(settings, &Settings::ZDirectionChanged, [this](bool value)
+	//    { ui.z_direction_cb->setChecked(value); });
+	// 	connect(ui.z_direction_cb, &QCheckBox::toggled, settings, &Settings::SetZDirection);
+
+	// ZCrossfeed
+	connect(settings, &Settings::ZCrossfeedChanged, [this](double value)
+			{ ui.z_crossfeed_sb->setValue(value); });
+	connect(ui.z_crossfeed_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetZCrossfeed);
+
+	// YDownfeed
+	connect(settings, &Settings::YDownfeedChanged, [this](double value)
+			{ ui.y_downfeed_sb->setValue(value); });
+	connect(ui.y_downfeed_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), settings, &Settings::SetYDownfeed);
+
+	// EnableX
+	connect(settings, &Settings::EnableXChanged, [this](bool value)
+			{ ui.enable_x_pb->setChecked(value); });
+	connect(ui.enable_x_pb, &QCheckBox::toggled, settings, &Settings::SetEnableX);
+
+	// EnableY
+	connect(settings, &Settings::EnableYChanged, [this](bool value)
+			{ ui.enable_y_pb->setChecked(value); });
+	connect(ui.enable_y_pb, &QCheckBox::toggled, settings, &Settings::SetEnableY);
+
+	// EnableZ
+	connect(settings, &Settings::EnableZChanged, [this](bool value)
+			{ ui.enable_z_pb->setChecked(value); });
+	connect(ui.enable_z_pb, &QCheckBox::toggled, settings, &Settings::SetEnableZ);
+
+	// StopAtZLimit
+	connect(settings, &Settings::StopAtZLimitChanged, [this](bool value)
+			{ ui.stop_at_z_limit_pb->setChecked(value); });
+	connect(ui.stop_at_z_limit_pb, &QCheckBox::toggled, settings, &Settings::SetStopAtZLimit);
+
+	// CrossfeedAt
+	connect(settings, &Settings::CrossfeedAtChanged, [this](int value)
+			{
+		if (ui.crossfeed_at_lv->currentRow() != value) 
+		{
+			ui.crossfeed_at_lv->setCurrentRow(value);
+		} });
+	connect(ui.crossfeed_at_lv, &QListWidget::currentRowChanged, settings, &Settings::SetCrossfeedAt);
+
+	connect(settings, &Settings::RepeatAtChanged, [this](int value)
+			{
+		if (ui.repeat_at_lv->currentRow() != value) 
+		{
+			ui.repeat_at_lv->setCurrentRow(value);
+		} });
+	connect(ui.repeat_at_lv, &QListWidget::currentRowChanged, settings, &Settings::SetRepeatAt);
 
 	// jogging
-	// connect(ui.jog_x_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXPlusPressed);
+	// connect(ui.jog_x_plus_pb, &QPushtto	{ n::pressed, this, &GrinderMainWindow::onJogXPlu ressed);
 	// connect(ui.jog_x_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogXMinusPressed);
 	// connect(ui.jog_y_plus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYPlusPressed);
 	// connect(ui.jog_y_minus_pb, &QPushButton::pressed, this, &GrinderMainWindow::onJogYMinusPressed);
@@ -178,13 +271,21 @@ void GrinderMainWindow::connectSignals()
 	// connect(ui.jog_z_plus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
 	// connect(ui.jog_z_minus_pb, &QPushButton::released, this, &GrinderMainWindow::onJogReleased);
 
-	connect(this, &GrinderMainWindow::jog, motion.get(), &GrinderMotion::onJog);
+	// connect(this, &GrinderMainWindow::jog, motion.get(), &GrinderMotion::onJog);
+
+	// dro
+	connect(machine, &Machine::positionChanged, [this](Position value)
+			{
+
+				ui.dro_lb_x->setText(formatPosition(value.x, 5));
+				ui.dro_lb_y->setText(formatPosition(value.y, 5));
+				ui.dro_lb_z->setText(formatPosition(value.z, 5)); });
 
 	// Machine status
-	connect(motion.get(), &GrinderMotion::positionChanged, this, &GrinderMainWindow::onPositionChanged);
-	connect(motion.get(), &GrinderMotion::estopChanged, this, &GrinderMainWindow::onEstopChanged);
-	connect(motion.get(), &GrinderMotion::powerChanged, this, &GrinderMainWindow::onPowerChanged);
-	connect(motion.get(), &GrinderMotion::homedChanged, this, &GrinderMainWindow::onHomedChanged);
+	// connect(motion.get(), &GrinderMotion::positionChanged, this, &GrinderMainWindow::onPositionChanged);
+	// connect(motion.get(), &GrinderMotion::estopChanged, this, &GrinderMainWindow::onEstopChanged);
+	// connect(motion.get(), &GrinderMotion::powerChanged, this, &GrinderMainWindow::onPowerChanged);
+	// connect(motion.get(), &GrinderMotion::homedChanged, this, &GrinderMainWindow::onHomedChanged);
 
 	connect(this, &GrinderMainWindow::infoMessage, this, &GrinderMainWindow::onInfoMessage);
 	connect(this, &GrinderMainWindow::errorMessage, this, &GrinderMainWindow::onErrorMessage);
@@ -195,14 +296,14 @@ void GrinderMainWindow::connectSignals()
 
 void GrinderMainWindow::onJogPressed(Axis axis, bool direction)
 {
-	if (motion)
-	{
-		emit jog(axis, direction);
-	}
-	else
-	{
-		emit errorMessage("Grinder motion controller not initialized");
-	}
+	// if (motion)
+	// {
+	// 	emit jog(axis, direction);
+	// }
+	// else
+	// {
+	// 	emit errorMessage("Grinder motion controller not initialized");
+	// }
 }
 
 void GrinderMainWindow::onEstopChanged(bool isActive)
@@ -251,14 +352,14 @@ void GrinderMainWindow::onHomedChanged(bool isHomed)
 
 void GrinderMainWindow::onJogReleased()
 {
-	if (motion)
-	{
-		emit jogStop();
-	}
-	else
-	{
-		emit errorMessage("Grinder motion controller not initialized");
-	}
+	// if (motion)
+	// {
+	// 	emit jogStop();
+	// }
+	// else
+	// {
+	// 	emit errorMessage("Grinder motion controller not initialized");
+	// }
 }
 
 void GrinderMainWindow::onJogXPlusPressed()
@@ -298,23 +399,23 @@ void GrinderMainWindow::onGrindStartStop()
 		return; // Ignore if shutting down
 	}
 
-	if (motion)
-	{
-		if (motion->getIsRunning())
-		{
-			motion->stop();
-			std::cout << "Grind stopped" << std::endl;
-		}
-		else
-		{
-			motion->start();
-			std::cout << "Grind started" << std::endl;
-		}
-	}
-	else
-	{
-		emit errorMessage("Grinder motion controller not initialized");
-	}
+	// if (motion)
+	// {
+	// 	if (motion->getIsRunning())
+	// 	{
+	// 		motion->stop();
+	// 		std::cout << "Grind stopped" << std::endl;
+	// 	}
+	// 	else
+	// 	{
+	// 		motion->start();
+	// 		std::cout << "Grind started" << std::endl;
+	// 	}
+	// }
+	// else
+	// {
+	// 	emit errorMessage("Grinder motion controller not initialized");
+	// }
 }
 
 void GrinderMainWindow::initializeGrinderBackend()
@@ -326,10 +427,10 @@ void GrinderMainWindow::closeEvent(QCloseEvent *event)
 	isShuttingDown = true;
 
 	// Stop the grinder if running
-	if (motion && motion->getIsRunning())
-	{
-		motion->stop();
-	}
+	// if (motion && motion->getIsRunning())
+	// {
+	// 	motion->stop();
+	// }
 
 	event->accept();
 }

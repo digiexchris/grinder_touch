@@ -1,5 +1,8 @@
 #pragma once
 
+#include "emc_nml.hh"
+#include "stat_msg.hh"
+
 enum class Axis
 {
 	X = 0,

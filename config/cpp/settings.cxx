@@ -1,18 +1,20 @@
 #include "settings.hxx"
+#include "pins.hxx"
 #include <fstream>
 #include <iostream>
 
 Settings::Settings(QObject *aParent) : QObject(aParent) {}
 
-#define SETTER_IMPL(TYPE, NAME, SIGNAL)    \
-	void Settings::Set##NAME(TYPE a##NAME) \
-	{                                      \
-		if (my##NAME != a##NAME)           \
-		{                                  \
-			my##NAME = a##NAME;            \
-			emit SIGNAL(a##NAME);          \
-			emit AnyPropertyChanged();     \
-		}                                  \
+#define SETTER_IMPL(TYPE, PIN, SIGNAL)                                        \
+	void Settings::Set##PIN(TYPE a##PIN)                                      \
+	{                                                                         \
+		if (my##PIN != a##PIN)                                                \
+		{                                                                     \
+			std::cout << "Setting " << #PIN << " to " << a##PIN << std::endl; \
+			my##PIN = a##PIN;                                                 \
+			emit SIGNAL(a##PIN);                                              \
+			emit AnyPropertyChanged(Pin::PIN, my##PIN);                       \
+		}                                                                     \
 	}
 
 SETTER_IMPL(double, XMin, XMinChanged)
@@ -21,9 +23,9 @@ SETTER_IMPL(double, YMin, YMinChanged)
 SETTER_IMPL(double, YMax, YMaxChanged)
 SETTER_IMPL(double, ZMin, ZMinChanged)
 SETTER_IMPL(double, ZMax, ZMaxChanged)
-SETTER_IMPL(uint32_t, XSpeed, XSpeedChanged)
-SETTER_IMPL(uint32_t, YSpeed, YSpeedChanged)
-SETTER_IMPL(uint32_t, ZSpeed, ZSpeedChanged)
+SETTER_IMPL(double, XSpeed, XSpeedChanged)
+SETTER_IMPL(double, YSpeed, YSpeedChanged)
+SETTER_IMPL(double, ZSpeed, ZSpeedChanged)
 SETTER_IMPL(bool, ZDirection, ZDirectionChanged)
 SETTER_IMPL(double, ZCrossfeed, ZCrossfeedChanged)
 SETTER_IMPL(double, YDownfeed, YDownfeedChanged)
@@ -54,7 +56,7 @@ void Settings::SetDressOffsetGcodeQString(const QString &aDressOffsetGcode)
 	{
 		myDressOffsetGcode = newVal;
 		emit DressOffsetGcodeChanged(aDressOffsetGcode);
-		emit AnyPropertyChanged();
+		emit AnyPropertyChanged(Pin::DressOffsetGcode, myDressOffsetGcode);
 	}
 }
 
@@ -64,8 +66,15 @@ void Settings::SetDressOffsetGcode(const std::string &aDressOffsetGcode)
 	{
 		myDressOffsetGcode = aDressOffsetGcode;
 		emit DressOffsetGcodeChanged(QString::fromStdString(aDressOffsetGcode));
-		emit AnyPropertyChanged();
+		emit AnyPropertyChanged(Pin::DressOffsetGcode, myDressOffsetGcode);
 	}
+}
+
+// void Settings::AnyValueChanged(Pin aPin, std::variant<bool, double, uint32_t> aValue)
+
+void Settings::SetDressOffsetGcode(const QString &aDressOffsetGcode)
+{
+	SetDressOffsetGcodeQString(aDressOffsetGcode);
 }
 
 nlohmann::json Settings::ToJson() const
@@ -102,7 +111,7 @@ nlohmann::json Settings::ToJson() const
 	j["dress_wheel_rpm"] = myDressWheelRpm;
 	j["dress_wheel_dia"] = myDressWheelDia;
 	j["dress_point_dia"] = myDressPointDia;
-	j["dress_offset_gcode"] = myDressOffsetGcode.toStdString();
+	j["dress_offset_gcode"] = myDressOffsetGcode;
 	return j;
 }
 
@@ -121,11 +130,11 @@ void Settings::FromJson(const nlohmann::json &aJ)
 	if (aJ.contains("z_max"))
 		SetZMax(aJ["z_max"].get<double>());
 	if (aJ.contains("x_speed"))
-		SetXSpeed(aJ["x_speed"].get<uint32_t>());
+		SetXSpeed(aJ["x_speed"].get<double>());
 	if (aJ.contains("y_speed"))
-		SetYSpeed(aJ["y_speed"].get<uint32_t>());
+		SetYSpeed(aJ["y_speed"].get<double>());
 	if (aJ.contains("z_speed"))
-		SetZSpeed(aJ["z_speed"].get<uint32_t>());
+		SetZSpeed(aJ["z_speed"].get<double>());
 	if (aJ.contains("z_direction"))
 		SetZDirection(aJ["z_direction"].get<bool>());
 	if (aJ.contains("z_crossfeed"))
@@ -176,12 +185,13 @@ void Settings::FromJson(const nlohmann::json &aJ)
 
 // --- SettingsManager ---
 
-SettingsManager *SettingsManager::myInstance = nullptr;
+// In your .cxx file:
+thread_local bool SettingsManager::ScopedSupressSave::myIsSupressed = false;
 
 SettingsManager::SettingsManager(std::string aFilename)
 	: QObject(nullptr), myFilename(std::move(aFilename))
 {
-	mySettings = Load();
+	mySettings = std::make_shared<Settings>();
 	if (mySettings)
 	{
 		QObject::connect(mySettings.get(), &Settings::AnyPropertyChanged, [this]()
@@ -191,22 +201,33 @@ SettingsManager::SettingsManager(std::string aFilename)
 
 std::shared_ptr<Settings> SettingsManager::Load()
 {
-	auto settings = std::make_shared<Settings>();
+	// auto settings = std::make_shared<Settings>();
 	std::ifstream inFile(myFilename);
 	if (inFile)
 	{
 		nlohmann::json j;
 		inFile >> j;
-		settings->FromJson(j);
+		mySettings->FromJson(j);
 	}
-	mySettings = settings;
-	return settings;
+
+	ScopedSupressSave scopedSupressSave; // Suppress save during load
+
+	// *mySettings = settings;
+	return mySettings;
 }
 
 void SettingsManager::Save()
 {
+	if (IsSaveSuppressed())
+	{
+		return; // Don't save if this save signal was emitted due to a Load() modifying mySettings
+	}
+
 	if (!mySettings)
+	{
 		return;
+	}
+
 	std::ofstream outFile(myFilename);
 	if (outFile)
 	{

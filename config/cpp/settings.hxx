@@ -5,6 +5,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "pins.hxx"
+
 class Settings : public QObject
 {
 	Q_OBJECT
@@ -15,9 +17,9 @@ class Settings : public QObject
 	Q_PROPERTY(double yMax READ YMax WRITE SetYMax NOTIFY YMaxChanged)
 	Q_PROPERTY(double zMin READ ZMin WRITE SetZMin NOTIFY ZMinChanged)
 	Q_PROPERTY(double zMax READ ZMax WRITE SetZMax NOTIFY ZMaxChanged)
-	Q_PROPERTY(uint32_t xSpeed READ XSpeed WRITE SetXSpeed NOTIFY XSpeedChanged)
-	Q_PROPERTY(uint32_t ySpeed READ YSpeed WRITE SetYSpeed NOTIFY YSpeedChanged)
-	Q_PROPERTY(uint32_t zSpeed READ ZSpeed WRITE SetZSpeed NOTIFY ZSpeedChanged)
+	Q_PROPERTY(double xSpeed READ XSpeed WRITE SetXSpeed NOTIFY XSpeedChanged)
+	Q_PROPERTY(double ySpeed READ YSpeed WRITE SetYSpeed NOTIFY YSpeedChanged)
+	Q_PROPERTY(double zSpeed READ ZSpeed WRITE SetZSpeed NOTIFY ZSpeedChanged)
 	Q_PROPERTY(bool zDirection READ ZDirection WRITE SetZDirection NOTIFY ZDirectionChanged)
 	Q_PROPERTY(double zCrossfeed READ ZCrossfeed WRITE SetZCrossfeed NOTIFY ZCrossfeedChanged)
 	Q_PROPERTY(double yDownfeed READ YDownfeed WRITE SetYDownfeed NOTIFY YDownfeedChanged)
@@ -40,106 +42,22 @@ class Settings : public QObject
 	Q_PROPERTY(double dressWheelRpm READ DressWheelRpm WRITE SetDressWheelRpm NOTIFY DressWheelRpmChanged)
 	Q_PROPERTY(double dressWheelDia READ DressWheelDia WRITE SetDressWheelDia NOTIFY DressWheelDiaChanged)
 	Q_PROPERTY(double dressPointDia READ DressPointDia WRITE SetDressPointDia NOTIFY DressPointDiaChanged)
-	Q_PROPERTY(QString dressOffsetGcode READ DressOffsetGcode WRITE SetDressOffsetGcodeQString NOTIFY DressOffsetGcodeChanged)
+	Q_PROPERTY(QString dressOffsetGcode READ GetDressOffsetGcodeQString WRITE SetDressOffsetGcodeQString NOTIFY DressOffsetGcodeChanged)
 
 public:
 	explicit Settings(QObject *aParent = nullptr);
 
 	// Copy constructor
-	Settings(const Settings &aOther)
-		: QObject(aOther.parent())
-	{
-		*this = aOther;
-	}
+	Settings(const Settings &aOther) = delete;
 
 	// Move constructor
-	Settings(Settings &&aOther) noexcept
-		: QObject(aOther.parent())
-	{
-		*this = std::move(aOther);
-	}
+	Settings(Settings &&aOther) = delete;
 
 	// Copy assignment
-	Settings &operator=(const Settings &aOther)
-	{
-		if (this != &aOther)
-		{
-			SetXMin(aOther.XMin());
-			SetXMax(aOther.XMax());
-			SetYMin(aOther.YMin());
-			SetYMax(aOther.YMax());
-			SetZMin(aOther.ZMin());
-			SetZMax(aOther.ZMax());
-			SetXSpeed(aOther.XSpeed());
-			SetYSpeed(aOther.YSpeed());
-			SetZSpeed(aOther.ZSpeed());
-			SetZDirection(aOther.ZDirection());
-			SetZCrossfeed(aOther.ZCrossfeed());
-			SetYDownfeed(aOther.YDownfeed());
-			SetEnableX(aOther.EnableX());
-			SetEnableY(aOther.EnableY());
-			SetEnableZ(aOther.EnableZ());
-			SetStopAtZLimit(aOther.StopAtZLimit());
-			SetCrossfeedAt(aOther.CrossfeedAt());
-			SetRepeatAt(aOther.RepeatAt());
-			SetIsRunning(aOther.IsRunning());
-			SetDressStartX(aOther.DressStartX());
-			SetDressStartY(aOther.DressStartY());
-			SetDressStartZ(aOther.DressStartZ());
-			SetDressEndX(aOther.DressEndX());
-			SetDressEndY(aOther.DressEndY());
-			SetDressEndZ(aOther.DressEndZ());
-			SetDressStepoverX(aOther.DressStepoverX());
-			SetDressStepoverY(aOther.DressStepoverY());
-			SetDressStepoverZ(aOther.DressStepoverZ());
-			SetDressWheelRpm(aOther.DressWheelRpm());
-			SetDressWheelDia(aOther.DressWheelDia());
-			SetDressPointDia(aOther.DressPointDia());
-			SetDressOffsetGcodeQString(aOther.GetDressOffsetGcodeQString());
-		}
-		return *this;
-	}
+	Settings &operator=(const Settings &aOther) = delete;
 
 	// Move assignment
-	Settings &operator=(Settings &&aOther) noexcept
-	{
-		if (this != &aOther)
-		{
-			SetXMin(aOther.XMin());
-			SetXMax(aOther.XMax());
-			SetYMin(aOther.YMin());
-			SetYMax(aOther.YMax());
-			SetZMin(aOther.ZMin());
-			SetZMax(aOther.ZMax());
-			SetXSpeed(aOther.XSpeed());
-			SetYSpeed(aOther.YSpeed());
-			SetZSpeed(aOther.ZSpeed());
-			SetZDirection(aOther.ZDirection());
-			SetZCrossfeed(aOther.ZCrossfeed());
-			SetYDownfeed(aOther.YDownfeed());
-			SetEnableX(aOther.EnableX());
-			SetEnableY(aOther.EnableY());
-			SetEnableZ(aOther.EnableZ());
-			SetStopAtZLimit(aOther.StopAtZLimit());
-			SetCrossfeedAt(aOther.CrossfeedAt());
-			SetRepeatAt(aOther.RepeatAt());
-			SetIsRunning(aOther.IsRunning());
-			SetDressStartX(aOther.DressStartX());
-			SetDressStartY(aOther.DressStartY());
-			SetDressStartZ(aOther.DressStartZ());
-			SetDressEndX(aOther.DressEndX());
-			SetDressEndY(aOther.DressEndY());
-			SetDressEndZ(aOther.DressEndZ());
-			SetDressStepoverX(aOther.DressStepoverX());
-			SetDressStepoverY(aOther.DressStepoverY());
-			SetDressStepoverZ(aOther.DressStepoverZ());
-			SetDressWheelRpm(aOther.DressWheelRpm());
-			SetDressWheelDia(aOther.DressWheelDia());
-			SetDressPointDia(aOther.DressPointDia());
-			SetDressOffsetGcodeQString(aOther.GetDressOffsetGcodeQString());
-		}
-		return *this;
-	}
+	Settings &operator=(Settings &&aOther) = delete;
 
 	// Getters
 	double XMin() const { return myXMin; }
@@ -148,9 +66,9 @@ public:
 	double YMax() const { return myYMax; }
 	double ZMin() const { return myZMin; }
 	double ZMax() const { return myZMax; }
-	uint32_t XSpeed() const { return myXSpeed; }
-	uint32_t YSpeed() const { return myYSpeed; }
-	uint32_t ZSpeed() const { return myZSpeed; }
+	double XSpeed() const { return myXSpeed; }
+	double YSpeed() const { return myYSpeed; }
+	double ZSpeed() const { return myZSpeed; }
 	bool ZDirection() const { return myZDirection; }
 	double ZCrossfeed() const { return myZCrossfeed; }
 	double YDownfeed() const { return myYDownfeed; }
@@ -189,9 +107,9 @@ public:
 	void SetYMax(double aYMax);
 	void SetZMin(double aZMin);
 	void SetZMax(double aZMax);
-	void SetXSpeed(uint32_t aXSpeed);
-	void SetYSpeed(uint32_t aYSpeed);
-	void SetZSpeed(uint32_t aZSpeed);
+	void SetXSpeed(double aXSpeed);
+	void SetYSpeed(double aYSpeed);
+	void SetZSpeed(double aZSpeed);
 	void SetZDirection(bool aZDirection);
 	void SetZCrossfeed(double aZCrossfeed);
 	void SetYDownfeed(double aYDownfeed);
@@ -227,9 +145,9 @@ signals:
 	void YMaxChanged(double);
 	void ZMinChanged(double);
 	void ZMaxChanged(double);
-	void XSpeedChanged(uint32_t);
-	void YSpeedChanged(uint32_t);
-	void ZSpeedChanged(uint32_t);
+	void XSpeedChanged(double);
+	void YSpeedChanged(double);
+	void ZSpeedChanged(double);
 	void ZDirectionChanged(bool);
 	void ZCrossfeedChanged(double);
 	void YDownfeedChanged(double);
@@ -254,7 +172,8 @@ signals:
 	void DressPointDiaChanged(double);
 	void DressOffsetGcodeChanged(const QString &);
 
-	void AnyPropertyChanged();
+	// Custom signal emitters
+	void AnyPropertyChanged(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue);
 
 private:
 	double myXMin = 0;
@@ -263,9 +182,9 @@ private:
 	double myYMax = 0;
 	double myZMin = 0;
 	double myZMax = 0;
-	uint32_t myXSpeed = 0;
-	uint32_t myYSpeed = 0;
-	uint32_t myZSpeed = 0;
+	double myXSpeed = 0;
+	double myYSpeed = 0;
+	double myZSpeed = 0;
 	bool myZDirection = false;
 	double myZCrossfeed = 0;
 	double myYDownfeed = 0;
@@ -296,14 +215,6 @@ class SettingsManager : public QObject
 	Q_OBJECT
 public:
 	explicit SettingsManager(std::string aFilename);
-	static SettingsManager *GetInstance()
-	{
-		if (myInstance == nullptr)
-		{
-			myInstance = new SettingsManager("grinder_settings.json");
-		}
-		return myInstance;
-	}
 
 	std::shared_ptr<Settings> Load();
 	void Save();
@@ -311,6 +222,38 @@ public:
 
 private:
 	std::string myFilename;
-	static SettingsManager *myInstance;
 	std::shared_ptr<Settings> mySettings;
+
+	/*Since Settings emits signals that are consumed by this manager
+	to trigger a save every time a setting changes, we need to disable
+	that behaviour during loading otherwise SettingsManager will load
+	and immediately save again, possibly making an infinite loop of the
+	whole mess. It's still useful if SettingsManager saves any changes
+	if a setting changes from another process while a load is occurring
+	however. This flag manages that for the thread that's curringly doing
+	the load. That leaves a small window where the system may not be runnign
+	with the most up to date state that has been saved, but that's a
+	problem for tomorrow Chris. It's already over-engineered probably.*/
+	class ScopedSupressSave
+	{
+	public:
+		ScopedSupressSave()
+		{
+			myIsSupressed = true;
+		}
+
+		~ScopedSupressSave()
+		{
+			myIsSupressed = false;
+		}
+
+	private:
+		friend class SettingsManager;
+		static thread_local bool myIsSupressed;
+	};
+
+	static bool IsSaveSuppressed()
+	{
+		return ScopedSupressSave::myIsSupressed;
+	}
 };

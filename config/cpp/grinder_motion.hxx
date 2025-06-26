@@ -1,8 +1,7 @@
 #pragma once
 
-#include "linuxcnc/emc_nml.hh"
+#include "linuxcnc/status.hxx"
 #include "settings.hxx"
-#include "status.hxx"
 #include <QObject>
 #include <QTimer>
 #include <array>
@@ -72,7 +71,7 @@ private:
 	void monitorStateImpl();
 	void waitForMotionComplete();
 	bool checkErrors();
-	bool sendCommand(NMLmsg &msg);
+	// bool sendCommand(NMLmsg &msg);
 	bool setMDIMode();
 	void mainSequence();
 	void moveInsideLimits();

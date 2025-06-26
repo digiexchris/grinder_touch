@@ -1,5 +1,6 @@
 #pragma once
 // #include "linuxcnc/emc_nml.hh"
+#include "../pins.hxx"
 #include "linuxcnc/hal.h"
 
 #include <cassert>
@@ -9,49 +10,6 @@
 #include <string>
 #include <unordered_map>
 #include <variant>
-
-enum class Pin
-{
-	// limits
-	X_MIN = 0,
-	X_MAX,
-	Y_MIN,
-	Y_MAX,
-	Z_MIN,
-	Z_MAX,
-
-	// speeds
-	X_SPEED,
-	Y_SPEED,
-	Z_SPEED,
-
-	// enable grind features for axis
-	ENABLE_X,
-	ENABLE_Y,
-	ENABLE_Z,
-
-	// direction for reverse repeat type
-	Z_DIRECTION,
-
-	// stop once Z reaches the approaching limit
-	STOP_AT_Z_LIMIT,
-
-	// start/stop the grind cycle
-	IS_RUNNING,
-
-	// depth of cut/stepover
-	Z_CROSSFEED,
-	Y_DOWNFEED,
-
-	// crossfeed at which X limit, and which repeat type when a Z limit is reached
-	CROSSFEED_AT,
-	REPEAT_AT,
-
-	// request a downfeed immediately at the end of the current cycle
-	DOWNFEED_NOW,
-
-	NUM_PINS // This should always be the last item
-};
 
 template <typename T, typename Derived, typename BaseUnit>
 struct HalPin

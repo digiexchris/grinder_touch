@@ -20,7 +20,7 @@
 #include <QWidget>
 #include <memory>
 
-#include "grinder_motion.hxx"
+// #include "grinder_motion.hxx"
 #include "gui_events.hxx"
 #include "linuxcnc/machine.hxx"
 #include "settings.hxx"
@@ -94,7 +94,7 @@ private:
 	Ui_MainWindow ui;
 
 	// // Backend components
-	std::unique_ptr<GrinderMotion> motion;
+	// std::unique_ptr<GrinderMotion> motion;
 	std::unique_ptr<SettingsManager> settingsManager;
 
 	Machine *machine;

@@ -1,4 +1,5 @@
 #include "hal.hxx"
+#include "../pins.hxx"
 #include "linuxcnc/hal.h"
 
 #include <variant>
@@ -44,26 +45,26 @@ Hal::Hal()
 	// Create pins with component prefix
 	const std::string prefix = std::string(componentName) + ".";
 
-	CreatePin<HalFloat>(Pin::X_MIN, "x_min", HAL_IN);
-	CreatePin<HalFloat>(Pin::X_MAX, "x_max", HAL_IN);
-	CreatePin<HalFloat>(Pin::Y_MIN, "y_min", HAL_IN);
-	CreatePin<HalFloat>(Pin::Y_MAX, "y_max", HAL_IN);
-	CreatePin<HalFloat>(Pin::Z_MIN, "z_min", HAL_IN);
-	CreatePin<HalFloat>(Pin::Z_MAX, "z_max", HAL_IN);
-	CreatePin<HalFloat>(Pin::X_SPEED, "x_speed", HAL_IN);
-	CreatePin<HalFloat>(Pin::Y_SPEED, "y_speed", HAL_IN);
-	CreatePin<HalFloat>(Pin::Z_SPEED, "z_speed", HAL_IN);
-	CreatePin<HalBit>(Pin::Z_DIRECTION, "z_direction", HAL_IO);
-	CreatePin<HalFloat>(Pin::Z_CROSSFEED, "z_crossfeed", HAL_IN);
-	CreatePin<HalFloat>(Pin::Y_DOWNFEED, "y_downfeed", HAL_IN);
-	CreatePin<HalBit>(Pin::ENABLE_X, "enable_x", HAL_IO); //
-	CreatePin<HalBit>(Pin::ENABLE_Y, "enable_y", HAL_IO); //
-	CreatePin<HalBit>(Pin::ENABLE_Z, "enable_z", HAL_IO);
-	CreatePin<HalBit>(Pin::STOP_AT_Z_LIMIT, "stop_at_z_limit", HAL_IN); //
-	CreatePin<HalU32>(Pin::CROSSFEED_AT, "crossfeed_at", HAL_IN);		//
-	CreatePin<HalU32>(Pin::REPEAT_AT, "repeat_at", HAL_IN);				//
-	CreatePin<HalBit>(Pin::IS_RUNNING, "is_running", HAL_IO);			//
-	CreatePin<HalBit>(Pin::DOWNFEED_NOW, "downfeed_now", HAL_IO);		//
+	CreatePin<HalFloat>(Pin::XMin, "x_min", HAL_IN);
+	CreatePin<HalFloat>(Pin::XMax, "x_max", HAL_IN);
+	CreatePin<HalFloat>(Pin::YMin, "y_min", HAL_IN);
+	CreatePin<HalFloat>(Pin::YMax, "y_max", HAL_IN);
+	CreatePin<HalFloat>(Pin::ZMin, "z_min", HAL_IN);
+	CreatePin<HalFloat>(Pin::ZMax, "z_max", HAL_IN);
+	CreatePin<HalFloat>(Pin::XSpeed, "x_speed", HAL_IN);
+	CreatePin<HalFloat>(Pin::YSpeed, "y_speed", HAL_IN);
+	CreatePin<HalFloat>(Pin::ZSpeed, "z_speed", HAL_IN);
+	CreatePin<HalBit>(Pin::ZDirection, "z_direction", HAL_IO);
+	CreatePin<HalFloat>(Pin::ZCrossfeed, "z_crossfeed", HAL_IN);
+	CreatePin<HalFloat>(Pin::YDownfeed, "y_downfeed", HAL_IN);
+	CreatePin<HalBit>(Pin::EnableX, "enable_x", HAL_IO);
+	CreatePin<HalBit>(Pin::EnableY, "enable_y", HAL_IO);
+	CreatePin<HalBit>(Pin::EnableZ, "enable_z", HAL_IO);
+	CreatePin<HalBit>(Pin::StopAtZLimit, "stop_at_z_limit", HAL_IN);
+	CreatePin<HalU32>(Pin::CrossfeedAt, "crossfeed_at", HAL_IN);
+	CreatePin<HalU32>(Pin::RepeatAt, "repeat_at", HAL_IN);
+	CreatePin<HalBit>(Pin::IsRunning, "is_running", HAL_IO);
+	CreatePin<HalBit>(Pin::DownfeedNow, "downfeed_now", HAL_IO);
 
 	std::cout << "HAL pins created\n";
 
