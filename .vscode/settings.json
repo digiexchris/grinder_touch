@@ -1,5 +1,5 @@
 {
-        "cmake.sourceDirectory": "/home/chris/grinder_touch/config/cpp",
+        "cmake.sourceDirectory": "/workspaces/grinder_touch/config/cpp",
         "files.associations": {
                 "iostream": "cpp",
                 "atomic": "cpp",

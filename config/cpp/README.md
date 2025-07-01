@@ -1,39 +1,5 @@
 # Grinder Touch GUI - Pure C++ LinuxCNC Interface
 
-✅ **PROJECT COMPLETE** - This is a fully functional pure C++ Qt6 application that provides a touch-friendly interface for LinuxCNC surface grinder control.
-
-## Architecture
-
-The application has been successfully refactored from the original HAL userspace component + FlexGUI setup to a standalone C++ Qt6 application that can be launched directly by LinuxCNC.
-
-### Key Components
-
-1. **grinder_gui_main.cxx** - Main application entry point
-2. **grinder_gui.hxx/.cxx** - Main window class that loads the UI and manages the interface  
-3. **grinder_motion_gui.hxx/.cxx** - Motion control backend with direct NML communication
-4. **settings.hxx/.cxx** - Settings management (unchanged)
-5. **grinder_touch.ui** - Qt Designer UI file (unchanged)
-
-### Differences from Original
-
-- ✅ **No HAL Component**: The backend no longer creates HAL pins and doesn't run as a userspace component
-- ✅ **Direct NML Integration**: Communicates directly with LinuxCNC via NML channels
-- ✅ **Standalone Application**: Can be launched via the INI file's DISPLAY directive
-- ✅ **Integrated Architecture**: GUI and backend are tightly integrated in a single process
-- ✅ **Full Feature Port**: All automation logic, jog controls, spindle control, and G-code execution ported
-
-## Status
-
-**✅ COMPLETE AND TESTED**
-
-- Build system configured and working
-- All dependencies resolved
-- GUI executable builds successfully
-- NML integration working (connects to LinuxCNC when running)
-- UI file loads correctly
-- Widget connections established
-- Ready for production use
-
 ## Building
 
 ### Prerequisites
@@ -45,11 +11,6 @@ sudo apt update
 sudo apt install -y qt6-base-dev qt6-tools-dev qt6-base-dev-tools \
                     libqt6core6 libqt6gui6 libqt6widgets6 \
                     cmake build-essential
-```
-
-For backward-cpp dependencies (crash handling):
-
-```bash
 sudo apt install -y binutils-dev libdw-dev libboost1.81* \
                     libboost1.81-all-dev libunwind libunwind-dev \
                     libunwind-19-dev libunwind-19
