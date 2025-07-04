@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0100 NEW)
+cmake_policy(SET CMP0135 NEW)
 project(grinder_touch_gui)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -49,17 +51,17 @@ set_target_properties(hal_lib PROPERTIES
     IMPORTED_LOCATION "${HAL_MODULE}"
 )
 
-add_executable(grinder_backend grinder-backend.cxx linuxcnc/shcom.cc main.cxx settings.cxx backward.cpp linuxcnc/hal.cxx linuxcnc/machine.cxx)
+# add_executable(grinder_backend grinder-backend.cxx linuxcnc/shcom.cc main.cxx settings.cxx backward.cpp linuxcnc/hal.cxx linuxcnc/machine.cxx)
 
 # Add GUI application
 qt_add_executable(grinder_touch_gui grinder_touch.ui
     grinder_gui_main.cxx 
     grinder_gui.cxx 
     gui_events.cxx
-    # grinder_motion.cxx 
     linuxcnc/shcom.cc 
     settings.cxx 
     backward.cpp
+    linuxcnc/shcom.cc
     linuxcnc/hal.cxx linuxcnc/machine.cxx
 )
 
@@ -107,7 +109,7 @@ target_link_libraries(grinder_touch_gui PRIVATE
 
 # set(BACKWARD_SHARED OFF)
 
-target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
+# target_include_directories(grinder_backend PRIVATE ${rapidjson_SOURCE_DIR}/include)
 
 include_directories(
     /usr/include/linuxcnc
@@ -118,17 +120,17 @@ set(FORMS
     grinder_touch.ui
 )
 
-target_link_libraries(grinder_backend PUBLIC 
-    ${HAL_LIB}
-    ${LINUXCNC_LIB}
-    ${NML_LIB}
-    pthread
-    dl
-    nlohmann_json::nlohmann_json
-    dw
-    unwind
-    # Backward
-)
+# target_link_libraries(grinder_backend PUBLIC 
+#     ${HAL_LIB}
+#     ${LINUXCNC_LIB}
+#     ${NML_LIB}
+#     pthread
+#     dl
+#     nlohmann_json::nlohmann_json
+#     dw
+#     unwind
+#     # Backward
+# )
 
 # if(LIBUNWIND_FOUND)
 #     target_include_directories(${PROJECT_NAME} PRIVATE ${LIBUNWIND_INCLUDE_DIR})
@@ -136,10 +138,10 @@ target_link_libraries(grinder_backend PUBLIC
 # endif()
 
 # Set RPATH to include LinuxCNC directories
-set_target_properties(grinder_backend PROPERTIES
-    BUILD_WITH_INSTALL_RPATH TRUE
-    INSTALL_RPATH "${LINUXCNC_MODULE_DIR}:${LINUXCNC_LIB_DIR}"
-)
+# set_target_properties(grinder_backend PROPERTIES
+#     BUILD_WITH_INSTALL_RPATH TRUE
+#     INSTALL_RPATH "${LINUXCNC_MODULE_DIR}:${LINUXCNC_LIB_DIR}"
+# )
 
 set_target_properties(grinder_touch_gui PROPERTIES
     BUILD_WITH_INSTALL_RPATH TRUE
@@ -149,12 +151,12 @@ set_target_properties(grinder_touch_gui PROPERTIES
 message(STATUS "BINARY_POSTFIX is: '${BINARY_POSTFIX}'")
 
 # Add post-build command to copy binary to config directory
-add_custom_command(TARGET grinder_backend POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:grinder_backend>
-        ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_backend${BINARY_POSTFIX}
-    COMMENT "Copying backend binary to config directory"
-)
+# add_custom_command(TARGET grinder_backend POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy
+#         $<TARGET_FILE:grinder_backend>
+#         ${CMAKE_CURRENT_SOURCE_DIR}/../grinder_backend${BINARY_POSTFIX}
+#     COMMENT "Copying backend binary to config directory"
+# )
 
 # Add post-build command to copy GUI executable to config directory
 add_custom_command(TARGET grinder_touch_gui POST_BUILD

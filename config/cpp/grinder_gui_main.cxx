@@ -41,19 +41,19 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	try
-	{
-		// Create and show the main grinder GUI window
-		GrinderMainWindow window(nullptr, standaloneMode);
-		window.show();
+	// try
+	// {
+	// Create and show the main grinder GUI window
+	GrinderMainWindow window(nullptr, standaloneMode);
+	window.show();
 
-		return app.exec();
-	}
-	catch (const std::exception &e)
-	{
-		QMessageBox::critical(nullptr, "Grinder GUI Error",
-							  QString("Failed to start grinder GUI: %1").arg(e.what()));
-		std::cerr << "Error: " << e.what() << std::endl;
-		return 1;
-	}
+	return app.exec();
+	// }
+	// catch (const std::exception &e)
+	// {
+	// 	QMessageBox::critical(nullptr, "Grinder GUI Error",
+	// 						  QString("Failed to start grinder GUI: %1").arg(e.what()));
+	// 	std::cerr << "Error: " << e.what() << std::endl;
+	// 	return 1;
+	// }
 }

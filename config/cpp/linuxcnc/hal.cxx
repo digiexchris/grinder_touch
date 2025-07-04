@@ -24,8 +24,8 @@ void Hal::CreatePin(Pin aPin, std::string aName, hal_pin_dir_t aDirection)
 
 	pins.try_emplace(
 		aPin,
-		HalType{std::in_place_type<std::unique_ptr<HalFloat>>,
-				std::make_unique<HalFloat>(aPin, aName, aDirection, componentName, componentId)});
+		HalType{std::in_place_type<std::unique_ptr<T>>,
+				std::make_unique<T>(aPin, aName, aDirection, componentName, componentId)});
 }
 
 Hal::Hal()

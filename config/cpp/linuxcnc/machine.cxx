@@ -6,11 +6,10 @@
 
 Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monitor, this)
 {
-	Settings *settings = aSettings.get();
 
 	hal.SetPin(Pin::ZDirection, true);
 	hal.SetPin(Pin::DownfeedNow, false);
-	hal.SetPin(Pin::IsRunning, false);
+	// hal.SetPin(Pin::IsRunning, false);
 
 	// Setting to the defaults. Expect that the settings aren't loaded yet.
 	hal.SetPin(Pin::XMin, 0.0);
@@ -24,14 +23,25 @@ Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monito
 	hal.SetPin(Pin::ZSpeed, 0.0);
 	hal.SetPin(Pin::ZCrossfeed, 0.0);
 	hal.SetPin(Pin::YDownfeed, 0.0);
-	hal.SetPin(Pin::EnableX, 0.0);
-	hal.SetPin(Pin::EnableY, 0.0);
-	hal.SetPin(Pin::EnableZ, 0.0);
-	hal.SetPin(Pin::StopAtZLimit, 0.0);
-	hal.SetPin(Pin::CrossfeedAt, 0.0);
-	hal.SetPin(Pin::RepeatAt, 0.0);
+	// hal.SetPin(Pin::EnableX, false);
+	// hal.SetPin(Pin::EnableY, false);
+	// hal.SetPin(Pin::EnableZ, false);
+	// hal.SetPin(Pin::StopAtZLimit, false);
+	// hal.SetPin(Pin::CrossfeedAt, static_cast<uint32_t>(0));
+	// hal.SetPin(Pin::RepeatAt, static_cast<uint32_t>(0));
 
+	Settings *settings = aSettings.get();
 	connect(settings, &Settings::AnyPropertyChanged, this, &Machine::SetOnSignal);
+
+	if (updateStatus() < 0)
+	{
+		throw std::runtime_error("Failed to update machine status");
+	}
+
+	if (emcTaskNmlGet() < 0)
+	{
+		throw std::runtime_error("Failed to get EMC task NML");
+	}
 }
 
 Machine::~Machine()
@@ -48,13 +58,15 @@ void Machine::SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint
 
 	if (std::holds_alternative<bool>(aValue))
 	{
-		bool newValue = std::get<bool>(aValue);
-		bool oldValue = std::get<bool>(hal.GetPin(aPin));
-		if (oldValue == newValue)
-		{
-			return; // Prevents the loop if the pin is set from a signal that this function caused
-		}
-		hal.SetPin(aPin, newValue);
+		// todo for some reason the bool type doesn't work with HAL_BIT
+		//  bool newValue = std::get<bool>(aValue);
+		//  std::variant<bool, double, std::string, uint32_t> oldRawValue = hal.GetPin(aPin);
+		//  bool oldValue = std::get<bool>(oldRawValue);
+		//  if (oldValue == newValue)
+		//  {
+		//  	return; // Prevents the loop if the pin is set from a signal that this function caused
+		//  }
+		//  hal.SetPin(aPin, newValue);
 	}
 	else if (std::holds_alternative<double>(aValue))
 	{
@@ -92,16 +104,31 @@ void Machine::SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint
 	}
 }
 
-void Machine::Monitor()
+bool Machine::isEstopActive()
 {
+	eStopState = (emcStatus->task.state == EMC_TASK_STATE_ESTOP);
+	return eStopState;
+}
 
-	/*
-	loop:
+void Machine::setEstop(bool isActive)
+{
+	if (isActive)
+	{
+		sendEstop();
+	}
+	else
+	{
+		sendEstopReset();
+	}
+}
 
-	if(X_MIN pin has changed) {
-	  Settings::SetXMin(hal.GetPin(Pin::X_MIN));
- }
-	*/
+void Machine::start()
+{
+	monitorThread = std::thread(&Monitor, this);
+}
+
+void Machine::Monitor(Machine *aMachine)
+{
 
 	while (42)
 	{
@@ -114,27 +141,33 @@ void Machine::Monitor()
 
 			bool positionChangedSinceLast = false;
 
-			if (myPosition.x != x)
+			if (aMachine->myPosition.x != x)
 			{
-				myPosition.x = x;
+				aMachine->myPosition.x = x;
 				positionChangedSinceLast = true;
 			}
 
-			if (myPosition.y != y)
+			if (aMachine->myPosition.y != y)
 			{
-				myPosition.y = y;
+				aMachine->myPosition.y = y;
 				positionChangedSinceLast = true;
 			}
 
-			if (myPosition.z != z)
+			if (aMachine->myPosition.z != z)
 			{
-				myPosition.z = z;
+				aMachine->myPosition.z = z;
 				positionChangedSinceLast = true;
 			}
 
 			if (positionChangedSinceLast)
 			{
-				emit positionChanged(myPosition);
+				emit aMachine->positionChanged(aMachine->myPosition);
+			}
+
+			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE_ESTOP))
+			{
+				aMachine->eStopState = (emcStatus->task.state == EMC_TASK_STATE_ESTOP);
+				emit aMachine->estopChanged(aMachine->eStopState);
 			}
 		}
 

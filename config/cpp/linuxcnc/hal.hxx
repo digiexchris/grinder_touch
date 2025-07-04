@@ -42,11 +42,11 @@ struct HalPin
 	// }
 };
 
-struct HalFloat : HalPin<hal_float_t, HalFloat, double>
+struct HalFloat : HalPin<double, HalFloat, double>
 {
 
 	hal_float_t **address;
-	HalFloat(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_float_t, HalFloat, double>(aPin, aName, aDirection)
+	HalFloat(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<double, HalFloat, double>(aPin, aName, aDirection)
 	{
 		address = static_cast<hal_float_t **>(hal_malloc(sizeof(hal_float_t)));
 		if (address == nullptr)

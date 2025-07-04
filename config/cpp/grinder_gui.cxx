@@ -56,6 +56,8 @@ GrinderMainWindow::GrinderMainWindow(QMainWindow *parent, bool standaloneMode)
 	// 	// emit infoMessage("Grinder GUI initialized in standalone mode");
 	// }
 
+	machine->start();
+
 	isInitialized = true;
 
 	std::cout << "Grinder Touch GUI initialized successfully" << std::endl;
@@ -151,11 +153,13 @@ void GrinderMainWindow::connectSignals()
 	// connect(motion.get(), &GrinderMotion::errorMessage, this, &GrinderMainWindow::onErrorMessage);
 	// connect(motion.get(), &GrinderMotion::warningMessage, this, &GrinderMainWindow::onWarningMessage);
 
-	// Connect UI buttons
+	// Machine status
 	connect(ui.quit_pb, &QPushButton::clicked, this, &GrinderMainWindow::onExitClicked);
-	// connect(ui.estop_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onToggleEstop);
-	// connect(ui.power_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onTogglePower);
-	// connect(ui.home_all_pb, &QPushButton::clicked, motion.get(), &GrinderMotion::onHomeAll);
+	connect(ui.estop_pb, &QPushButton::clicked, this, &GrinderMainWindow::onEstopClicked);
+	// connect(machine, &Machine::positionChanged, this, &GrinderMainWindow::onPositionChanged);
+	// connect(machine, &Machine::estopChanged, this, &GrinderMainWindow::onEstopChanged);
+	connect(ui.power_pb, &QPushButton::clicked, this, &GrinderMainWindow::onPowerClicked);
+	connect(ui.home_all_pb, &QPushButton::clicked, this, &GrinderMainWindow::onHomedClicked);
 
 	// Grind Parameters
 
@@ -281,12 +285,6 @@ void GrinderMainWindow::connectSignals()
 				ui.dro_lb_y->setText(formatPosition(value.y, 5));
 				ui.dro_lb_z->setText(formatPosition(value.z, 5)); });
 
-	// Machine status
-	// connect(motion.get(), &GrinderMotion::positionChanged, this, &GrinderMainWindow::onPositionChanged);
-	// connect(motion.get(), &GrinderMotion::estopChanged, this, &GrinderMainWindow::onEstopChanged);
-	// connect(motion.get(), &GrinderMotion::powerChanged, this, &GrinderMainWindow::onPowerChanged);
-	// connect(motion.get(), &GrinderMotion::homedChanged, this, &GrinderMainWindow::onHomedChanged);
-
 	connect(this, &GrinderMainWindow::infoMessage, this, &GrinderMainWindow::onInfoMessage);
 	connect(this, &GrinderMainWindow::errorMessage, this, &GrinderMainWindow::onErrorMessage);
 	connect(this, &GrinderMainWindow::warningMessage, this, &GrinderMainWindow::onWarningMessage);
@@ -306,48 +304,50 @@ void GrinderMainWindow::onJogPressed(Axis axis, bool direction)
 	// }
 }
 
+void GrinderMainWindow::onEstopClicked()
+{
+	if (!machine->isEstopActive())
+	{
+		machine->setEstop(true);
+	}
+	else
+	{
+		machine->setEstop(false);
+	}
+}
+
 void GrinderMainWindow::onEstopChanged(bool isActive)
 {
 	ui.estop_pb->setChecked(isActive);
-	if (isActive)
-	{
-		ui.estop_pb->setText("E-Stop Active");
-		ui.estop_pb->setStyleSheet("background-color: red; color: white;");
-	}
-	else
-	{
-		ui.estop_pb->setText("E-Stop");
-		ui.estop_pb->setStyleSheet(""); // Reset to default style
-	}
 }
 
-void GrinderMainWindow::onPowerChanged(bool isOn)
+void GrinderMainWindow::onPowerClicked()
 {
-	ui.power_pb->setChecked(isOn);
-	if (isOn)
-	{
-		ui.power_pb->setText("Power On");
-		ui.power_pb->setStyleSheet("background-color: green; color: white;");
-	}
-	else
-	{
-		ui.power_pb->setText("Power Off");
-		ui.power_pb->setStyleSheet(""); // Reset to default style
-	}
+	// ui.power_pb->setChecked(isOn);
+	// if (isOn)
+	// {
+	// 	ui.power_pb->setText("Power On");
+	// 	ui.power_pb->setStyleSheet("background-color: green; color: white;");
+	// }
+	// else
+	// {
+	// 	ui.power_pb->setText("Power Off");
+	// 	ui.power_pb->setStyleSheet(""); // Reset to default style
+	// }
 }
 
-void GrinderMainWindow::onHomedChanged(bool isHomed)
+void GrinderMainWindow::onHomedClicked()
 {
-	if (isHomed)
-	{
-		ui.home_all_pb->setText("Homed");
-		ui.home_all_pb->setStyleSheet("color: green;");
-	}
-	else
-	{
-		ui.home_all_pb->setText("Not Homed");
-		ui.home_all_pb->setStyleSheet("color: red;");
-	}
+	// if (isHomed)
+	// {
+	// 	ui.home_all_pb->setText("Homed");
+	// 	ui.home_all_pb->setStyleSheet("color: green;");
+	// }
+	// else
+	// {
+	// 	ui.home_all_pb->setText("Not Homed");
+	// 	ui.home_all_pb->setStyleSheet("color: red;");
+	// }
 }
 
 void GrinderMainWindow::onJogReleased()
