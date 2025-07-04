@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/config/grinder_touch_gui-x64",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}/config/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
