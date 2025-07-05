@@ -46,10 +46,13 @@ struct HalFloat : HalPin<double, HalFloat, double>
 {
 
 	hal_float_t **address;
+	
 	HalFloat(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<double, HalFloat, double>(aPin, aName, aDirection)
 	{
+		address = nullptr;
+
 		address = static_cast<hal_float_t **>(hal_malloc(sizeof(hal_float_t)));
-		if (address == nullptr)
+		if (address == nullptr || address == 0)
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for float pin: " + aName);
 		}
@@ -60,6 +63,8 @@ struct HalFloat : HalPin<double, HalFloat, double>
 								 direction,
 								 address,
 								 componentId) == 0);
+
+		**address = 0.0;
 	}
 
 	void Set(double aValue)
@@ -73,12 +78,14 @@ struct HalFloat : HalPin<double, HalFloat, double>
 	}
 };
 
-struct HalBit : HalPin<hal_bit_t, HalBit, bool>
+struct HalBit : HalPin<bool, HalBit, bool>
 {
-	HalBit(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_bit_t, HalBit, bool>(aPin, aName, aDirection)
+	HalBit(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<bool, HalBit, bool>(aPin, aName, aDirection)
 	{
+		address = nullptr;
+
 		address = static_cast<hal_bit_t **>(hal_malloc(sizeof(hal_bit_t)));
-		if (address == nullptr)
+		if (address == nullptr || address == 0)
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for bit pin: " + aName);
 		}
@@ -89,6 +96,8 @@ struct HalBit : HalPin<hal_bit_t, HalBit, bool>
 							   direction,
 							   address,
 							   componentId) == 0);
+
+		**address = false;
 	}
 
 	hal_bit_t **address;
@@ -133,22 +142,30 @@ struct HalBit : HalPin<hal_bit_t, HalBit, bool>
 // 	}
 // };
 
-struct HalU32 : HalPin<hal_u32_t, HalU32, uint32_t>
+struct HalU32 : HalPin<uint32_t, HalU32, uint32_t>
 {
-	HalU32(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<hal_u32_t, HalU32, uint32_t>(aPin, aName, aDirection)
+	HalU32(Pin aPin, std::string aName, hal_pin_dir_t aDirection, std::string componentName, int componentId) : HalPin<uint32_t, HalU32, uint32_t>(aPin, aName, aDirection)
 	{
+		address = nullptr;
+
 		address = static_cast<hal_u32_t **>(hal_malloc(sizeof(hal_u32_t)));
-		if (address == nullptr)
+		if (address == nullptr || address == 0)
 		{
 			throw std::runtime_error("Failed to allocate HAL shared memory for u32 pin: " + aName);
 		}
-
 		*address = nullptr;
-
 		assert(hal_pin_u32_new((componentName + "." + name).c_str(),
 							   direction,
 							   address,
 							   componentId) == 0);
+
+		assert(hal_signal_new((componentName + "_" + name + "_sig").c_str(),
+							   HAL_U32) == 0);
+
+		assert(hal_link((componentName + "." + name).c_str(),
+							   (componentName + "_" + name + "_sig").c_str()) == 0);
+
+		**address = 0;
 	}
 
 	hal_u32_t **address;
@@ -160,6 +177,8 @@ struct HalU32 : HalPin<hal_u32_t, HalU32, uint32_t>
 
 	uint32_t Get()
 	{
+		assert(address != nullptr && *address != nullptr);
+
 		return **address;
 	}
 };

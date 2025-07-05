@@ -294,14 +294,7 @@ void GrinderMainWindow::connectSignals()
 
 void GrinderMainWindow::onJogPressed(Axis axis, bool direction)
 {
-	// if (motion)
-	// {
-	// 	emit jog(axis, direction);
-	// }
-	// else
-	// {
-	// 	emit errorMessage("Grinder motion controller not initialized");
-	// }
+	emit jog(axis, direction);
 }
 
 void GrinderMainWindow::onEstopClicked()

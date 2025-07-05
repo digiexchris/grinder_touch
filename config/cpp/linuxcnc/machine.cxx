@@ -6,30 +6,6 @@
 
 Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monitor, this)
 {
-
-	hal.SetPin(Pin::ZDirection, true);
-	hal.SetPin(Pin::DownfeedNow, false);
-	// hal.SetPin(Pin::IsRunning, false);
-
-	// Setting to the defaults. Expect that the settings aren't loaded yet.
-	hal.SetPin(Pin::XMin, 0.0);
-	hal.SetPin(Pin::XMax, 0.0);
-	hal.SetPin(Pin::YMin, 0.0);
-	hal.SetPin(Pin::YMax, 0.0);
-	hal.SetPin(Pin::ZMin, 0.0);
-	hal.SetPin(Pin::ZMax, 0.0);
-	hal.SetPin(Pin::XSpeed, 0.0);
-	hal.SetPin(Pin::YSpeed, 0.0);
-	hal.SetPin(Pin::ZSpeed, 0.0);
-	hal.SetPin(Pin::ZCrossfeed, 0.0);
-	hal.SetPin(Pin::YDownfeed, 0.0);
-	// hal.SetPin(Pin::EnableX, false);
-	// hal.SetPin(Pin::EnableY, false);
-	// hal.SetPin(Pin::EnableZ, false);
-	// hal.SetPin(Pin::StopAtZLimit, false);
-	// hal.SetPin(Pin::CrossfeedAt, static_cast<uint32_t>(0));
-	// hal.SetPin(Pin::RepeatAt, static_cast<uint32_t>(0));
-
 	Settings *settings = aSettings.get();
 	connect(settings, &Settings::AnyPropertyChanged, this, &Machine::SetOnSignal);
 
@@ -106,7 +82,7 @@ void Machine::SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint
 
 bool Machine::isEstopActive()
 {
-	eStopState = (emcStatus->task.state == EMC_TASK_STATE_ESTOP);
+	eStopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
 	return eStopState;
 }
 
@@ -164,9 +140,9 @@ void Machine::Monitor(Machine *aMachine)
 				emit aMachine->positionChanged(aMachine->myPosition);
 			}
 
-			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE_ESTOP))
+			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP))
 			{
-				aMachine->eStopState = (emcStatus->task.state == EMC_TASK_STATE_ESTOP);
+				aMachine->eStopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
 				emit aMachine->estopChanged(aMachine->eStopState);
 			}
 		}

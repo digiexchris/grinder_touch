@@ -25,6 +25,10 @@ include_directories(
     /usr/include/linuxcnc
 )
 
+# Disable -Wvariadic-macros warning
+add_compile_options(-Wno-variadic-macros)
+add_compile_options(-Wno-gnu-statement-expression)
+
 # Define module directory
 set(LINUXCNC_MODULE_DIR /usr/lib/linuxcnc/modules)
 set(LINUXCNC_LIB_DIR /usr/lib/)

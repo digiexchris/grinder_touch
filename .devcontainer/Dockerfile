@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/devcontainers/cpp:debian-12
 RUN apt-get update \
         && export DEBIAN_FRONTEND=noninteractive \
         && apt-get -y install --no-install-recommends clang-format clangd  \
-        qt6-base-dev qt6-tools-dev qt6-base-dev-tools \
+        qt6-base-dev qt6-tools-dev libqt6opengl6-dev qt6-base-dev-tools \
                     libqt6core6 libqt6gui6 libqt6widgets6 \
                     cmake build-essential ninja-build \
                     binutils-dev libdw-dev \
-                    libunwind-19-dev libunwind-19 wget \
+                    libunwind-19-dev libunwind-19 wget libboost1.81-dev \
         && apt-get autoremove -y \
         && apt-get clean -y \
         && rm -rf /var/lib/apt/lists/*
