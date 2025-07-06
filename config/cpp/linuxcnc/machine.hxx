@@ -33,7 +33,6 @@ private:
 	void SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue);
 
 	Hal hal;
-	std::thread thread;
 	// int myShmFd = -1; // Shared memory file descriptor
 	// linuxcnc_status_t *myStatus = nullptr; // Pointer to the shared memory status structure
 

@@ -2,6 +2,7 @@
 #include "../pins.hxx"
 
 #include "shcom.hh"
+#include "status.hxx"
 #include <iostream>
 
 Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monitor, this)
@@ -22,9 +23,9 @@ Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monito
 
 Machine::~Machine()
 {
-	if (thread.joinable())
+	if (monitorThread.joinable())
 	{
-		thread.join();
+		monitorThread.join();
 	}
 }
 
@@ -106,6 +107,8 @@ void Machine::start()
 void Machine::Monitor(Machine *aMachine)
 {
 
+	bool isFirstStart = true;
+
 	while (42)
 	{
 		if (updateStatus() > 0)
@@ -135,15 +138,23 @@ void Machine::Monitor(Machine *aMachine)
 				positionChangedSinceLast = true;
 			}
 
-			if (positionChangedSinceLast)
+			if (positionChangedSinceLast || isFirstStart)
 			{
-				emit aMachine->positionChanged(aMachine->myPosition);
+				// Use QMetaObject::invokeMethod for thread-safe signal emission
+				QMetaObject::invokeMethod(aMachine, "positionChanged",
+										  Qt::QueuedConnection, Q_ARG(Position, aMachine->myPosition));
 			}
 
-			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP))
+			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP) || isFirstStart)
 			{
 				aMachine->eStopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
-				emit aMachine->estopChanged(aMachine->eStopState);
+				QMetaObject::invokeMethod(aMachine, "estopChanged",
+										  Qt::QueuedConnection, Q_ARG(bool, aMachine->eStopState));
+			}
+
+			if (isFirstStart)
+			{
+				isFirstStart = false;
 			}
 		}
 

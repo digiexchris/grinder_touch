@@ -19,6 +19,8 @@ struct Position
 		: x(x_val), y(y_val), z(z_val) {}
 };
 
+Q_DECLARE_METATYPE(Position)
+
 struct LinuxCncStatus
 {
 	bool isEstopActive = true;
