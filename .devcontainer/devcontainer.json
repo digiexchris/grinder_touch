@@ -23,6 +23,10 @@
 	"securityOpt": [
 		"seccomp=unconfined"
 	],
+	
+	"mounts": [
+		// "source=${localWorkspaceFolder}/linuxcnc-source,target=/usr/include/linuxcnc,type=bind"
+	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		// "ghcr.io/devcontainers/features/git:1": {} // // build the version corresponding to the default feature defined for current os image

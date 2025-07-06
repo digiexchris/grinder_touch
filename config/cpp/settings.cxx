@@ -36,18 +36,18 @@ SETTER_IMPL(bool, StopAtZLimit, StopAtZLimitChanged)
 SETTER_IMPL(uint32_t, CrossfeedAt, CrossfeedAtChanged)
 SETTER_IMPL(uint32_t, RepeatAt, RepeatAtChanged)
 SETTER_IMPL(bool, IsRunning, IsRunningChanged)
-SETTER_IMPL(double, DressStartX, DressStartXChanged)
-SETTER_IMPL(double, DressStartY, DressStartYChanged)
-SETTER_IMPL(double, DressStartZ, DressStartZChanged)
-SETTER_IMPL(double, DressEndX, DressEndXChanged)
-SETTER_IMPL(double, DressEndY, DressEndYChanged)
-SETTER_IMPL(double, DressEndZ, DressEndZChanged)
-SETTER_IMPL(double, DressStepoverX, DressStepoverXChanged)
-SETTER_IMPL(double, DressStepoverY, DressStepoverYChanged)
-SETTER_IMPL(double, DressStepoverZ, DressStepoverZChanged)
-SETTER_IMPL(double, DressWheelRpm, DressWheelRpmChanged)
-SETTER_IMPL(double, DressWheelDia, DressWheelDiaChanged)
-SETTER_IMPL(double, DressPointDia, DressPointDiaChanged)
+// SETTER_IMPL(double, DressStartX, DressStartXChanged)
+// SETTER_IMPL(double, DressStartY, DressStartYChanged)
+// SETTER_IMPL(double, DressStartZ, DressStartZChanged)
+// SETTER_IMPL(double, DressEndX, DressEndXChanged)
+// SETTER_IMPL(double, DressEndY, DressEndYChanged)
+// SETTER_IMPL(double, DressEndZ, DressEndZChanged)
+// SETTER_IMPL(double, DressStepoverX, DressStepoverXChanged)
+// SETTER_IMPL(double, DressStepoverY, DressStepoverYChanged)
+// SETTER_IMPL(double, DressStepoverZ, DressStepoverZChanged)
+// SETTER_IMPL(double, DressWheelRpm, DressWheelRpmChanged)
+// SETTER_IMPL(double, DressWheelDia, DressWheelDiaChanged)
+// SETTER_IMPL(double, DressPointDia, DressPointDiaChanged)
 
 void Settings::SetDressOffsetGcodeQString(const QString &aDressOffsetGcode)
 {
@@ -155,32 +155,32 @@ void Settings::FromJson(const nlohmann::json &aJ)
 		SetRepeatAt(aJ["repeat_at"].get<uint32_t>());
 	if (aJ.contains("is_running"))
 		SetIsRunning(aJ["is_running"].get<bool>());
-	if (aJ.contains("dress_start_x"))
-		SetDressStartX(aJ["dress_start_x"].get<double>());
-	if (aJ.contains("dress_start_y"))
-		SetDressStartY(aJ["dress_start_y"].get<double>());
-	if (aJ.contains("dress_start_z"))
-		SetDressStartZ(aJ["dress_start_z"].get<double>());
-	if (aJ.contains("dress_end_x"))
-		SetDressEndX(aJ["dress_end_x"].get<double>());
-	if (aJ.contains("dress_end_y"))
-		SetDressEndY(aJ["dress_end_y"].get<double>());
-	if (aJ.contains("dress_end_z"))
-		SetDressEndZ(aJ["dress_end_z"].get<double>());
-	if (aJ.contains("dress_stepover_x"))
-		SetDressStepoverX(aJ["dress_stepover_x"].get<double>());
-	if (aJ.contains("dress_stepover_y"))
-		SetDressStepoverY(aJ["dress_stepover_y"].get<double>());
-	if (aJ.contains("dress_stepover_z"))
-		SetDressStepoverZ(aJ["dress_stepover_z"].get<double>());
-	if (aJ.contains("dress_wheel_rpm"))
-		SetDressWheelRpm(aJ["dress_wheel_rpm"].get<double>());
-	if (aJ.contains("dress_wheel_dia"))
-		SetDressWheelDia(aJ["dress_wheel_dia"].get<double>());
-	if (aJ.contains("dress_point_dia"))
-		SetDressPointDia(aJ["dress_point_dia"].get<double>());
-	if (aJ.contains("dress_offset_gcode"))
-		SetDressOffsetGcode(QString::fromStdString(aJ["dress_offset_gcode"].get<std::string>()));
+	// if (aJ.contains("dress_start_x"))
+	// 	SetDressStartX(aJ["dress_start_x"].get<double>());
+	// if (aJ.contains("dress_start_y"))
+	// 	SetDressStartY(aJ["dress_start_y"].get<double>());
+	// if (aJ.contains("dress_start_z"))
+	// 	SetDressStartZ(aJ["dress_start_z"].get<double>());
+	// if (aJ.contains("dress_end_x"))
+	// 	SetDressEndX(aJ["dress_end_x"].get<double>());
+	// if (aJ.contains("dress_end_y"))
+	// 	SetDressEndY(aJ["dress_end_y"].get<double>());
+	// if (aJ.contains("dress_end_z"))
+	// 	SetDressEndZ(aJ["dress_end_z"].get<double>());
+	// if (aJ.contains("dress_stepover_x"))
+	// 	SetDressStepoverX(aJ["dress_stepover_x"].get<double>());
+	// if (aJ.contains("dress_stepover_y"))
+	// 	SetDressStepoverY(aJ["dress_stepover_y"].get<double>());
+	// if (aJ.contains("dress_stepover_z"))
+	// 	SetDressStepoverZ(aJ["dress_stepover_z"].get<double>());
+	// if (aJ.contains("dress_wheel_rpm"))
+	// 	SetDressWheelRpm(aJ["dress_wheel_rpm"].get<double>());
+	// if (aJ.contains("dress_wheel_dia"))
+	// 	SetDressWheelDia(aJ["dress_wheel_dia"].get<double>());
+	// if (aJ.contains("dress_point_dia"))
+	// 	SetDressPointDia(aJ["dress_point_dia"].get<double>());
+	// if (aJ.contains("dress_offset_gcode"))
+	// 	SetDressOffsetGcode(QString::fromStdString(aJ["dress_offset_gcode"].get<std::string>()));
 }
 
 // --- SettingsManager ---
