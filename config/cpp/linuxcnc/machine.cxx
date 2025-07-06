@@ -5,6 +5,9 @@
 #include "status.hxx"
 #include <iostream>
 
+#include <emc_nml.hh>
+#include <linuxcnc.h>
+
 Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monitor, this)
 {
 	Settings *settings = aSettings.get();
@@ -23,10 +26,7 @@ Machine::Machine(std::shared_ptr<Settings> aSettings) // thread(&Machine::Monito
 
 Machine::~Machine()
 {
-	if (monitorThread.joinable())
-	{
-		monitorThread.join();
-	}
+	stop();
 }
 
 void Machine::SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue)
@@ -83,8 +83,27 @@ void Machine::SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint
 
 bool Machine::isEstopActive()
 {
-	eStopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
-	return eStopState;
+	myEstopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
+	return myEstopState;
+}
+
+void Machine::homeAll()
+{
+	sendHome(0);
+	sendHome(1);
+	sendHome(2);
+}
+
+void Machine::setPower(bool isOn)
+{
+	if (isOn)
+	{
+		sendMachineOff();
+	}
+	else
+	{
+		sendMachineOn();
+	}
 }
 
 void Machine::setEstop(bool isActive)
@@ -101,7 +120,17 @@ void Machine::setEstop(bool isActive)
 
 void Machine::start()
 {
+	myShouldMonitor = true;
 	monitorThread = std::thread(&Monitor, this);
+}
+
+void Machine::stop()
+{
+	myShouldMonitor = false;
+	if (monitorThread.joinable())
+	{
+		monitorThread.join();
+	}
 }
 
 void Machine::Monitor(Machine *aMachine)
@@ -109,7 +138,7 @@ void Machine::Monitor(Machine *aMachine)
 
 	bool isFirstStart = true;
 
-	while (42)
+	while (aMachine->myShouldMonitor)
 	{
 		if (updateStatus() > 0)
 		{
@@ -145,19 +174,43 @@ void Machine::Monitor(Machine *aMachine)
 										  Qt::QueuedConnection, Q_ARG(Position, aMachine->myPosition));
 			}
 
-			if (aMachine->eStopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP) || isFirstStart)
+			if (aMachine->myEstopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP) || isFirstStart)
 			{
-				aMachine->eStopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
+				aMachine->myEstopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
 				QMetaObject::invokeMethod(aMachine, "estopChanged",
-										  Qt::QueuedConnection, Q_ARG(bool, aMachine->eStopState));
+										  Qt::QueuedConnection, Q_ARG(bool, aMachine->myEstopState));
 			}
 
+			if (aMachine->myPowerState != (emcStatus->task.state == EMC_TASK_STATE::ON) || isFirstStart)
+			{
+				aMachine->myPowerState = (emcStatus->task.state == EMC_TASK_STATE::ON);
+				QMetaObject::invokeMethod(aMachine, "powerChanged",
+										  Qt::QueuedConnection, Q_ARG(bool, aMachine->myPowerState));
+			}
+
+			if ((
+					aMachine->myIsHomed[0] != (emcStatus->motion.joint[0].homed != 0) ||
+					aMachine->myIsHomed[1] != (emcStatus->motion.joint[1].homed != 0) ||
+					aMachine->myIsHomed[2] != (emcStatus->motion.joint[2].homed != 0)) ||
+				isFirstStart)
+			{
+				aMachine->myIsHomed[0] = (emcStatus->motion.joint[0].homed != 0);
+				aMachine->myIsHomed[1] = (emcStatus->motion.joint[1].homed != 0);
+				aMachine->myIsHomed[2] = (emcStatus->motion.joint[2].homed != 0);
+			}
+
+			bool homed = aMachine->myIsHomed[0] && aMachine->myIsHomed[1] && aMachine->myIsHomed[2];
+			if (aMachine->myAllHomed != homed || isFirstStart)
+			{
+				aMachine->myAllHomed = homed;
+				QMetaObject::invokeMethod(aMachine, "homeChanged",
+										  Qt::QueuedConnection, Q_ARG(bool, aMachine->myAllHomed));
+			}
 			if (isFirstStart)
 			{
 				isFirstStart = false;
 			}
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Adjust the sleep duration as needed
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }

@@ -12,7 +12,16 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/config/",
-            "environment": [],
+            "environment": [
+                // {
+                //     "name": "QT_QPA_PLATFORM",
+                //     "value": "wayland"
+                // },
+                // {
+                //     "name": "DISPLAY",
+                //     "value": ":0"
+                // }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

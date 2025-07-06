@@ -40,10 +40,16 @@ public slots:
 	void onErrorMessage(const QString &message);
 	void onWarningMessage(const QString &message);
 	void onPositionChanged(const Position &pos);
+
 	void onEstopClicked();
 	void onEstopChanged(bool isActive);
+
 	void onPowerClicked();
-	void onHomedClicked();
+	void onPowerChanged(bool isOn);
+
+	void onHomeClicked();
+	void onHomeChanged(bool isHomed);
+
 
 protected:
 	// signal processing

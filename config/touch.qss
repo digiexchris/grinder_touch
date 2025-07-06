@@ -124,7 +124,6 @@ QMenuBar {
     background-color: black; color: white;
     spacing: 3px;
 	border: white;
-	border-spacing: 3px;
 	}
 
 QDoubleSpinBox, QSpinbox, QSlider, QLabel#spindle_actual_speed_lb {
@@ -202,7 +201,7 @@ QPushButton:checked {
 	border-style: inset;
 	}
 QPushButton:unchecked {
-	background-color: darkgray; border none;
+	background-color: rgba(192, 0, 0, 40%); border none;
 	border-style: inset;
 	}
 
@@ -268,7 +267,19 @@ QPushButton#estop_pb:pressed {
 	background-color: rgba(192, 0, 0, 80%); color: white; 
 	}
 
+QPushButton#estop_pb:on {
+	background-color: rgba(192, 0, 0, 60%); color: white; 
+	}
+
 QPushButton#estop_pb:off {
+	background-color: rgba(0, 192, 0, 60%); color: white; 
+	}
+
+QPushButton#power_pb:open {
+	background-color: rgba(0, 192, 0, 60%); color: white; 
+	}
+
+QPushButton#power_pb:closed {
 	background-color: rgba(192, 0, 0, 60%); color: white; 
 	}
 

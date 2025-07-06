@@ -16,7 +16,10 @@
         "--cap-add=SYS_PTRACE",
         "--security-opt",
         "seccomp=unconfined",
-        "--privileged"
+        "--privileged",
+		"--device=/dev/dri",
+		"--env=WAYLAND_DISPLAY=${localEnv:WAYLAND_DISPLAY}",
+		"--network=host"
     ],
 
 	// Set container security options
@@ -26,6 +29,7 @@
 	
 	"mounts": [
 		// "source=${localWorkspaceFolder}/linuxcnc-source,target=/usr/include/linuxcnc,type=bind"
+		"source=${localEnv:XAUTHORITY},target=/home/vscode/.Xauthority,type=bind,consistency=cached"
 	],
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {

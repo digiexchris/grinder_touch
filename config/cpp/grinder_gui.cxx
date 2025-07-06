@@ -156,10 +156,13 @@ void GrinderMainWindow::connectSignals()
 	// Machine status
 	connect(ui.quit_pb, &QPushButton::clicked, this, &GrinderMainWindow::onExitClicked);
 	connect(ui.estop_pb, &QPushButton::clicked, this, &GrinderMainWindow::onEstopClicked);
-	// connect(machine, &Machine::positionChanged, this, &GrinderMainWindow::onPositionChanged);
-	// connect(machine, &Machine::estopChanged, this, &GrinderMainWindow::onEstopChanged);
+	connect(machine, &Machine::estopChanged, this, &GrinderMainWindow::onEstopChanged);
+
 	connect(ui.power_pb, &QPushButton::clicked, this, &GrinderMainWindow::onPowerClicked);
-	connect(ui.home_all_pb, &QPushButton::clicked, this, &GrinderMainWindow::onHomedClicked);
+	connect(machine, &Machine::powerChanged, this, &GrinderMainWindow::onPowerChanged);
+
+	connect(ui.home_all_pb, &QPushButton::clicked, this, &GrinderMainWindow::onHomeClicked);
+	connect(machine, &Machine::homeChanged, this, &GrinderMainWindow::onHomeChanged);
 
 	// Grind Parameters
 
@@ -316,31 +319,52 @@ void GrinderMainWindow::onEstopChanged(bool isActive)
 
 void GrinderMainWindow::onPowerClicked()
 {
-	// ui.power_pb->setChecked(isOn);
-	// if (isOn)
-	// {
-	// 	ui.power_pb->setText("Power On");
-	// 	ui.power_pb->setStyleSheet("background-color: green; color: white;");
-	// }
-	// else
-	// {
-	// 	ui.power_pb->setText("Power Off");
-	// 	ui.power_pb->setStyleSheet(""); // Reset to default style
-	// }
+	if (!machine->isOn())
+	{
+		machine->setPower(true);
+	}
+	else
+	{
+		machine->setPower(false);
+	}
 }
 
-void GrinderMainWindow::onHomedClicked()
+void GrinderMainWindow::onPowerChanged(bool isOn)
 {
-	// if (isHomed)
-	// {
-	// 	ui.home_all_pb->setText("Homed");
-	// 	ui.home_all_pb->setStyleSheet("color: green;");
-	// }
-	// else
-	// {
-	// 	ui.home_all_pb->setText("Not Homed");
-	// 	ui.home_all_pb->setStyleSheet("color: red;");
-	// }
+	ui.power_pb->setChecked(isOn);
+	if (isOn)
+	{
+		ui.power_pb->setText("Power On");
+	}
+	else
+	{
+		ui.power_pb->setText("Power Off");
+	}
+}
+
+void GrinderMainWindow::onHomeClicked()
+{
+	if (!machine->isHomed())
+	{
+		machine->homeAll();
+	}
+	else
+	{
+		// machine->unhomeAll();
+	}
+}
+
+void GrinderMainWindow::onHomeChanged(bool isHomed)
+{
+	ui.home_all_pb->setChecked(isHomed);
+	if (isHomed)
+	{
+		ui.home_all_pb->setText("Homed");
+	}
+	else
+	{
+		ui.home_all_pb->setText("Home All");
+	}
 }
 
 void GrinderMainWindow::onJogReleased()

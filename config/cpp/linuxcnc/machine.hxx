@@ -18,14 +18,20 @@ public:
 	~Machine();
 
 	void start();
+	void stop();
 
 	bool isEstopActive();
-
+	bool isHomed() const { return myAllHomed; }
+	bool isOn() const { return myPowerState; }
+	void homeAll();
+	void setPower(bool isOn);
 	void setEstop(bool isActive);
 
 signals:
 	void positionChanged(Position aPosition);
 	void estopChanged(bool isActive);
+	void powerChanged(bool isOn);
+	void homeChanged(bool isHomed);
 
 private:
 	static void Monitor(Machine *aMachine);
@@ -33,11 +39,15 @@ private:
 	void SetOnSignal(Pin aPin, std::variant<bool, double, std::string, uint32_t> aValue);
 
 	Hal hal;
-	// int myShmFd = -1; // Shared memory file descriptor
-	// linuxcnc_status_t *myStatus = nullptr; // Pointer to the shared memory status structure
 
 	Position myPosition = {0.0, 0.0, 0.0}; // X, Y, Z positions
-	bool eStopState = false;
+	bool myEstopState = false;
+	bool myIsHomed[3] = {false, false, false}; // X, Y, Z homed states
+	bool myAllHomed = false;
+
+	bool myPowerState = false;
+
+	bool myShouldMonitor = true;
 
 	std::thread monitorThread;
 };
