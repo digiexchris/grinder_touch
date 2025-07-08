@@ -315,17 +315,26 @@ void GrinderMainWindow::onEstopClicked()
 void GrinderMainWindow::onEstopChanged(bool isActive)
 {
 	ui.estop_pb->setChecked(isActive);
+
+	if (isActive)
+	{
+		ui.power_pb->setEnabled(false);
+	}
+	else
+	{
+		ui.power_pb->setEnabled(true);
+	}
 }
 
 void GrinderMainWindow::onPowerClicked()
 {
-	if (!machine->isOn())
+	if (machine->isOn())
 	{
-		machine->setPower(true);
+		machine->setPower(false);
 	}
 	else
 	{
-		machine->setPower(false);
+		machine->setPower(true);
 	}
 }
 
@@ -335,10 +344,12 @@ void GrinderMainWindow::onPowerChanged(bool isOn)
 	if (isOn)
 	{
 		ui.power_pb->setText("Power On");
+		ui.home_all_pb->setEnabled(true);
 	}
 	else
 	{
 		ui.power_pb->setText("Power Off");
+		ui.home_all_pb->setEnabled(false);
 	}
 }
 
@@ -360,6 +371,7 @@ void GrinderMainWindow::onHomeChanged(bool isHomed)
 	if (isHomed)
 	{
 		ui.home_all_pb->setText("Homed");
+		ui.home_all_pb->setEnabled(false);
 	}
 	else
 	{

@@ -98,11 +98,11 @@ void Machine::setPower(bool isOn)
 {
 	if (isOn)
 	{
-		sendMachineOff();
+		sendMachineOn();
 	}
 	else
 	{
-		sendMachineOn();
+		sendMachineOff();
 	}
 }
 
@@ -174,18 +174,45 @@ void Machine::Monitor(Machine *aMachine)
 										  Qt::QueuedConnection, Q_ARG(Position, aMachine->myPosition));
 			}
 
-			if (aMachine->myEstopState != (emcStatus->task.state == EMC_TASK_STATE::ESTOP) || isFirstStart)
 			{
-				aMachine->myEstopState = (emcStatus->task.state == EMC_TASK_STATE::ESTOP);
-				QMetaObject::invokeMethod(aMachine, "estopChanged",
-										  Qt::QueuedConnection, Q_ARG(bool, aMachine->myEstopState));
-			}
+				EMC_TASK_STATE taskState = emcStatus->task.state;
 
-			if (aMachine->myPowerState != (emcStatus->task.state == EMC_TASK_STATE::ON) || isFirstStart)
-			{
-				aMachine->myPowerState = (emcStatus->task.state == EMC_TASK_STATE::ON);
-				QMetaObject::invokeMethod(aMachine, "powerChanged",
-										  Qt::QueuedConnection, Q_ARG(bool, aMachine->myPowerState));
+				bool newEstopState = false;
+				bool newPowerState = false;
+
+				switch (taskState)
+				{
+				case EMC_TASK_STATE::ON:
+					newEstopState = false;
+					newPowerState = true;
+					break;
+				case EMC_TASK_STATE::ESTOP:
+					newEstopState = true;
+					newPowerState = false;
+					break;
+				case EMC_TASK_STATE::OFF:
+					newEstopState = false;
+					newPowerState = false;
+					break;
+				case EMC_TASK_STATE::ESTOP_RESET:
+					newEstopState = false;
+					newPowerState = false;
+					break;
+				}
+
+				if (aMachine->myEstopState != newEstopState || isFirstStart)
+				{
+					aMachine->myEstopState = newEstopState;
+					QMetaObject::invokeMethod(aMachine, "estopChanged",
+											  Qt::QueuedConnection, Q_ARG(bool, aMachine->myEstopState));
+				}
+
+				if (aMachine->myPowerState != newPowerState || isFirstStart)
+				{
+					aMachine->myPowerState = newPowerState;
+					QMetaObject::invokeMethod(aMachine, "powerChanged",
+											  Qt::QueuedConnection, Q_ARG(bool, aMachine->myPowerState));
+				}
 			}
 
 			if ((

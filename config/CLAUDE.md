@@ -78,7 +78,7 @@ cd config
 
 3. **Hal** (`linuxcnc/hal.hxx/.cxx`) - Hardware abstraction layer
    - HAL pin management and communication
-   - Template-based pin types (HalFloat, HalBit, HalU32)
+   - Template-based pin type abstractions (HalFloat, HalBit, HalU32)
    - Component registration and lifecycle
 
 4. **Settings** (`settings.hxx/.cxx`) - Configuration management
@@ -96,8 +96,7 @@ cd config
 - `config/cpp/` - C++ Qt6 application source (active development)
 - `config/python/` - **DEPRECATED** - Legacy Python backend components
 - `config/subroutines/` - G-code subroutines for grinder operations
-- `config/m_codes/` - Custom M-code implementations
-- `config/linuxcnc/` - LinuxCNC integration code (C++ only)
+- `config/m_codes/` - Custom M-code implementations used by subroutines
 
 ## Development Workflow
 
@@ -106,6 +105,18 @@ cd config
 - Qt6 signal/slot architecture
 - RAII for resource management
 - Template-based HAL pin system
+- New code should follow the following style:
+-- Classes and Variables
+--- class names begin with a capital, and use CamelCase
+--- public/protected class member methods begin with a capital, and use CamelCase.
+--- private class methods are prefixed with Priv eg. PrivHandle()
+--- all variables are start with a lower case and are camel case.
+--- class member variables start with a lower case, are prefixed with my, and are camelCase eg. myHandleFunc
+--- class method arguments are lower case and are prefixed with a or an, eg. aName
+--- variables created and used only within the method should not start with my, an, or a.
+-- Control and scope blocks
+--- All if statements must use braces, including single line ifs.
+--- Braces should be on their own line, and code following the brace should be on a new line. Nested with 4 space tabs.
 
 ### Testing Changes
 1. Build with CMake presets: `cmake --preset clang-debug && cmake --build --preset clang-debug`
@@ -129,14 +140,11 @@ SUBROUTINE_PATH=subroutines
 USER_M_PATH=m_codes
 ```
 
-**Note:** The `[FLEX]` section is deprecated as the project no longer uses FlexGUI/Python components.
-
 ### HAL Component
 The application registers as a HAL component named "grinder" with pins for:
 - Axis limits and speeds
 - Grind cycle control
-- Wheel dressing operations
-- Position feedback
+- Wheel dressing operations (in progress)
 
 ## UI System
 

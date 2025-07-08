@@ -245,19 +245,6 @@ QSlider::handle:horizontal {
     margin: -15px 0px;
     }
 
-/* ********** Op Stop RED ********** */
-QPushButton#optional_stop_pb:hover {
-	background-color: rgba(192, 0, 0, 40%); color: white; 
-	}
-
-QPushButton#optional_stop_pb:pressed {
-	background-color: rgba(192, 0, 0, 80%); color: white; 
-	}
-
-QPushButton#optional_stop_pb:on {
-	background-color: rgba(192, 0, 0, 60%); color: white; 
-	}
-
 /* ********** E Stop RED ********** */
 QPushButton#estop_pb:hover {
 	background-color: rgba(192, 0, 0, 40%); color: white; 
@@ -268,18 +255,20 @@ QPushButton#estop_pb:pressed {
 	}
 
 QPushButton#estop_pb:on {
-	background-color: rgba(192, 0, 0, 60%); color: white; 
+	background-color: rgba(192, 0, 0, 40%); color: white; 
 	}
 
 QPushButton#estop_pb:off {
+	background-color: rgba(0, 192, 0, 40%); color: white; 
+	}
+
+/* ************ Power *********** */
+
+QPushButton#power_pb:checked {
 	background-color: rgba(0, 192, 0, 60%); color: white; 
 	}
 
-QPushButton#power_pb:open {
-	background-color: rgba(0, 192, 0, 60%); color: white; 
-	}
-
-QPushButton#power_pb:closed {
+QPushButton#power_pb:!checked {
 	background-color: rgba(192, 0, 0, 60%); color: white; 
 	}
 
